@@ -1,0 +1,19 @@
+[ignore]
+<PROJECT_ROOT>/node_modules/.*
+<PROJECT_ROOT>/vendor/.*
+
+[include]
+
+[libs]
+
+[lints]
+
+[options]
+suppress_comment= \\(.\\|\n\\)*\\flow-disable-line
+esproposal.optional_chaining=enable
+esproposal.decorators=ignore
+esproposal.nullish_coalescing=enable
+module.name_mapper='^universe\/.*$' -> '<PROJECT_ROOT>/src/_flow-defs.js'
+module.name_mapper='^\.\/src\/.*$' -> '<PROJECT_ROOT>/src/_flow-defs.js'
+
+[strict]
