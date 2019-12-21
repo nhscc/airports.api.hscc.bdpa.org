@@ -8,7 +8,7 @@
   "version": "0.0.1",
   "scripts": {
     "init": "npx gulp eject",
-    "dev": "npx next",
+    "dev": "npx next -p 3002",
     "build": "npx next build",
     "start": "npx next start",
     "test": "npx jest",
