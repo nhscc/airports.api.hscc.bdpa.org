@@ -3,7 +3,7 @@
   "description": "https://airlines.xunn.io",
   "repository": {
     "type": "git",
-    "url": "https://git.xunn.io/open-source/web-mirrored/airlines.xunn.io"
+    "url": "https://github.com/open-source/web-mirrored/airlines.xunn.io"
   },
   "version": "0.0.1",
   "scripts": {
