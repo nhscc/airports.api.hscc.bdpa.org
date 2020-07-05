@@ -11,8 +11,10 @@ following the instructions below.
 If you run into any issues or find any bugs, please [report
 them](https://github.com/nhscc/airports.api.hscc.bdpa.org/issues/new)!
 
-Root URI: https://airports.api.hscc.bdpa.org/v1  
-Documentation and playground with examples: https://airportshscc.docs.apiary.io
+Version 1 root URI: https://airports.api.hscc.bdpa.org/v1  
+Version 2 root URI: https://airports.api.hscc.bdpa.org/v2  
+Version 1 documentation and playground with examples: https://hsccdfbb7244.docs.apiary.io
+Version 2 documentation and playground with examples: https://hscc210ff8c0.docs.apiary.io
 
 ## Running a local version of the API
 
@@ -57,6 +59,10 @@ MongoDB instance). Follow the instructions below:
    (details below) using your browser to finish setting up the database
    * If you're using MongoDB Compass, you'll be able to visually explore the
      dummy database's data
+   > Note: to enable stochastic flight generation, you must hydrate the database.
+   > Stochastic flight generation is only available when the API is run in
+   > development mode. In production, the functionality is provided by the atlas
+   > script instead.
 8. You can now interact with the API using your browser,
    [Postman](https://www.postman.com/), or otherwise
    * You should see a line on the console that looks like `ready - started
@@ -73,6 +79,10 @@ To get a list of possible actions, run the following from your terminal:
 ```
 $ npm run list-tasks
 ```
+
+## Stochastic flight generation
+
+(explain how it works) (include drawn image)
 
 ## Project structure
 

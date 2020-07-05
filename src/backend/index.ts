@@ -28,6 +28,7 @@ let requestCounter = 0;
 
 export const MIN_RESULT_PER_PAGE = 15;
 export const NULL_KEY = '00000000-0000-0000-0000-000000000000';
+export const DUMMY_KEY = '12349b61-83a7-4036-b060-213784b491';
 
 export async function isKeyAuthentic(key: string): Promise<boolean> {
     if(!key || typeof key != 'string')

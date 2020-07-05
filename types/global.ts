@@ -1,7 +1,100 @@
-import type { ObjectId, WithId } from 'mongodb'
+import type { ObjectId } from 'mongodb'
 
 // ? Access types shared between projects from `types/global` too
 export * from './_shared';
+
+export type FlightId = ObjectId;
+export type ChapterId = ObjectId;
+export type FlightNumber = string;
+
+export type StochasticFlightState = {
+    depart_from_sender: number;
+    arrive_at_receiver: number;
+    depart_from_receiver: number | null;
+    status: 'past' | 'scheduled' | 'cancelled' | 'delayed' | 'on time' | 'landed' | 'arrived' | 'boarding' | 'departed';
+    gate: string | null;
+};
+
+/**
+ * The shape of a flight entry.
+ */
+export type InternalFlight = {
+    booker_id: ChapterId; // ? The chapter allowed to book tickets for this flight
+    type: 'arrival' | 'departure';
+    past_after: { // ? Determine when the flight is "past"/"cancelled" without any further calculations
+        time: number;
+        status: 'past' | 'cancelled';
+    },
+    airline: string;
+    senderAirport: string;
+    receiverAirport: string;
+    flightNumber: FlightNumber;
+    baggage: {
+        checked: {
+            max: number;
+            prices: number[];
+        };
+        carry: {
+            max: number;
+            prices: number[];
+        };
+    };
+    ffms: number;
+    seats: {
+        [seatClass in 'economy' | 'economyPlus' | 'exitRow' | 'firstClass']: {
+            total: number;
+            priceDollars: number;
+            priceFfms: number;
+        }
+    },
+    extras: {
+        [name in 'wifi' | 'pillow' | 'blanket' | 'headphones' | 'extra food']?: {
+            priceDollars: number;
+            priceFfms: number;
+        }
+    };
+    stochasticStates: {
+        [active_after: number]: StochasticFlightState;
+    };
+};
+
+/**
+ * The shape of an airport entry.
+ */
+export type InternalAirport = {
+    name: string;
+    shortName: string;
+    city: string;
+    state: string;
+    country: string;
+    chapter_id: ChapterId;
+};
+
+/**
+ * The shape of a no-fly-list entry.
+ */
+export type NoFlyListEntry = {
+    name: {
+        first: string;
+        middle: string | null;
+        last: string;
+    },
+    sex: 'male' | 'female';
+    birthdate: {
+        day: number;
+        month: number;
+        year: number;
+    }
+};
+
+/**
+ * The shape of an airline entry.
+ */
+export type InternalAirline = {
+    name: string;
+    codePrefix: string;
+};
+
 
 /**
  * The shape of an API key.

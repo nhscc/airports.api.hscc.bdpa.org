@@ -1,13 +1,20 @@
 import { MongoClient, Db } from 'mongodb'
-import { getEnv } from 'universe/backend/env';
+import { getEnv } from 'universe/backend/env'
+import * as Time from 'multiverse/relative-random-time'
+import { shuffle } from 'fast-shuffle'
+import randomInt from 'random-int'
+import uniqueRandomArray from 'unique-random-array'
 
 let db: Db | null = null;
+
+export const SeatClasses = ['economy', 'economy plus', 'exit row', 'first class'];
+export const AllExtras = ['wifi', 'pillow', 'blanket', 'headphones', 'extra food'];
 
 /**
  * Used to lazily create the database once on-demand instead of immediately when
  * the app runs.
  */
-export async function getDb(): Promise<Db> {
+export async function getDb() {
     db = db || (await MongoClient.connect(getEnv().MONGODB_URI, { useUnifiedTopology: true })).db();
     return db;
 }
@@ -15,7 +22,7 @@ export async function getDb(): Promise<Db> {
 /**
  * Used for testing purposes. Sets the global db instance to something else.
  */
-export function setDb(newDB: Db): void { db = newDB; }
+export function setDb(newDB: Db) { db = newDB; }
 
 /**
  * Destroys all collections in the database. Can be called multiple times
@@ -36,7 +43,7 @@ export async function destroyDb(db: Db) {
 /**
  * This function is idempotent and can be called without worry of data loss.
  */
-export async function initializeDb(db: Db): Promise<void> {
+export async function initializeDb(db: Db) {
     // TODO: Add validation rules during createCollection phase
     // TODO: Make an index over key in keys (if not exists)
 
@@ -49,4 +56,9 @@ export async function initializeDb(db: Db): Promise<void> {
         db.createCollection('airlines'),
         db.createCollection('no-fly-list'),
     ]);
+}
+
+export async function generateFlightsForHour(db: Db, epochHour: number) {
+    void db;
+    void epochHour;
 }

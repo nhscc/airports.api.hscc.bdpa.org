@@ -41,6 +41,9 @@ module.exports = () => {
         // ? client.
         // !! DO NOT PUT ANY SECRET ENVIRONMENT VARIABLES HERE !!
         env: {
+            FLIGHTS_GENERATE_DAYS: process.env.FLIGHTS_GENERATE_DAYS,
+            AIRPORT_NUM_OF_GATE_LETTERS: process.env.AIRPORT_NUM_OF_GATE_LETTERS,
+            AIRPORT_GATE_NUMBERS_PER_LETTER: process.env.AIRPORT_GATE_NUMBERS_PER_LETTER,
             RESULTS_PER_PAGE: process.env.RESULTS_PER_PAGE,
             IGNORE_RATE_LIMITS: process.env.IGNORE_RATE_LIMITS,
             LOCKOUT_ALL_KEYS: process.env.LOCKOUT_ALL_KEYS,

@@ -1,9 +1,10 @@
 import { setupJest } from 'universe/__test__/db'
 import { testApiEndpoint } from 'multiverse/test-api-endpoint'
+import { DUMMY_KEY } from 'universe/backend'
 import * as Middleware from 'universe/backend/middleware'
 import { getEnv } from 'universe/backend/env'
 import { populateEnv } from 'universe/dev-utils'
-import shuffle from 'fast-shuffle'
+import { shuffle } from 'fast-shuffle'
 
 import type { TestParams } from 'multiverse/test-api-endpoint'
 import type { NextApiRequest, NextApiResponse } from 'next'
@@ -48,7 +49,7 @@ describe('universe/backend/middleware', () => {
             const getStatus = async (res: Promise<Response>) => (await res).status;
 
             await testApiEndpoint({
-                requestPatcher: req => req.headers.key = '5db4c4d3-294a-4086-9751-f3fce82d11e4',
+                requestPatcher: req => req.headers.key = DUMMY_KEY,
                 next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     req, res,
                     methods: ['GET', 'POST', 'PUT', 'DELETE']
@@ -83,7 +84,7 @@ describe('universe/backend/middleware', () => {
 
         it('responds with 501 not implemented when required', async () => {
             await testApiEndpoint({
-                requestPatcher: req => req.headers.key = '5db4c4d3-294a-4086-9751-f3fce82d11e4',
+                requestPatcher: req => req.headers.key = DUMMY_KEY,
                 next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(async () => undefined, {
                     req, res,
                     methods: ['GET']
@@ -105,7 +106,7 @@ describe('universe/backend/middleware', () => {
                     req.headers = {
                         ...req.headers,
                         'x-forwarded-for': '10.0.0.115',
-                        'key': '5db4c4d3-294a-4086-9751-f3fce82d11e4'
+                        'key': DUMMY_KEY
                     };
 
                     req.url = '/api/v1/handlerX';
@@ -132,28 +133,28 @@ describe('universe/backend/middleware', () => {
                     expect(logs).toIncludeAllMembers([
                         {
                             ip: '10.0.0.115',
-                            key: '5db4c4d3-294a-4086-9751-f3fce82d11e4',
+                            key: DUMMY_KEY,
                             method: 'GET',
                             route: 'v1/handlerX',
                             resStatusCode: 502
                         },
                         {
                             ip: '10.0.0.115',
-                            key: '5db4c4d3-294a-4086-9751-f3fce82d11e4',
+                            key: DUMMY_KEY,
                             method: 'POST',
                             route: 'v1/handlerX',
                             resStatusCode: 404
                         },
                         {
                             ip: '10.0.0.115',
-                            key: '5db4c4d3-294a-4086-9751-f3fce82d11e4',
+                            key: DUMMY_KEY,
                             method: 'PUT',
                             route: 'v1/handlerX',
                             resStatusCode: 403
                         },
                         {
                             ip: '10.0.0.115',
-                            key: '5db4c4d3-294a-4086-9751-f3fce82d11e4',
+                            key: DUMMY_KEY,
                             method: 'DELETE',
                             route: 'v1/handlerX',
                             resStatusCode: 200
@@ -165,7 +166,7 @@ describe('universe/backend/middleware', () => {
 
         it('sends 405 when encountering unlisted methods', async () => {
             await testApiEndpoint({
-                requestPatcher: req => req.headers.key = '5db4c4d3-294a-4086-9751-f3fce82d11e4',
+                requestPatcher: req => req.headers.key = DUMMY_KEY,
                 next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     req, res,
                     methods: ['POST', 'PUT']
@@ -183,7 +184,7 @@ describe('universe/backend/middleware', () => {
             process.env.DISALLOWED_METHODS = 'POST,PUT,DELETE';
 
             await testApiEndpoint({
-                requestPatcher: req => req.headers.key = '5db4c4d3-294a-4086-9751-f3fce82d11e4',
+                requestPatcher: req => req.headers.key = DUMMY_KEY,
                 next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     req, res,
                     methods: ['POST', 'PUT', 'GET', 'DELETE']
@@ -216,7 +217,6 @@ describe('universe/backend/middleware', () => {
                 yield 400;
                 yield 400;
                 yield 400;
-                yield 400;
                 yield 403;
                 yield 404;
                 yield 500;
@@ -224,7 +224,7 @@ describe('universe/backend/middleware', () => {
             }();
 
             await testApiEndpoint({
-                requestPatcher: req => req.headers.key = '5db4c4d3-294a-4086-9751-f3fce82d11e4',
+                requestPatcher: req => req.headers.key = DUMMY_KEY,
                 next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(async () => {
                     throw genError.next().value;
                 }, { req, res, methods: ['GET'] }),
@@ -263,13 +263,13 @@ describe('universe/backend/middleware', () => {
                     methods: ['GET']
                 }),
                 test: async ({ fetch }) => {
-                    expect((await fetch({ headers: { key: '5db4c4d3-294a-4086-9751-f3fce82d11e4' }})).status).toBe(200);
+                    expect((await fetch({ headers: { key: DUMMY_KEY }})).status).toBe(200);
 
                     process.env.LOCKOUT_ALL_KEYS = 'true';
-                    expect((await fetch({ headers: { key: '5db4c4d3-294a-4086-9751-f3fce82d11e4' }})).status).toBe(401);
+                    expect((await fetch({ headers: { key: DUMMY_KEY }})).status).toBe(401);
 
                   process.env.LOCKOUT_ALL_KEYS = 'false';
-                    expect((await fetch({ headers: { key: '5db4c4d3-294a-4086-9751-f3fce82d11e4' }})).status).toBe(200);
+                    expect((await fetch({ headers: { key: DUMMY_KEY }})).status).toBe(200);
             }
             });
         });
@@ -281,14 +281,14 @@ describe('universe/backend/middleware', () => {
                     methods: ['GET']
                 }),
                 test: async ({ fetch }) => expect((await fetch({
-                    headers: { 'KEY': '5db4c4d3-294a-4086-9751-f3fce82d11e4' }
+                    headers: { 'KEY': DUMMY_KEY }
                 })).status).toBe(200)
             });
         });
 
         it('requests are limited in accordance with the database except when ignoring rate limits', async () => {
             const ip = '7.7.7.7';
-            const key = '5db4c4d3-294a-4086-9751-f3fce82d11e4';
+            const key = DUMMY_KEY;
             const limitedLog = (await getDb()).collection<LimitedLogEntry>('limited-log-mview');
 
             await testApiEndpoint({
