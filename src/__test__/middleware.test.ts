@@ -202,7 +202,6 @@ describe('universe/backend/middleware', () => {
                 yield new BackendError.TimeTypeError();
                 yield new BackendError.IdTypeError();
                 yield new BackendError.ApiKeyTypeError();
-                yield new BackendError.LimitTypeError();
                 yield new BackendError.ValidationError();
                 yield new BackendError.UpsertFailedError();
                 yield new BackendError.NotAuthorizedError();

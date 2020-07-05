@@ -14,7 +14,7 @@ import type{ NextApiRequest, NextApiResponse } from 'next'
 
 populateEnv();
 
-const { getHydratedData, getDb } = setupJest();
+//const { getHydratedData, getDb } = setupJest();
 
 describe('universe/backend', () => {
     test.todo('unit test the backend');
