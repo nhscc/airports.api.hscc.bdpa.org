@@ -29,10 +29,6 @@ let requestCounter = 0;
 export const MIN_RESULT_PER_PAGE = 15;
 export const NULL_KEY = '00000000-0000-0000-0000-000000000000';
 
-// export async function ???(): Promise<???> {
-//     // ???
-// }
-
 export async function isKeyAuthentic(key: string): Promise<boolean> {
     if(!key || typeof key != 'string')
         throw new ApiKeyTypeError();
