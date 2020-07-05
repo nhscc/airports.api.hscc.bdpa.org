@@ -1,5 +1,3 @@
-/* @flow */
-
 import url from 'url'
 
 export default (req: any, res: any ) => {

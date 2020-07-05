@@ -1,1 +1,3 @@
-../../v1/info/airports.ts
+export default (req: any, res: any ) => {
+    res.status(200).json({  });
+}
