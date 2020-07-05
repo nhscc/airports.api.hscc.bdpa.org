@@ -1,7 +1,7 @@
 build/
 node_modules/
+coverage/
 .next
 .env
-.vscode/launch.json
 *.pem
-
+src/pages/old-api

@@ -1,22 +1,22 @@
 FORMAT: 1A
-HOST: https://airlines.api.hscc.bdpa.org/v1
+HOST: https://airports.api.hscc.bdpa.org/v1
 
-# BDPA Airlines API
+# BDPA Airports API
 
 Based on [simple REST
 principles](https://searchapparchitecture.techtarget.com/definition/RESTful-API),
-the BDPA Airlines API returns JSON data responses to requests. This is the API
+the BDPA Airports API returns JSON data responses to requests. This is the API
 used by teams and their apps for the 2020 BDPA National High School Computer
 Competition. It holds all of the airline and flight data teams' apps must
 interact with. The API is live and will ideally remain online indefinitely.
 
-The base address of BDPA Airlines API is https://airlines.api.hscc.bdpa.org/X
+The base address of BDPA Airports API is https://airports.api.hscc.bdpa.org/X
 where `X` is the version of the API you want to use. There is currently only one
 version, so `X = v1`. Each version of the API provides a set of endpoints with
 their own unique path and requirements.
 
 [The source code behind the API is available on
-GitHub](https://github.com/nhscc/airlines.api.hscc.bdpa.org). If you have any
+GitHub](https://github.com/nhscc/airports.api.hscc.bdpa.org). If you have any
 troubles, please open an issue there.
 
 ## Requesting a key
@@ -24,7 +24,7 @@ troubles, please open an issue there.
 To access the majority of this API's endpoints requires a key. If your team
 wants a key, or needs to replace a lost or stolen key, please contact NHSCC
 staff through Slack or [open an issue on
-GitHub](https://github.com/nhscc/airlines.api.hscc.bdpa.org).
+GitHub](https://github.com/nhscc/airports.api.hscc.bdpa.org).
 
 When you get your key, include it in your requests' header as `key:
 your-special-api-key-here` and you will be immediately authenticated into the
@@ -52,7 +52,7 @@ system.
 
 4. If you encounter any vulnerabilities, errors, or other issues, contact NHSCC
    staff via Slack or [open an issue on
-   GitHub](https://github.com/nhscc/airlines.api.hscc.bdpa.org). For
+   GitHub](https://github.com/nhscc/airports.api.hscc.bdpa.org). For
    significant enough finds, bonus points may be awarded. On the other hand,
    abusing any vulnerability or bug may result in disqualification.
 
@@ -521,4 +521,4 @@ See an example
 + options (array) - <span style="color: gray">[optional]</span> Array of options voters are allowed to select from. Example: `["Biden", "Sanders"]`. Array elements must be strings. Can be empty. Duplicates not allowed. **Specifying this property will clear any votes associated with this election**.
 + opens (number) - <span style="color: gray">[optional]</span> When this election opens for voting [in milliseconds since the unix epoch](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now). Must be smaller than `closes` but larger than [`Date.now()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now). Example: `1589346000600`. **When specifying this property, you must also specify the `closes` property.**
 + closes (number) - <span style="color: gray">[optional]</span> When this election closes to voting [in milliseconds since the unix epoch](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now). Must be larger than `opens`. Example: `1589346900600`. **When specifying this property, you must also specify the `opens` property.**
-+ deleted (boolean) - <span style="color: gray">[optional]</span> If this election has been marked as deleted. Only accepts `false`. Use the [proper endpoint](https://airlineshscc.docs.apiary.io/#/reference/0/election-endpoint/delete-an-election) to set this to `true`. Example: `false`.
++ deleted (boolean) - <span style="color: gray">[optional]</span> If this election has been marked as deleted. Only accepts `false`. Use the [proper endpoint](https://airportshscc.docs.apiary.io/#/reference/0/election-endpoint/delete-an-election) to set this to `true`. Example: `false`.

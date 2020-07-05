@@ -1,0 +1,22 @@
+{
+  "cSpell.words": [
+    "bigliest",
+    "blahblahlblah",
+    "data",
+    "db",
+    "detacilpud",
+    "doesn",
+    "doesn e",
+    "doesnotexist",
+    "dummy",
+    "e",
+    "fakeprop",
+    "mview",
+    "reqlog",
+    "unhydrated",
+    "unhydrated dummy db data"
+  ],
+  "files.exclude": {
+    "build": true
+  }
+}
