@@ -7,8 +7,7 @@ export function getEnv(loud=false) {
     const env = {
         NODE_ENV: process.env.NODE_ENV || process.env.BABEL_ENV || process.env.APP_ENV || 'unknown',
         MONGODB_URI: (process.env.MONGODB_URI || '').toString(),
-        V1_ENABLED: !!process.env.V1_ENABLED && process.env.V1_ENABLED !== 'false',
-        V2_ENABLED: !!process.env.V2_ENABLED && process.env.V2_ENABLED !== 'false',
+        DISABLED_API_VERSIONS: !!process.env.DISABLED_API_VERSIONS ? process.env.DISABLED_API_VERSIONS.split(',') : [],
         FLIGHTS_GENERATE_DAYS: parseInt(process.env.FLIGHTS_GENERATE_DAYS ?? '-Infinity'),
         AIRPORT_NUM_OF_GATE_LETTERS: parseInt(process.env.AIRPORT_NUM_OF_GATE_LETTERS ?? '-Infinity'),
         AIRPORT_GATE_NUMBERS_PER_LETTER: parseInt(process.env.AIRPORT_GATE_NUMBERS_PER_LETTER ?? '-Infinity'),

@@ -336,6 +336,7 @@ export function setupJest() {
     const server = new MongoMemoryServer();
     let connection: MongoClient;
     let hydratedData: DummyDbData;
+    let oldEnv: typeof process.env;
 
     beforeAll(async () => {
         connection = await MongoClient.connect(await server.getUri(), { useUnifiedTopology: true });
@@ -348,12 +349,14 @@ export function setupJest() {
     });
 
     beforeEach(async () => {
+        oldEnv = process.env;
         const db = await getDb();
         await initializeDb(db);
         hydratedData = await hydrateDb(db, unhydratedDummyDbData);
     });
 
     afterEach(async () => {
+        process.env = oldEnv;
         const db = await getDb();
         await destroyDb(db);
     })

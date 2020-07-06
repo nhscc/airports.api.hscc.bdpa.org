@@ -1,9 +1,5 @@
 import { MongoClient, Db } from 'mongodb'
 import { getEnv } from 'universe/backend/env'
-import * as Time from 'multiverse/relative-random-time'
-import { shuffle } from 'fast-shuffle'
-import randomInt from 'random-int'
-import uniqueRandomArray from 'unique-random-array'
 
 let db: Db | null = null;
 
@@ -56,9 +52,4 @@ export async function initializeDb(db: Db) {
         db.createCollection('airlines'),
         db.createCollection('no-fly-list'),
     ]);
-}
-
-export async function generateFlightsForHour(db: Db, epochHour: number) {
-    void db;
-    void epochHour;
 }

@@ -23,8 +23,6 @@ const nextApiHandler = (p: (req: NextApiRequest, res: NextApiResponse) => Promis
 
 jest.setTimeout(10**6);
 
-process.env.REQUESTS_PER_CONTRIVED_ERROR = '0';
-
 describe('universe/backend/middleware', () => {
     describe('::handleEndpoint', () => {
         it('rejects requests that are too big when exporting config', async () => {
@@ -329,6 +327,98 @@ describe('universe/backend/middleware', () => {
 
                     Date.now = _now;
                 }
+            });
+        });
+
+        it('API does not respond if its corresponding version is disabled', async () => {
+            await testApiEndpoint({
+                requestPatcher: req => req.headers.key = DUMMY_KEY,
+                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                    apiVersion: 1,
+                    req, res,
+                    methods: ['GET']
+                }),
+                test: async ({ fetch }: TestParams) => {
+                    process.env.DISABLED_API_VERSIONS = '1';
+                    expect((await fetch()).status).toBe(404);
+
+                    process.env.DISABLED_API_VERSIONS = '2';
+                    expect((await fetch()).status).toBe(200);
+
+                    process.env.DISABLED_API_VERSIONS = '2,1';
+                    expect((await fetch()).status).toBe(404);
+
+                    process.env.DISABLED_API_VERSIONS = '3,2';
+                    expect((await fetch()).status).toBe(200);
+                }
+            });
+
+            process.env.DISABLED_API_VERSIONS = '3,4,2';
+
+            await testApiEndpoint({
+                requestPatcher: req => req.headers.key = DUMMY_KEY,
+                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                    apiVersion: 1, req, res, methods: ['GET']
+                }),
+                test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(200)
+            });
+
+            await testApiEndpoint({
+                requestPatcher: req => req.headers.key = DUMMY_KEY,
+                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                    apiVersion: 2, req, res, methods: ['GET']
+                }),
+                test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(404)
+            });
+
+            await testApiEndpoint({
+                requestPatcher: req => req.headers.key = DUMMY_KEY,
+                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                    apiVersion: 3, req, res, methods: ['GET']
+                }),
+                test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(404)
+            });
+
+            await testApiEndpoint({
+                requestPatcher: req => req.headers.key = DUMMY_KEY,
+                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                    apiVersion: 4, req, res, methods: ['GET']
+                }),
+                test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(404)
+            });
+
+            await testApiEndpoint({
+                requestPatcher: req => req.headers.key = DUMMY_KEY,
+                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(async () => undefined, {
+                    apiVersion: 4, req, res, methods: ['GET']
+                }),
+                test: async ({ fetch }) => expect((await fetch()).status).toBe(404)
+            });
+
+            await testApiEndpoint({
+                requestPatcher: req => req.headers.key = DUMMY_KEY,
+                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                    req, res, methods: ['GET']
+                }),
+                test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(200)
+            });
+
+            process.env.DISABLED_API_VERSIONS = '';
+
+            await testApiEndpoint({
+                requestPatcher: req => req.headers.key = DUMMY_KEY,
+                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                    apiVersion: 1, req, res, methods: ['GET']
+                }),
+                test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(200)
+            });
+
+            await testApiEndpoint({
+                requestPatcher: req => req.headers.key = DUMMY_KEY,
+                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                    req, res, methods: ['GET']
+                }),
+                test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(200)
             });
         });
     });

@@ -3,6 +3,10 @@ import { getEnv } from 'universe/backend/env'
 import { getDb } from 'universe/backend/db'
 import { isUndefined, isArray, isNumber } from 'util'
 import { getClientIp } from 'request-ip'
+import * as Time from 'multiverse/relative-random-time'
+import { shuffle } from 'fast-shuffle'
+import randomInt from 'random-int'
+import uniqueRandomArray from 'unique-random-array'
 
 import {
     IdTypeError,
@@ -78,4 +82,9 @@ export function isDueForContrivedError(): boolean {
     }
 
     return false;
+}
+
+export async function generateFlightsForHour(epochHour: number) {
+    // TODO
+    void epochHour;
 }

@@ -28,8 +28,11 @@ import Cors from 'cors'
 import type { NextApiResponse } from 'next'
 import type { NextParamsRR } from 'types/global'
 
-export type GenHanParams = NextParamsRR & { methods: string[] };
 export type AsyncHanCallback = (params: NextParamsRR) => Promise<void>;
+export type GenHanParams = NextParamsRR & {
+    apiVersion?: number;
+    methods: string[];
+};
 
 const cors = Cors({ methods: ['GET', 'POST', 'PUT', 'DELETE'] });
 
@@ -53,7 +56,7 @@ export const config = { api: { bodyParser: { sizeLimit: getEnv().MAX_CONTENT_LEN
  * handler function to trigger a 501 not implemented (to stub out API
  * endpoints).
  */
-export async function handleEndpoint(fn: AsyncHanCallback, { req, res, methods }: GenHanParams): Promise<void> {
+export async function handleEndpoint(fn: AsyncHanCallback, { req, res, methods, apiVersion }: GenHanParams) {
     const resp = res as typeof res & { $send: typeof res.send };
     // ? This will let us know if the sent method was called
     let sent = false;
@@ -66,27 +69,37 @@ export async function handleEndpoint(fn: AsyncHanCallback, { req, res, methods }
     };
 
     try {
-        await runCorsMiddleware(req, res);
-
-        const { limited, retryAfter } = await isRateLimited(req);
-
-        if(!getEnv().IGNORE_RATE_LIMITS && limited)
-            sendHttpRateLimited(resp, { retryAfter });
-
-        else if(getEnv().LOCKOUT_ALL_KEYS || typeof req.headers.key != 'string' || !(await isKeyAuthentic(req.headers.key)))
-            sendHttpUnauthenticated(resp);
-
-        else if(!req.method || getEnv().DISALLOWED_METHODS.includes(req.method) || !methods.includes(req.method))
-            sendHttpBadMethod(resp);
-
-        else if(isDueForContrivedError())
-            sendHttpContrivedError(resp);
+        // ? We need to pretend that the API doesn't exist if it's disabled, so
+        // ? not even CORS responses are allowed here!
+        if(apiVersion !== undefined && getEnv().DISABLED_API_VERSIONS.includes(apiVersion.toString()))
+            sendHttpNotFound(resp);
 
         else {
-            await fn({ req, res: resp });
+            await runCorsMiddleware(req, res);
 
-            // ? If the response hasn't been sent yet, send one now
-            !sent && sendNotImplementedError(resp);
+            const { limited, retryAfter } = await isRateLimited(req);
+
+            if(!getEnv().IGNORE_RATE_LIMITS && limited)
+                sendHttpRateLimited(resp, { retryAfter });
+
+            else if(getEnv().LOCKOUT_ALL_KEYS
+              || typeof req.headers.key != 'string'
+              || !(await isKeyAuthentic(req.headers.key))) {
+                sendHttpUnauthenticated(resp);
+            }
+
+            else if(!req.method || getEnv().DISALLOWED_METHODS.includes(req.method) || !methods.includes(req.method))
+                sendHttpBadMethod(resp);
+
+            else if(isDueForContrivedError())
+                sendHttpContrivedError(resp);
+
+            else {
+                await fn({ req, res: resp });
+
+                // ? If the response hasn't been sent yet, send one now
+                !sent && sendNotImplementedError(resp);
+            }
         }
     }
 
