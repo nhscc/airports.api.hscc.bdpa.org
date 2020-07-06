@@ -38,8 +38,7 @@ export function getEnv(loud=false) {
         console.info(env);
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error: testing NODE_ENV for bad values
     if(env.NODE_ENV == 'unknown' || (isServer() && env.MONGODB_URI === '') ||
        _mustBeGtZero.some(v => !isNumber(v) || v < 0)) {
         throw new Error('illegal environment detected, check environment variables');

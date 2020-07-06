@@ -39,6 +39,11 @@ module.exports = {
         '@typescript-eslint/camelcase': 'off',
         '@typescript-eslint/explicit-function-return-type': 'off',
         '@typescript-eslint/explicit-module-boundary-types': 'off',
+        '@typescript-eslint/prefer-ts-expect-error': 'warn',
+        '@typescript-eslint/ban-ts-comment': ['warn', {
+            'ts-expect-error': 'allow-with-description',
+            'minimumDescriptionLength': 6,
+        }],
         // ? Disable these rules for all files...
         'no-undef': 'off',
         '@typescript-eslint/no-var-requires': 'off',

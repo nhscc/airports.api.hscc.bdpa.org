@@ -4,7 +4,6 @@ import type { ObjectId } from 'mongodb'
 export * from './_shared';
 
 export type FlightId = ObjectId;
-export type ChapterId = ObjectId;
 export type FlightNumber = string;
 
 export type StochasticFlightState = {
@@ -19,12 +18,8 @@ export type StochasticFlightState = {
  * The shape of a flight entry.
  */
 export type InternalFlight = {
-    booker_id: ChapterId; // ? The chapter allowed to book tickets for this flight
+    booker_key: string; // ? The chapter allowed to book tickets for this flight
     type: 'arrival' | 'departure';
-    past_after: { // ? Determine when the flight is "past"/"cancelled" without any further calculations
-        time: number;
-        status: 'past' | 'cancelled';
-    },
     airline: string;
     senderAirport: string;
     receiverAirport: string;
@@ -59,6 +54,14 @@ export type InternalFlight = {
 };
 
 /**
+ * The shape of a public airport API result.
+ */
+export type PublicFlight = Omit<InternalFlight, 'booker_key' | 'stochasticStates'> & StochasticFlightState & {
+    flight_id: ObjectId;
+    bookable: boolean;
+};
+
+/**
  * The shape of an airport entry.
  */
 export type InternalAirport = {
@@ -67,8 +70,12 @@ export type InternalAirport = {
     city: string;
     state: string;
     country: string;
-    chapter_id: ChapterId;
 };
+
+/**
+ * The shape of a public airport API result.
+ */
+export type PublicAirport = Omit<InternalAirport, 'chapter_id'>;
 
 /**
  * The shape of a no-fly-list entry.

@@ -1,9 +1,11 @@
-import { MongoClient, Db, WithId, ObjectId } from 'mongodb'
+import { MongoClient, Db, WithId } from 'mongodb'
 import { NULL_KEY, DUMMY_KEY } from 'universe/backend'
 import { getDb, setDb, destroyDb, initializeDb } from 'universe/backend/db'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import { populateEnv } from 'universe/dev-utils'
+import cloneDeep from 'clone-deep'
 import * as Time from 'multiverse/relative-random-time'
+import { getEnv } from 'universe/backend/env'
 
 import type {
     ApiKey,
@@ -18,34 +20,34 @@ import type {
 populateEnv();
 
 export type DummyDbData = {
-    keys?: WithId<ApiKey>[];
-    flights?: InternalFlight[];
-    airports?: InternalAirport[];
-    noFlyList?: NoFlyListEntry[];
-    airlines?: InternalAirline[];
+    keys: ApiKey[];
+    flights: InternalFlight[];
+    airports: InternalAirport[];
+    noFlyList: NoFlyListEntry[];
+    airlines: InternalAirline[];
 };
 
-const ids = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
+export type HydratedDummyDbData = {
+    [P in keyof DummyDbData]: DummyDbData[P] extends (Array<infer T> | undefined)
+        ? WithId<T>[]
+        : WithId<DummyDbData[P]>;
+};
 
 export const unhydratedDummyDbData: DummyDbData = {
     keys: [
         {
-            _id: ids[0],
             owner: 'chapter1',
             key: DUMMY_KEY
         },
         {
-            _id: ids[1],
             owner: 'chapter2',
             key: 'xyz4c4d3-294a-4086-9751-f3fce82da'
         },
         {
-            _id: ids[2],
             owner: 'chapter3',
             key: '35b6ny53-83a7-gf0r-b060-b4ywayrht'
         },
         {
-            _id: ids[3],
             owner: 'chapter4',
             key: 'h90wgbrd-294a-536h-9751-rydmjetgg'
         },
@@ -57,7 +59,6 @@ export const unhydratedDummyDbData: DummyDbData = {
             city: 'Los Angeles',
             state: 'CA',
             country: 'USA',
-            chapter_id: ids[0]
         },
         {
             name: 'Second Chapter Airport',
@@ -65,7 +66,6 @@ export const unhydratedDummyDbData: DummyDbData = {
             city: 'Chicago',
             state: 'IL',
             country: 'USA',
-            chapter_id: ids[1]
         },
         {
             name: 'Third Chapter Airport',
@@ -73,7 +73,6 @@ export const unhydratedDummyDbData: DummyDbData = {
             city: 'New York',
             state: 'NY',
             country: 'USA',
-            chapter_id: ids[2]
         },
         {
             name: 'Four Chapter Airport',
@@ -81,7 +80,6 @@ export const unhydratedDummyDbData: DummyDbData = {
             city: 'Atlanta',
             state: 'GA',
             country: 'USA',
-            chapter_id: ids[3]
         },
     ],
     airlines: [
@@ -141,12 +139,8 @@ export const unhydratedDummyDbData: DummyDbData = {
     // ! Note that dummy times here don't make sense; they're only for testing!
     flights: [
         {
-            booker_id: ids[1],
+            booker_key: DUMMY_KEY,
             type: 'arrival',
-            past_after: {
-                time: Time.nearFuture(),
-                status: 'past'
-            },
             airline: 'Delta',
             senderAirport: 'F1A',
             receiverAirport: 'SCA',
@@ -195,7 +189,7 @@ export const unhydratedDummyDbData: DummyDbData = {
                 },
             },
             stochasticStates: {
-                [Time.nearFuture()]: {
+                [Date.now()]: {
                     depart_from_sender: Time.nearFuture(),
                     arrive_at_receiver: Time.nearFuture(),
                     depart_from_receiver: null,
@@ -212,12 +206,8 @@ export const unhydratedDummyDbData: DummyDbData = {
             }
         },
         {
-            booker_id: ids[2],
+            booker_key: 'xyz4c4d3-294a-4086-9751-f3fce82da',
             type: 'departure',
-            past_after: {
-                time: Time.farFuture(),
-                status: 'cancelled'
-            },
             airline: 'United',
             senderAirport: 'CHF',
             receiverAirport: 'TC3',
@@ -270,7 +260,7 @@ export const unhydratedDummyDbData: DummyDbData = {
                 },
             },
             stochasticStates: {
-                [Time.farFuture()]: {
+                [Date.now()]: {
                     depart_from_sender: Time.farFuture(),
                     arrive_at_receiver: Time.farFuture(),
                     depart_from_receiver: Time.farFuture(),
@@ -289,8 +279,37 @@ export const unhydratedDummyDbData: DummyDbData = {
     ]
 };
 
-export async function hydrateDb(db: Db, data: DummyDbData): Promise<DummyDbData> {
-    const newData = { ...data };
+const MULTI = 2.5;
+
+// ? Rapidly add a bunch of flights for testing purposes
+unhydratedDummyDbData.flights = [...Array(Math.floor(getEnv().RESULTS_PER_PAGE * MULTI))].map((_, ndx) => {
+    return unhydratedDummyDbData.flights[ndx % unhydratedDummyDbData.flights.length]
+});
+
+const specialFlightIndex = getEnv().RESULTS_PER_PAGE * MULTI - 1;
+const specialFlight = unhydratedDummyDbData.flights[specialFlightIndex];
+
+specialFlight.airline = 'Spirit';
+specialFlight.ffms = 100000000;
+specialFlight.stochasticStates = {
+    0: {
+        depart_from_sender: Time.farFuture(),
+        arrive_at_receiver: Time.farFuture(),
+        depart_from_receiver: Time.farFuture(),
+        status: 'boarding',
+        gate: 'B2',
+    },
+    1: {
+        depart_from_sender: 500,
+        arrive_at_receiver: 700,
+        depart_from_receiver: 1000,
+        status: 'past',
+        gate: null,
+    },
+};
+
+export async function hydrateDb(db: Db, data: DummyDbData): Promise<HydratedDummyDbData> {
+    const newData = cloneDeep(data);
 
     // Insert keys
     if(newData.keys)
@@ -329,13 +348,13 @@ export async function hydrateDb(db: Db, data: DummyDbData): Promise<DummyDbData>
         { key: NULL_KEY, until: Date.now() + 1000 * 60 * 60 } as LimitedLogEntry
     ]);
 
-    return newData;
+    return newData as HydratedDummyDbData;
 }
 
 export function setupJest() {
     const server = new MongoMemoryServer();
     let connection: MongoClient;
-    let hydratedData: DummyDbData;
+    let hydratedData: HydratedDummyDbData;
     let oldEnv: typeof process.env;
 
     beforeAll(async () => {
