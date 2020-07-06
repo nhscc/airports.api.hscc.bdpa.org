@@ -44,6 +44,8 @@ export type NextParamsRR<T=Record<string, unknown>> = {
 
 export type NextParamsRRQ = NextParamsRR & { query: string | string[] };
 
+export type WithConfig<T> = T & { config?: Record<string, unknown> };
+
 // * https://github.com/joonhocho/tsdef/blob/master/src/index.ts
 // Make all properties optional recursively including nested objects. Keep in
 // mind that this should be used on json / plain objects only. Otherwise, it

@@ -1,5 +1,5 @@
 import { handleEndpoint } from 'universe/backend/middleware'
-import {  } from 'universe/backend'
+import { getFlightsById } from 'universe/backend'
 import { sendHttpOk, sendHttpBadRequest } from 'multiverse/respond'
 import { NotFoundError } from 'universe/backend/error'
 import { ObjectId } from 'mongodb'
