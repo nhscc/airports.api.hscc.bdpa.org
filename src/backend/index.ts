@@ -85,6 +85,7 @@ export function isDueForContrivedError(): boolean {
 }
 
 export async function generateFlightsForHour(epochHour: number) {
-    // TODO
+    // TODO (use a MongoDb pipeline for this)
+    // TODO (also, if no keys, no airports, or no airlines, then stop script and output error)
     void epochHour;
 }

@@ -37,6 +37,10 @@ describe('universe/backend', () => {
         test.todo('unit test the backend');
     });
 
+    describe('::generateFlightsForHour', () => {
+        test.todo('if no keys, no airports, or no airlines, then stop script and output error');
+    });
+
     describe('::addToRequestLog', () => {
         it('adds request to log as expected', async () => {
             const req1 = {
