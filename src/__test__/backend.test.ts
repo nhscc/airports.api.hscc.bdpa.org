@@ -1,4 +1,4 @@
-import { WithId } from 'mongodb';
+import { WithId, ObjectId } from 'mongodb';
 import * as Backend from 'universe/backend'
 import { setupJest, unhydratedDummyDbData } from 'universe/__test__/db'
 import { getEnv } from 'universe/backend/env'
@@ -17,8 +17,7 @@ populateEnv();
 
 const { getHydratedData, getDb } = setupJest();
 
-// ? Public flight properties
-const PFlightProps = [
+const PFlightKeys = [
     'flight_id',
     'type',
     'airline',
@@ -37,10 +36,12 @@ const PFlightProps = [
     'gate',
 ];
 
+const key = Backend.DUMMY_KEY;
+
 describe('universe/backend', () => {
     describe('::getNoFlyList', () => {
         it('returns the No Fly List data as expected', async () => {
-            expect(await Backend.getNoFlyList()).toBe(unhydratedDummyDbData.noFlyList.map(nfl => {
+            expect(await Backend.getNoFlyList()).toStrictEqual(unhydratedDummyDbData.noFlyList.map(nfl => {
                 // @ts-expect-error: checking for existence of _id
                 const { _id, ...publicNFL } = nfl;
                 return publicNFL;
@@ -50,7 +51,7 @@ describe('universe/backend', () => {
 
     describe('::getAirports', () => {
         it('returns the airport adhering to the PublicAirport type', async () => {
-            expect(await Backend.getAirports()).toBe(unhydratedDummyDbData.airports.map(airport => {
+            expect(await Backend.getAirports()).toStrictEqual(unhydratedDummyDbData.airports.map(airport => {
                 // @ts-expect-error: checking for existence of _id
                 const { _id, ...publicAirport } = airport;
                 return publicAirport;
@@ -60,7 +61,7 @@ describe('universe/backend', () => {
 
     describe('::getAirlines', () => {
         it('returns the airline data as expected', async () => {
-            expect(await Backend.getAirlines()).toBe(unhydratedDummyDbData.airlines.map(airline => {
+            expect(await Backend.getAirlines()).toStrictEqual(unhydratedDummyDbData.airlines.map(airline => {
                 // @ts-expect-error: checking for existence of _id
                 const { _id, ...publicAirline } = airline;
                 return publicAirline;
@@ -71,130 +72,135 @@ describe('universe/backend', () => {
     describe('::getFlightsById', () => {
         it('throws if bad arguments', () => {
             // @ts-expect-error: testing bad arguments
-            expect(() => Backend.getFlightsById()).toThrow();
+            expect(Backend.getFlightsById()).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(() => Backend.getFlightsById({})).toThrow();
+            expect(Backend.getFlightsById({})).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(() => Backend.getFlightsById(getHydratedData().flights[0]._id)).toThrow();
+            expect(Backend.getFlightsById(getHydratedData().flights[0]._id)).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(() => Backend.getFlightsById(null)).toThrow();
+            expect(Backend.getFlightsById(null)).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(() => Backend.getFlightsById(undefined)).toThrow();
+            expect(Backend.getFlightsById(undefined)).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(() => Backend.getFlightsById(5)).toThrow();
+            expect(Backend.getFlightsById(5)).toReject();
+            // @ts-expect-error: testing bad arguments
+            expect(Backend.getFlightsById({ ids: 5, key })).toReject();
+            // @ts-expect-error: testing bad arguments
+            expect(Backend.getFlightsById({ ids: {}, key })).toReject();
+            // @ts-expect-error: testing bad arguments
+            expect(Backend.getFlightsById({ ids: null, key })).toReject();
+            // @ts-expect-error: testing bad arguments
+            expect(Backend.getFlightsById({ ids: [null], key })).toReject();
+            // @ts-expect-error: testing bad arguments
+            expect(Backend.getFlightsById({ ids: [undefined], key })).toReject();
+            // @ts-expect-error: testing bad arguments
+            expect(Backend.getFlightsById({ ids: [''], key })).toReject();
+        });
+
+        it('throws if too many ids', () => {
+            expect(Backend.getFlightsById({
+                ids: [...Array(getEnv().RESULTS_PER_PAGE + 1)].map(() => new ObjectId()),
+                key
+            })).toReject();
         });
 
         it('returns nothing when no ids are passed', async () => {
-            expect(await Backend.getFlightsById([])).toBe([]);
+            expect(await Backend.getFlightsById({ ids: [], key })).toStrictEqual([]);
         });
 
         it('returns nothing when incorrect or bad ids are passed', async () => {
-            // @ts-expect-error: testing bad arguments
-            expect(await Backend.getFlightsById([null])).toBe([]);
-            // @ts-expect-error: testing bad arguments
-            expect(await Backend.getFlightsById([undefined])).toBe([]);
-            // @ts-expect-error: testing bad arguments
-            expect(await Backend.getFlightsById([''])).toBe([]);
-            // @ts-expect-error: testing bad arguments
-            expect(await Backend.getFlightsById([5])).toBe([]);
-            // @ts-expect-error: testing bad arguments
-            expect(await Backend.getFlightsById(['incorrect'])).toBe([]);
-            // @ts-expect-error: testing bad arguments
-            expect(await Backend.getFlightsById(['incorrect1', 'incorrect2'])).toBe([]);
+            expect(await Backend.getFlightsById({ ids: [new ObjectId()], key })).toStrictEqual([]);
+            expect(await Backend.getFlightsById({
+                ids: [new ObjectId(), new ObjectId()],
+                key
+            })).toStrictEqual([]);
         });
 
         it('returns only public flight data when correct ids are passed', async () => {
             const flight1 = getHydratedData().flights[0];
             const flight2 = getHydratedData().flights[1];
 
-            const result1 = await Backend.getFlightsById([flight1._id, flight2._id]);
+            const result1 = await Backend.getFlightsById({ ids: [flight1._id, flight2._id], key });
 
-            expect([result1[0].booker_key, result1[1].booker_key]).toBe([flight1.booker_key, flight2.booker_key]);
+            expect([result1[0].bookable, result1[1].bookable]).toStrictEqual([
+                flight1.booker_key == Backend.DUMMY_KEY,
+                flight2.booker_key == Backend.DUMMY_KEY
+            ]);
 
-            expect(result1.every(flight => Object.keys(flight).every(key => PFlightProps.includes(key)))).toBeTrue();
+            expect(result1.every(flight => {
+                const keys = Object.keys(flight);
+                return keys.every(key => PFlightKeys.includes(key))
+                    && keys.length == PFlightKeys.length;
+            })).toBeTrue();
 
-            expect((await Backend.getFlightsById([flight2._id]))[0].booker_key).toBe(flight2.booker_key);
+            expect((await Backend.getFlightsById({
+                ids: [flight2._id],
+                key
+            }))[0].flight_id).toStrictEqual(flight2._id);
         });
     });
 
     describe('::searchFlights', () => {
-        it('throws if bad arguments', () => {
+        it('throws if bad parameters', () => {
             // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights()).toThrow();
+            expect(Backend.searchFlights()).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights({})).toThrow();
+            expect(Backend.searchFlights({})).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights(getHydratedData().flights[0]._id)).toThrow();
+            expect(Backend.searchFlights(getHydratedData().flights[0]._id)).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights(null)).toThrow();
+            expect(Backend.searchFlights(null)).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights(undefined)).toThrow();
+            expect(Backend.searchFlights(undefined)).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights(5)).toThrow();
-        });
+            expect(Backend.searchFlights(5)).toReject();
+            // @ts-expect-error: testing bad arguments
+            expect(Backend.searchFlights({ key, after: null, match: {}, regexMatch: {} })).toReject();
+            // @ts-expect-error: testing bad arguments
+            expect(Backend.searchFlights({ key, after: null, sort: 'asc', match: {} })).toReject();
+            // @ts-expect-error: testing bad arguments
+            expect(Backend.searchFlights({ key, after: 'bad', sort: 'asc', match: {}, regexMatch: {} })).toReject();
+            // @ts-expect-error: testing bad arguments
+            expect(Backend.searchFlights({ key, after: null, sort: 'bad', match: {}, regexMatch: {} })).toReject();
+            expect(Backend.searchFlights({ key, after: null, sort: 'asc', match: {}, regexMatch: {} })).toReject();
 
-        it('throws if bad query parameters', () => {
-            // @ts-expect-error: testing bad arguments
-            expect(() => expect(await Backend.searchFlights({
-                after: null,
-                match: {},
-                regexMatch: {},
-                sort: 'desc',
-            }))).toThrow();
+            expect(Backend.searchFlights({
+                key, after: null, sort: 'asc', match: { bad: 'bad' }, regexMatch: {}
+            })).toReject();
 
-            // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights({})).toThrow();
-            // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights(getHydratedData().flights[0]._id)).toThrow();
-            // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights(null)).toThrow();
-            // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights(undefined)).toThrow();
-            // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights(5)).toThrow();
-            // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights({ after: null, match: {}, regexMatch: {} })).toThrow();
-            // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights({ after: null, sort: 'asc', match: {} })).toThrow();
-            // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights({ after: 'bad', sort: 'asc', match: {}, regexMatch: {} })).toThrow();
-            // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights({ after: null, sort: 'bad', match: {}, regexMatch: {} })).toThrow();
+            expect(Backend.searchFlights({
+                // @ts-expect-error: testing bad arguments
+                key, after: null, sort: 'asc', match: {}, regexMatch: { bad: undefined }
+            })).toReject();
 
-            // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights({
-                after: null, sort: 'asc', match: { bad: 'bad' }, regexMatch: {}
-            })).toThrow();
+            expect(Backend.searchFlights({
+                key, after: null, sort: 'asc', match: { _id: 'bad' }, regexMatch: {}
+            })).toReject();
 
-            // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights({
-                after: null, sort: 'asc', match: {}, regexMatch: { bad: undefined }
-            })).toThrow();
+            expect(Backend.searchFlights({
+                key, after: null, sort: 'asc', match: {}, regexMatch: { _id: 'bad' }
+            })).toReject();
 
-            // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights({
-                after: null, sort: 'asc', match: { _id: 'bad' }, regexMatch: {}
-            })).toThrow();
+            expect(Backend.searchFlights({
+                key, after: null, sort: 'asc', match: { stochasticStates: 'bad' }, regexMatch: {}
+            })).toReject();
 
-            // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights({
-                after: null, sort: 'asc', match: {}, regexMatch: { _id: 'bad' }
-            })).toThrow();
+            expect(Backend.searchFlights({
+                key, after: null, sort: 'asc', match: {}, regexMatch: { stochasticStates: 'bad' }
+            })).toReject();
 
-            // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights({
-                after: null, sort: 'asc', match: { stochasticStates: 'bad' }, regexMatch: {}
-            })).toThrow();
+            expect(Backend.searchFlights({
+                // @ts-expect-error: testing bad arguments
+                key, after: null, sort: 'asc', match: {}, regexMatch: { ffms: { $gt: 1000000 }}
+            })).toReject();
 
-            // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights({
-                after: null, sort: 'asc', match: {}, regexMatch: { stochasticStates: 'bad' }
-            })).toThrow();
+            expect(Backend.searchFlights({
+                key, after: null, sort: 'asc', match: { $gt: 1000000 }, regexMatch: {}
+            })).toReject();
 
-            // @ts-expect-error: testing bad arguments
-            expect(() => Backend.searchFlights({
-                after: null, sort: 'asc', match: {}, regexMatch: { ffms: { $gt: 1000000 }}
-            })).toThrow();
+            expect(Backend.searchFlights({
+                key, after: null, sort: 'asc', match: { type: {}}, regexMatch: {}
+            })).toReject();
         });
 
         it('search returns expected paginated records with empty asc/desc queries', async () => {
@@ -209,10 +215,10 @@ describe('universe/backend', () => {
                 }
             };
 
-            const count = unhydratedDummyDbData.flights.length;
-            const resultsPerPage = getEnv().RESULTS_PER_PAGE;
+            const count = getEnv().RESULTS_PER_PAGE;
 
             const result1 = await Backend.searchFlights({
+                key,
                 after: null,
                 match: {},
                 regexMatch: {},
@@ -220,21 +226,23 @@ describe('universe/backend', () => {
             });
 
             const result2 = await Backend.searchFlights({
+                key,
                 after: null,
                 match: {},
                 regexMatch: {},
                 sort: 'desc',
             });
 
-            expect(result1).toBe(unhydratedDummyDbData.flights.slice(50).map(convertIFlightToPFlight));
-            expect(result2).toBe(unhydratedDummyDbData.flights.slice(50).reverse().map(convertIFlightToPFlight));
-            expect(result1.every(flight => Object.keys(flight).every(key => PFlightProps.includes(key)))).toBeTrue();
+            expect(result1).toBe(unhydratedDummyDbData.flights.slice(count).map(convertIFlightToPFlight));
+            expect(result2).toBe(unhydratedDummyDbData.flights.slice(count).reverse().map(convertIFlightToPFlight));
+            expect(result1.every(flight => Object.keys(flight).every(key => PFlightKeys.includes(key)))).toBeTrue();
         });
 
         it('search returns expected paginated records with various queries', async () => {
             const count = getEnv().RESULTS_PER_PAGE;
 
             const result1 = await Backend.searchFlights({
+                key,
                 after: null,
                 match: { type: 'arrival' },
                 regexMatch: {},
@@ -245,6 +253,7 @@ describe('universe/backend', () => {
             expect(result1.every(flight => flight.type == 'arrival')).toBeTrue();
 
             const result2 = await Backend.searchFlights({
+                key,
                 after: result1[result1.length - 2].flight_id,
                 match: { type: 'arrival' },
                 regexMatch: {},
@@ -256,6 +265,7 @@ describe('universe/backend', () => {
             expect(result2[0].flight_id).toBe(result1[result1.length - 1].flight_id);
 
             const result3 = await Backend.searchFlights({
+                key,
                 after: getHydratedData().flights.slice(-3)[0]._id,
                 match: { type: 'arrival' },
                 regexMatch: {},
@@ -266,6 +276,7 @@ describe('universe/backend', () => {
             expect(result3.every(flight => flight.type == 'arrival')).toBeTrue();
 
             const result3desc = await Backend.searchFlights({
+                key,
                 after: getHydratedData().flights.slice(-3)[0]._id,
                 match: { type: 'arrival' },
                 regexMatch: {},
@@ -276,6 +287,7 @@ describe('universe/backend', () => {
             expect(result3desc).toEqual(result3.reverse());
 
             const result4 = await Backend.searchFlights({
+                key,
                 after: getHydratedData().flights.slice(-3)[0]._id,
                 match: {},
                 regexMatch: {},
@@ -285,6 +297,7 @@ describe('universe/backend', () => {
             expect(result4.length).toBe(2);
 
             const result5 = await Backend.searchFlights({
+                key,
                 after: getHydratedData().flights.slice(-3)[0]._id,
                 match: {},
                 regexMatch: {},
@@ -294,6 +307,7 @@ describe('universe/backend', () => {
             expect(result5).toEqual(result4.reverse());
 
             const result6 = await Backend.searchFlights({
+                key,
                 after: getHydratedData().flights.slice(-2)[0]._id,
                 match: {},
                 regexMatch: {},
@@ -303,6 +317,7 @@ describe('universe/backend', () => {
             expect(result6.length).toBe(1);
 
             const result7 = await Backend.searchFlights({
+                key,
                 after: getHydratedData().flights.slice(-1)[0]._id,
                 match: {},
                 regexMatch: {},
@@ -312,6 +327,7 @@ describe('universe/backend', () => {
             expect(result7.length).toBe(0);
 
             const result8 = await Backend.searchFlights({
+                key,
                 after: null,
                 match: { type: 'DNE' },
                 regexMatch: {},
@@ -321,6 +337,7 @@ describe('universe/backend', () => {
             expect(result8.length).toBe(0);
 
             const result9 = await Backend.searchFlights({
+                key,
                 after: null,
                 match: { type: 'DNE' },
                 regexMatch: { type: '^arr' },
@@ -330,6 +347,7 @@ describe('universe/backend', () => {
             expect(result9.length).toBe(0);
 
             const result9X = await Backend.searchFlights({
+                key,
                 after: null,
                 match: { type: 'arrival' },
                 regexMatch: { type: 'DNE' },
@@ -339,6 +357,7 @@ describe('universe/backend', () => {
             expect(result9X.length).toBe(0);
 
             const result10 = await Backend.searchFlights({
+                key,
                 after: null,
                 match: {},
                 regexMatch: { type: '^arr' },
@@ -348,6 +367,7 @@ describe('universe/backend', () => {
             expect(result10).toEqual(result1);
 
             const result11 = await Backend.searchFlights({
+                key,
                 after: null,
                 match: {},
                 regexMatch: { type: '^ARR' },
@@ -357,6 +377,7 @@ describe('universe/backend', () => {
             expect(result11).toEqual(result1);
 
             const result12 = await Backend.searchFlights({
+                key,
                 after: null,
                 match: {},
                 regexMatch: { type: 'ArTuRe$' },
@@ -367,6 +388,7 @@ describe('universe/backend', () => {
             expect(result12.every(flight => flight.type == 'departure')).toBeTrue();
 
             const result13 = await Backend.searchFlights({
+                key,
                 after: null,
                 match: { ffms: { $gt: 1000000 }},
                 regexMatch: {},
@@ -376,6 +398,7 @@ describe('universe/backend', () => {
             expect(result13.length).toBe(1);
 
             const result14 = await Backend.searchFlights({
+                key,
                 after: null,
                 match: { ffms: { $lt: 1000000 }},
                 regexMatch: {},
@@ -385,6 +408,7 @@ describe('universe/backend', () => {
             expect(result14.length).toBe(count);
 
             const result15 = await Backend.searchFlights({
+                key,
                 after: null,
                 match: {},
                 regexMatch: { airline: 's.*t' },
@@ -394,6 +418,7 @@ describe('universe/backend', () => {
             expect(result15.length).toBe(1);
 
             const result16 = await Backend.searchFlights({
+                key,
                 after: null,
                 match: { arrive_at_receiver: { $lt: 10000 }},
                 regexMatch: {},
@@ -403,6 +428,7 @@ describe('universe/backend', () => {
             expect(result16.length).toBe(1);
 
             const result17 = await Backend.searchFlights({
+                key,
                 after: null,
                 match: { ffms: { $gte: 1000000 }, depart_from_sender: 500 },
                 regexMatch: { airline: 's.*t' },
@@ -412,6 +438,7 @@ describe('universe/backend', () => {
             expect(result17.length).toBe(1);
 
             const result18 = await Backend.searchFlights({
+                key,
                 after: result1[0].flight_id,
                 match: { ffms: { $gte: 1000000 }, depart_from_sender: 500 },
                 regexMatch: { airline: 's.*t' },
@@ -421,6 +448,7 @@ describe('universe/backend', () => {
             expect(result18.length).toBe(1);
 
             const result19 = await Backend.searchFlights({
+                key,
                 after: null,
                 match: { status: 'past' },
                 regexMatch: {},
@@ -436,7 +464,7 @@ describe('universe/backend', () => {
             expect(await Backend.generateFlights()).toBe(0);
         });
 
-        test.todo('does something if airports/airlines exist but only AFTER the latest entry if proper time', async () => {
+        it('does something if airports/airlines exist but only AFTER the latest entry if proper time', async () => {
             const flightsDb = (await getDb()).collection<WithId<InternalFlight>>('flights');
 
             expect(await Backend.generateFlights()).not.toBe(0);

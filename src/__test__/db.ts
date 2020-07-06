@@ -279,14 +279,14 @@ export const unhydratedDummyDbData: DummyDbData = {
     ]
 };
 
-const MULTI = 2.5;
+const count = getEnv().RESULTS_PER_PAGE * 2.5;
 
 // ? Rapidly add a bunch of flights for testing purposes
-unhydratedDummyDbData.flights = [...Array(Math.floor(getEnv().RESULTS_PER_PAGE * MULTI))].map((_, ndx) => {
-    return unhydratedDummyDbData.flights[ndx % unhydratedDummyDbData.flights.length]
+unhydratedDummyDbData.flights = [...Array(Math.floor(count))].map((_, ndx) => {
+    return cloneDeep(unhydratedDummyDbData.flights[ndx % unhydratedDummyDbData.flights.length]);
 });
 
-const specialFlightIndex = getEnv().RESULTS_PER_PAGE * MULTI - 1;
+const specialFlightIndex = count - 2;
 const specialFlight = unhydratedDummyDbData.flights[specialFlightIndex];
 
 specialFlight.airline = 'Spirit';
