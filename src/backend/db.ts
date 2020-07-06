@@ -53,3 +53,48 @@ export async function initializeDb(db: Db) {
         db.createCollection('no-fly-list'),
     ]);
 }
+
+export const pipelines = {
+    resolveFlightState: (key: string) => [
+        {
+            $addFields: {
+                state: {
+                    $arrayElemAt: [
+                        {
+                            $filter: {
+                                input: { $objectToArray: '$stochasticStates' },
+                                as: 'st',
+                                cond: { $lte: [{ $toLong: '$$st.k'}, { $toLong: '$$NOW' }] }
+                            }
+                        },
+                    -1],
+                },
+                flight_id: '$_id',
+                bookable: {
+                    $cond: {
+                        if: {
+                            $eq: ['$booker_key', key]
+                        },
+                        then: true,
+                        else: false
+                    }
+                },
+            }
+        },
+        {
+            $replaceRoot: {
+                newRoot: {
+                    $mergeObjects: [ '$$ROOT', '$state.v' ]
+                }
+            }
+        },
+        {
+            $project: {
+                state: false,
+                _id: false,
+                booker_key: false,
+                stochasticStates: false
+            }
+        }
+    ]
+};

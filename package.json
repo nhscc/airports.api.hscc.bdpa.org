@@ -42,6 +42,11 @@
   "resolutions": {
     "yargs-parser": "^13.1.2"
   },
+  "config": {
+    "mongodbMemoryServer": {
+      "version": "latest"
+    }
+  },
   "expectedEnvVariables": [
     "NODE_ENV|BABEL_ENV|APP_ENV",
     "MONGODB_URI",

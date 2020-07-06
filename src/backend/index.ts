@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb'
 import { getEnv } from 'universe/backend/env'
-import { getDb } from 'universe/backend/db'
+import { getDb, pipelines } from 'universe/backend/db'
 import { isArray } from 'util'
 import { getClientIp } from 'request-ip'
 import * as Time from 'multiverse/relative-random-time'
@@ -33,6 +33,9 @@ import {
 
 import type { NextApiRequest } from 'next'
 import type { WithId } from 'mongodb'
+
+const isNumber = (number: unknown) => typeof number == 'number';
+const isObject = (object: unknown) => !isArray(object) && object !== null && typeof object == 'object';
 
 let requestCounter = 0;
 
@@ -75,39 +78,6 @@ export type SeaFliParams = {
         [specifier: string]: string
     };
     sort: 'asc' | 'desc';
-};
-
-type PartialPublicFlight = Omit<InternalFlight, 'booker_key'> & Pick<PublicFlight, 'flight_id' | 'bookable'>;
-
-const isNumber = (number: unknown) => typeof number == 'number';
-const isObject = (object: unknown) => !isArray(object) && object !== null && typeof object == 'object';
-
-const setStochasticFlightState = (flight: PartialPublicFlight): PublicFlight => {
-    const { stochasticStates, ...newFlight } = flight;
-    const now = Date.now();
-    let lastStateKey: string | null = null;
-
-    Object.keys(stochasticStates).some(stateTime => {
-        const stateTimeNumber = Number(stateTime);
-
-        if(!isNumber(stateTimeNumber))
-            throw new AppError('non-numeric state time encountered somehow');
-
-        if(stateTimeNumber < now) {
-            lastStateKey = stateTimeNumber.toString();
-            return false;
-        }
-
-        return true;
-    });
-
-    if(lastStateKey === null)
-        throw new AppError('stochastic state resolution failed');
-
-    return {
-        ...newFlight,
-        ...stochasticStates[lastStateKey]
-    };
 };
 
 export async function isKeyAuthentic(key: string): Promise<boolean> {
@@ -196,18 +166,10 @@ export async function getFlightsById(params: GetFliByIdParams) {
     if(!ids.length)
         return [];
 
-    const flights = await (await getDb()).collection<WithId<InternalFlight>>('flights').aggregate<PartialPublicFlight>([
+    return await (await getDb()).collection<WithId<InternalFlight>>('flights').aggregate<PublicFlight>([
         { $match: { _id: { $in: ids }}},
-        {
-            $addFields: {
-                flight_id: '$_id',
-                bookable: { $cond: { if: { $eq: ['$booker_key', key] }, then: true, else: false }},
-            }
-        },
-        { $project: { _id: false, booker_key: false }},
+        ...pipelines.resolveFlightState(key)
     ]).toArray();
-
-    return flights.map(flight => setStochasticFlightState(flight));
 }
 
 export async function searchFlights(params: SeaFliParams) {
@@ -219,43 +181,40 @@ export async function searchFlights(params: SeaFliParams) {
     if(after !== null && !(after instanceof ObjectId))
         throw new IdTypeError(after);
 
+    if(typeof sort != 'string' || !['asc', 'desc'].includes(sort))
+        throw new ValidationError('invalid sort');
+
     if(!isObject(match) || !isObject(regexMatch))
         throw new ValidationError('missing match and/or regexMatch');
 
     const matchKeys = Object.keys(match);
     const regexMatchKeys = Object.keys(regexMatch);
 
-    const matchKeysAreValid = () => matchKeys.every(k => {
-        const v = match[k];
+    const matchKeysAreValid = () => matchKeys.every(ky => {
+        const val = match[ky];
+        let valNotEmpty = false;
 
-        return !isArray(v)
-            && matchableStrings.includes(k)
-            && (typeof(v) == 'string' || (isObject(v) && Object.keys(v).every(subk =>
-                matchableSubStrings.includes(subk) && typeof (v as Record<string, unknown>)[subk] == 'string')));
+        const test = () => Object.keys(val).every(subky => (valNotEmpty = true) && matchableSubStrings.includes(subky)
+            && ['string', 'number'].includes(typeof (val as Record<string, unknown>)[subky]));
+
+        return !isArray(val)
+            && matchableStrings.includes(ky)
+            && (typeof(val) == 'string' || (isObject(val) && valNotEmpty && test()));
     });
 
     const regexMatchKeysAreValid = () => regexMatchKeys.every(k =>
-        matchableStrings.includes(k) && typeof match[k] == 'string'
-    );
+        matchableStrings.includes(k) && ['string', 'number'].includes(typeof match[k]));
 
-    if(matchKeys.length && !matchKeysAreValid)
+    if(matchKeys.length && !matchKeysAreValid())
         throw new AppError('invalid match object');
 
-    if(regexMatchKeys.length && !regexMatchKeysAreValid)
+    if(regexMatchKeys.length && !regexMatchKeysAreValid())
         throw new AppError('invalid regexMatch object');
 
-    const flights = await (await getDb()).collection<WithId<InternalFlight>>('flights').aggregate<PartialPublicFlight>([
-        { $match: { _id: { $in: ids }}},
-        {
-            $addFields: {
-                flight_id: '$_id',
-                bookable: { $cond: { if: { $eq: ['$booker_key', key] }, then: true, else: false }},
-            }
-        },
-        { $project: { _id: false, booker_key: false }},
-    ]).toArray();
-
-    return flights.map(flight => setStochasticFlightState(flight));
+    // return await (await getDb()).collection<WithId<InternalFlight>>('flights').aggregate<PublicFlight>([
+    //     { $match: { _id: { $in: ids }}},
+    //     ...pipelines.resolveFlightState(key)
+    // ]).toArray();
 }
 
 export async function generateFlights() {

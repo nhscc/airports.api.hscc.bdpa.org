@@ -162,7 +162,6 @@ describe('universe/backend', () => {
             expect(Backend.searchFlights({ key, after: 'bad', sort: 'asc', match: {}, regexMatch: {} })).toReject();
             // @ts-expect-error: testing bad arguments
             expect(Backend.searchFlights({ key, after: null, sort: 'bad', match: {}, regexMatch: {} })).toReject();
-            expect(Backend.searchFlights({ key, after: null, sort: 'asc', match: {}, regexMatch: {} })).toReject();
 
             expect(Backend.searchFlights({
                 key, after: null, sort: 'asc', match: { bad: 'bad' }, regexMatch: {}
@@ -171,6 +170,11 @@ describe('universe/backend', () => {
             expect(Backend.searchFlights({
                 // @ts-expect-error: testing bad arguments
                 key, after: null, sort: 'asc', match: {}, regexMatch: { bad: undefined }
+            })).toReject();
+
+            // @ts-expect-error: testing bad arguments
+            expect(Backend.searchFlights({
+                after: null, sort: 'asc', match: {}, regexMatch: {}
             })).toReject();
 
             expect(Backend.searchFlights({
@@ -199,7 +203,7 @@ describe('universe/backend', () => {
             })).toReject();
 
             expect(Backend.searchFlights({
-                key, after: null, sort: 'asc', match: { type: {}}, regexMatch: {}
+                key, after: null, sort: 'asc', match: { type: {} }, regexMatch: {}
             })).toReject();
         });
 
