@@ -89,3 +89,23 @@ export async function generateFlightsForHour(epochHour: number) {
     // TODO (also, if no keys, no airports, or no airlines, then stop script and output error)
     void epochHour;
 }
+
+export async function getNoFlyList() {
+    // TODO
+}
+
+export async function getAirports() {
+    // TODO
+}
+
+export async function getAirlines() {
+    // TODO
+}
+
+export async function getFlightsById() {
+    // TODO
+}
+
+export async function searchFlights() {
+    // TODO
+}
