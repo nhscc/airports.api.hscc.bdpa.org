@@ -23,11 +23,12 @@ export type InternalInfo = {
  * The shape of a flight entry.
  */
 export type InternalFlight = {
-    bookerKey: string;
+    bookerKey: string | null;
     type: 'arrival' | 'departure';
     airline: string;
-    senderAirport: string;
-    receiverAirport: string;
+    comingFrom: string;
+    landingAt: string;
+    departingTo: string | null;
     flightNumber: FlightNumber;
     baggage: {
         checked: {

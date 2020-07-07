@@ -40,6 +40,7 @@ const isObject = (object: unknown) => !isArray(object) && object !== null && typ
 let requestCounter = 0;
 
 export const MIN_RESULT_PER_PAGE = 15;
+export const SEATS_PER_PLANE = 100;
 export const NULL_KEY = '00000000-0000-0000-0000-000000000000';
 export const DUMMY_KEY = '12349b61-83a7-4036-b060-213784b491';
 
@@ -51,8 +52,8 @@ export type GetFliByIdParams = {
 const primaryMatchTargets = [
     'type',
     'airline',
-    'senderAirport',
-    'receiverAirport',
+    'comingFrom',
+    'landingAt',
     'flightNumber',
     'baggage',
     'ffms',
@@ -276,8 +277,8 @@ export async function generateFlights() {
 
     const flightDb = db.collection<WithId<InternalFlight>>('flights');
 
-    if(!airports.length || !airlines.length)
-        throw new FlightGenerationError('cannot generate flights without airports and airlines');
+    if(airports.length < 2 || airlines.length < 2)
+        throw new FlightGenerationError('cannot generate flights without at least two airports and airlines');
 
     let objectIdCounter = randomInt(2**10, 2**24 - 1);
     const objectIdRandom = pseudoRandomBytes(5).toString('hex');
@@ -306,16 +307,21 @@ export async function generateFlights() {
     if(!totalHoursToGenerate)
         return 0;
 
-    const gates = ('abcdefghijklmnopqrstuvwxyz').split('').slice(0, getEnv().AIRPORT_NUM_OF_GATE_LETTERS).map(x => {
+    const protoGates = ('abcdefghijklmnopqrstuvwxyz').split('').slice(0, getEnv().AIRPORT_NUM_OF_GATE_LETTERS).map(x => {
         return [...Array(getEnv().AIRPORT_GATE_NUMBERS_PER_LETTER)].map((_, n) => `${x}${n + 1}`);
     }).flat();
 
-    let prevFlightType: string;
+    const protoFlightNumbers = [...Array(9999)].map((_, j) => j + 1);
+
+    let isArrival = false;
 
     const flights: InternalFlight[] = [];
 
     [...Array(totalHoursToGenerate)].forEach((_, i) => {
-        const flightType = prevFlightType = prevFlightType == 'arrival' ? 'departure' : 'arrival';
+        if(randomInt(1, 100) > getEnv().FLIGHT_HOUR_HAS_FLIGHTS_PERCENT)
+            return;
+
+        isArrival = !isArrival;
         const currentHour = lastFlightHourMs + oneHourInMs + i * oneHourInMs;
 
         // ? Here we use a markov model to generate future flight stochastic
@@ -323,21 +329,117 @@ export async function generateFlights() {
         // ? giving API users the impression that flight information is changing
         // ? randomly (like real flights do)
 
-        const gatePool: string[] = cloneDeep(gates);
+        const gatePool: string[] = cloneDeep(protoGates);
         const states: InternalFlight['stochasticStates'] = {};
+        const activeAirlines = shuffle(airlines).slice(0, randomInt(2, airlines.length)) as WithId<InternalAirline>[];
+        const numberGenerator = activeAirlines.reduce((map, airline) => {
+            return {
+                ...map,
+                [airline._id.toHexString()]: uniqueRandomArray(cloneDeep(protoFlightNumbers))
+            };
+        }, {} as { [objectId: string]: () => number });
 
         // ? Arrivals land at firstAirport and came from secondAirport
         // ? Departures land at firstAirport and depart to secondAirport; which
         // ? airport they came from is randomly determined
         airports.forEach(firstAirport => {
             airports.forEach(secondAirport => {
-                // ? Sometimes we skip a source-dest pair in a given hour
-                if(randomInt(1, 100) > getEnv().AIRPORT_PAIRS_USED_PERCENT)
+                // ? Sometimes we skip a source-dest pair in a given hour (and
+                // ? planes can't come from and land at the same airport)
+                if(firstAirport._id.equals(secondAirport._id) || randomInt(1, 100) > getEnv().AIRPORT_PAIR_USED_PERCENT)
                     return;
 
-                flights.push({
-                    bookerKey: '',
+                const airline = activeAirlines[randomInt(0, activeAirlines.length - 1)];
+                const maxChecked = randomInt(0, 10);
+                const maxCarry = randomInt(0, 4);
 
+                // ? Randomly calculate seat prices and number
+                const seatPricing = info.seatClasses.reduce((seats, seatClass) => {
+                    const numSeats = randomInt(
+                        Math.min(Math.max(6, seats.remainingSeats), SEATS_PER_PLANE / info.seatClasses.length),
+                        // ? Max available seats are reduced by half each time unless a small number was chosen
+                        Math.max(seats.remainingSeats / 2, SEATS_PER_PLANE - (SEATS_PER_PLANE - seats.remainingSeats))
+                    );
+
+                    // ? Prices can at most double... greedy capitalists!
+                    const $ = randomInt(seats.prev$, seats.prev$ * 2) + Number(Math.random().toFixed(2));
+                    const ffms = randomInt(seats.prevFfms, seats.prevFfms * (1 + (info.seatClasses.length / 10)));
+
+                    return {
+                        ...seats,
+                        [seatClass]: {
+                            total: numSeats,
+                            priceDollars: $,
+                            priceFfms: ffms,
+                        },
+                        remainingSeats: seats.remainingSeats - numSeats,
+                        prev$: $,
+                        prevFfms: ffms
+                    };
+                }, {
+                    remainingSeats: SEATS_PER_PLANE,
+                    prev$: randomInt(60, 150),
+                    prevFfms: randomInt(5000, 8000)
+                }) as unknown as InternalFlight['seats'];
+
+                // ? Randomly decide which extras are included and for how much
+                const extrasPricing = info.allExtras.reduce((extras, item) => {
+                    // ? Sometimes one of the items is not included (skipped)
+                    if(randomInt(1, 100) > 75)
+                        return extras;
+
+                    // ? Prices can at most double... greedy capitalists!
+                    const $ = randomInt(extras.prev$, extras.prev$ * 2) + Number(Math.random().toFixed(2));
+                    const ffms = randomInt(extras.prevFfms, extras.prevFfms * 2);
+
+                    return {
+                        ...extras,
+                        [item]: {
+                            priceDollars: $,
+                            priceFfms: ffms,
+                        },
+                        prev$: $,
+                        prevFfms: ffms
+                    };
+                }, {
+                    prev$: randomInt(60, 150),
+                    prevFfms: randomInt(10, 750),
+                }) as unknown as InternalFlight['extras'];
+
+                flights.push({
+                    bookerKey: isArrival ? null : firstAirport.chapterKey,
+                    type: isArrival ? 'arrival' : 'departure',
+                    airline: airline.name,
+                    comingFrom: isArrival ? secondAirport.shortName : (shuffle(airports)[0] as InternalAirport).shortName,
+                    landingAt: firstAirport.shortName,
+                    departingTo: isArrival ? null : secondAirport.shortName,
+                    flightNumber: `${airline.codePrefix}${numberGenerator[airline._id.toHexString()]()}`,
+                    baggage: {
+                        checked: {
+                            max: maxChecked,
+                            prices: [...Array(maxChecked)].reduce($ => {
+                                return [
+                                    ...$,
+                                    // ? Greedy little airlines
+                                    randomInt($, $ * 2)
+                                ];
+                            }, []),
+                        },
+                        carry: {
+                            max: maxCarry,
+                            prices: [...Array(maxCarry)].reduce($ => {
+                                return [
+                                    ...$,
+                                    // ? Greedy little airlines
+                                    randomInt($, $ * 2)
+                                ];
+                            }, []),
+                        },
+                    },
+                    ffms: randomInt(2000, 6000),
+                    seats: seatPricing,
+                    extras: extrasPricing,
+                    stochasticStates: states
                 });
             });
         });

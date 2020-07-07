@@ -150,8 +150,9 @@ export const unhydratedDummyDbData: DummyDbData = {
             bookerKey: DUMMY_KEY,
             type: 'arrival',
             airline: 'Delta',
-            senderAirport: 'F1A',
-            receiverAirport: 'SCA',
+            comingFrom: 'SCA',
+            landingAt: 'F1A',
+            departingTo: 'TC3',
             flightNumber: 'D8496',
             baggage: {
                 checked: {
@@ -197,7 +198,7 @@ export const unhydratedDummyDbData: DummyDbData = {
                 },
             },
             stochasticStates: {
-                [Date.now()]: {
+                [0]: {
                     departFromSender: Time.nearFuture(),
                     arriveAtReceiver: Time.nearFuture(),
                     departFromReceiver: null,
@@ -214,11 +215,12 @@ export const unhydratedDummyDbData: DummyDbData = {
             }
         },
         {
-            bookerKey: 'xyz4c4d3-294a-4086-9751-f3fce82da',
+            bookerKey: null,
             type: 'departure',
             airline: 'United',
-            senderAirport: 'CHF',
-            receiverAirport: 'TC3',
+            comingFrom: 'CHF',
+            landingAt: 'TC3',
+            departingTo: null,
             flightNumber: 'U1234',
             baggage: {
                 checked: {
@@ -268,14 +270,14 @@ export const unhydratedDummyDbData: DummyDbData = {
                 },
             },
             stochasticStates: {
-                [Date.now()]: {
+                [0]: {
                     departFromSender: Time.farFuture(),
                     arriveAtReceiver: Time.farFuture(),
                     departFromReceiver: Time.farFuture(),
                     status: 'boarding',
                     gate: 'B2',
                 },
-                [Time.farFuture()]: {
+                [Date.now()]: {
                     departFromSender: Time.farFuture(),
                     arriveAtReceiver: Time.farFuture(),
                     departFromReceiver: Time.farFuture(),
@@ -286,8 +288,10 @@ export const unhydratedDummyDbData: DummyDbData = {
         },
     ],
     info: {
-        seatClasses: ['economy', 'economy plus', 'exit row', 'first class'],
-        allExtras: ['wifi', 'pillow', 'blanket', 'headphones', 'extra food'],
+        // !! => order is important!! => From cheapest to most expensive => !!
+        seatClasses: ['economy', 'exit row', 'economy plus', 'first class'],
+        // !! => order is important!! => From cheapest to most expensive => !!
+        allExtras: ['pillow', 'blanket', 'headphones', 'wifi', 'extra food'],
     }
 };
 

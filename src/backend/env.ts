@@ -13,8 +13,8 @@ export function getEnv(loud=false) {
         FLIGHTS_GENERATE_DAYS: parseInt(process.env.FLIGHTS_GENERATE_DAYS ?? '-Infinity'),
         AIRPORT_NUM_OF_GATE_LETTERS: parseInt(process.env.AIRPORT_NUM_OF_GATE_LETTERS ?? '-Infinity'),
         AIRPORT_GATE_NUMBERS_PER_LETTER: parseInt(process.env.AIRPORT_GATE_NUMBERS_PER_LETTER ?? '-Infinity'),
-        AIRPORT_PAIRS_USED_PERCENT: parseInt(process.env.AIRPORT_PAIRS_USED_PERCENT ?? '-Infinity'),
-        FLIGHT_HOURS_HAS_FLIGHTS_PERCENT: parseInt(process.env.FLIGHT_HOURS_HAS_FLIGHTS_PERCENT ?? '-Infinity'),
+        AIRPORT_PAIR_USED_PERCENT: parseInt(process.env.AIRPORT_PAIR_USED_PERCENT ?? '-Infinity'),
+        FLIGHT_HOUR_HAS_FLIGHTS_PERCENT: parseInt(process.env.FLIGHT_HOUR_HAS_FLIGHTS_PERCENT ?? '-Infinity'),
         RESULTS_PER_PAGE: parseInt(process.env.RESULTS_PER_PAGE ?? '-Infinity'),
         IGNORE_RATE_LIMITS: !!process.env.IGNORE_RATE_LIMITS && process.env.IGNORE_RATE_LIMITS !== 'false',
         LOCKOUT_ALL_KEYS: !!process.env.LOCKOUT_ALL_KEYS && process.env.LOCKOUT_ALL_KEYS !== 'false',
@@ -31,8 +31,8 @@ export function getEnv(loud=false) {
         env.FLIGHTS_GENERATE_DAYS,
         env.AIRPORT_NUM_OF_GATE_LETTERS,
         env.AIRPORT_GATE_NUMBERS_PER_LETTER,
-        ...onlyIfServer(env.AIRPORT_PAIRS_USED_PERCENT),
-        ...onlyIfServer(env.FLIGHT_HOURS_HAS_FLIGHTS_PERCENT),
+        ...onlyIfServer(env.AIRPORT_PAIR_USED_PERCENT),
+        ...onlyIfServer(env.FLIGHT_HOUR_HAS_FLIGHTS_PERCENT),
         env.RESULTS_PER_PAGE,
         env.REQUESTS_PER_CONTRIVED_ERROR,
         env.MAX_CONTENT_LENGTH_BYTES
@@ -55,11 +55,11 @@ export function getEnv(loud=false) {
     if(env.AIRPORT_NUM_OF_GATE_LETTERS > 26)
         throw new AppError(`AIRPORT_NUM_OF_GATE_LETTERS must be <= 26`);
 
-    if(isServer() && env.AIRPORT_PAIRS_USED_PERCENT > 100)
-        throw new AppError(`AIRPORT_PAIRS_USED_PERCENT must between 0 and 100`);
+    if(isServer() && env.AIRPORT_PAIR_USED_PERCENT > 100)
+        throw new AppError(`AIRPORT_PAIR_USED_PERCENT must between 0 and 100`);
 
-    if(isServer() && env.FLIGHT_HOURS_HAS_FLIGHTS_PERCENT > 24)
-        throw new AppError(`FLIGHT_HOURS_HAS_FLIGHTS_PERCENT must be <= 24`);
+    if(isServer() && env.FLIGHT_HOUR_HAS_FLIGHTS_PERCENT > 100)
+        throw new AppError(`FLIGHT_HOUR_HAS_FLIGHTS_PERCENT must between 0 and 100`);
 
     if(isServer() && env.MONGODB_MS_PORT && env.MONGODB_MS_PORT <= 1024)
         throw new AppError(`optional environment variable MONGODB_MS_PORT must be > 1024`);
