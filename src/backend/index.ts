@@ -307,13 +307,10 @@ export async function generateFlights() {
     if(!totalHoursToGenerate)
         return 0;
 
-    const protoGates = ('abcdefghijklmnopqrstuvwxyz').split('').slice(0, getEnv().AIRPORT_NUM_OF_GATE_LETTERS).map(x => {
+    const flightNumPool = [...Array(9999)].map((_, j) => j + 1);
+    const gatePool = ('abcdefghijklmnopqrstuvwxyz').split('').slice(0, getEnv().AIRPORT_NUM_OF_GATE_LETTERS).map(x => {
         return [...Array(getEnv().AIRPORT_GATE_NUMBERS_PER_LETTER)].map((_, n) => `${x}${n + 1}`);
     }).flat();
-
-    const protoFlightNumbers = [...Array(9999)].map((_, j) => j + 1);
-
-    let isArrival = false;
 
     const flights: InternalFlight[] = [];
 
@@ -321,21 +318,12 @@ export async function generateFlights() {
         if(randomInt(1, 100) > getEnv().FLIGHT_HOUR_HAS_FLIGHTS_PERCENT)
             return;
 
-        isArrival = !isArrival;
         const currentHour = lastFlightHourMs + oneHourInMs + i * oneHourInMs;
-
-        // ? Here we use a markov model to generate future flight stochastic
-        // ? information states that we transition into sequentially over time,
-        // ? giving API users the impression that flight information is changing
-        // ? randomly (like real flights do)
-
-        const gatePool: string[] = cloneDeep(protoGates);
-        const states: InternalFlight['stochasticStates'] = {};
         const activeAirlines = shuffle(airlines).slice(0, randomInt(2, airlines.length)) as WithId<InternalAirline>[];
         const numberGenerator = activeAirlines.reduce((map, airline) => {
             return {
                 ...map,
-                [airline._id.toHexString()]: uniqueRandomArray(cloneDeep(protoFlightNumbers))
+                [airline._id.toHexString()]: uniqueRandomArray(cloneDeep(flightNumPool))
             };
         }, {} as { [objectId: string]: () => number });
 
@@ -343,103 +331,132 @@ export async function generateFlights() {
         // ? Departures land at firstAirport and depart to secondAirport; which
         // ? airport they came from is randomly determined
         airports.forEach(firstAirport => {
+            const getGate = uniqueRandomArray(cloneDeep(gatePool));
+
             airports.forEach(secondAirport => {
                 // ? Sometimes we skip a source-dest pair in a given hour (and
                 // ? planes can't come from and land at the same airport)
                 if(firstAirport._id.equals(secondAirport._id) || randomInt(1, 100) > getEnv().AIRPORT_PAIR_USED_PERCENT)
                     return;
 
-                const airline = activeAirlines[randomInt(0, activeAirlines.length - 1)];
-                const maxChecked = randomInt(0, 10);
-                const maxCarry = randomInt(0, 4);
+                let isArrival = false;
 
-                // ? Randomly calculate seat prices and number
-                const seatPricing = info.seatClasses.reduce((seats, seatClass) => {
-                    const numSeats = randomInt(
-                        Math.min(Math.max(6, seats.remainingSeats), SEATS_PER_PLANE / info.seatClasses.length),
-                        // ? Max available seats are reduced by half each time unless a small number was chosen
-                        Math.max(seats.remainingSeats / 2, SEATS_PER_PLANE - (SEATS_PER_PLANE - seats.remainingSeats))
-                    );
+                activeAirlines.forEach(airline => {
+                    isArrival = !isArrival;
 
-                    // ? Prices can at most double... greedy capitalists!
-                    const $ = randomInt(seats.prev$, seats.prev$ * 2) + Number(Math.random().toFixed(2));
-                    const ffms = randomInt(seats.prevFfms, seats.prevFfms * (1 + (info.seatClasses.length / 10)));
-
-                    return {
-                        ...seats,
-                        [seatClass]: {
-                            total: numSeats,
-                            priceDollars: $,
-                            priceFfms: ffms,
-                        },
-                        remainingSeats: seats.remainingSeats - numSeats,
-                        prev$: $,
-                        prevFfms: ffms
+                    // ? Here we use a markov model to generate future flight
+                    // ? stochastic information states that we transition into
+                    // ? sequentially over time, giving API users the impression
+                    // ? that flight information is changing
+                    const states: InternalFlight['stochasticStates'] = {
+                        0: { // ? All flights have some initial state (i.e. 0)
+                            departFromSender: 0,
+                            arriveAtReceiver: 0,
+                            departFromReceiver: null,
+                            status: '',
+                            gate: null
+                        }
                     };
-                }, {
-                    remainingSeats: SEATS_PER_PLANE,
-                    prev$: randomInt(60, 150),
-                    prevFfms: randomInt(5000, 8000)
-                }) as unknown as InternalFlight['seats'];
 
-                // ? Randomly decide which extras are included and for how much
-                const extrasPricing = info.allExtras.reduce((extras, item) => {
-                    // ? Sometimes one of the items is not included (skipped)
-                    if(randomInt(1, 100) > 75)
-                        return extras;
+                    // ? There are 4 stochastic decision making phases we run
+                    // ? through to generate flight state
+                    [...Array(4)].forEach(_ => {
+                        //
+                    });
 
-                    // ? Prices can at most double... greedy capitalists!
-                    const $ = randomInt(extras.prev$, extras.prev$ * 2) + Number(Math.random().toFixed(2));
-                    const ffms = randomInt(extras.prevFfms, extras.prevFfms * 2);
+                    // ? Determine how many checked bags and carryons people can
+                    // ? bring how much they'll be gouged
+                    const maxChecked = randomInt(0, 10);
+                    const maxCarry = randomInt(0, 4);
 
-                    return {
-                        ...extras,
-                        [item]: {
-                            priceDollars: $,
-                            priceFfms: ffms,
+                    // ? Randomly calculate seat prices and number
+                    const seatPricing = info.seatClasses.reduce((seats, seatClass) => {
+                        const numSeats = randomInt(
+                            Math.min(Math.max(6, seats.remainingSeats), SEATS_PER_PLANE / info.seatClasses.length),
+                            // ? Max available seats are reduced by half each time unless a small number was chosen
+                            Math.max(seats.remainingSeats / 2, SEATS_PER_PLANE - (SEATS_PER_PLANE - seats.remainingSeats))
+                        );
+
+                        // ? Prices can at most double... greedy capitalists!
+                        const $ = randomInt(seats.prev$, seats.prev$ * 2) + Number(Math.random().toFixed(2));
+                        const ffms = randomInt(seats.prevFfms, seats.prevFfms * 2);
+
+                        return {
+                            ...seats,
+                            [seatClass]: {
+                                total: numSeats,
+                                priceDollars: $,
+                                priceFfms: ffms,
+                            },
+                            remainingSeats: seats.remainingSeats - numSeats,
+                            prev$: $,
+                            prevFfms: ffms
+                        };
+                    }, {
+                        remainingSeats: SEATS_PER_PLANE,
+                        prev$: randomInt(60, 150),
+                        prevFfms: randomInt(5000, 8000)
+                    }) as unknown as InternalFlight['seats'];
+
+                    // ? Randomly decide which extras are included and for how much
+                    const extrasPricing = info.allExtras.reduce((extras, item) => {
+                        // ? Sometimes one of the items is not included (skipped)
+                        if(randomInt(1, 100) > 75)
+                            return extras;
+
+                        // ? Prices can at most double... greedy capitalists!
+                        const $ = randomInt(extras.prev$, extras.prev$ * 2.5) + Number(Math.random().toFixed(2));
+                        const ffms = randomInt(extras.prevFfms, extras.prevFfms * 2);
+
+                        return {
+                            ...extras,
+                            [item]: {
+                                priceDollars: $,
+                                priceFfms: ffms,
+                            },
+                            prev$: $,
+                            prevFfms: ffms
+                        };
+                    }, {
+                        prev$: 1,
+                        prevFfms: randomInt(10, 150),
+                    }) as unknown as InternalFlight['extras'];
+
+                    flights.push({
+                        bookerKey: isArrival ? null : firstAirport.chapterKey,
+                        type: isArrival ? 'arrival' : 'departure',
+                        airline: airline.name,
+                        comingFrom: isArrival ? secondAirport.shortName : (shuffle(airports)[0] as InternalAirport).shortName,
+                        landingAt: firstAirport.shortName,
+                        departingTo: isArrival ? null : secondAirport.shortName,
+                        flightNumber: `${airline.codePrefix}${numberGenerator[airline._id.toHexString()]()}`,
+                        baggage: {
+                            checked: {
+                                max: maxChecked,
+                                prices: [...Array(maxChecked)].reduce($ => {
+                                    return [
+                                        ...$,
+                                        // ? Greedy little airlines
+                                        randomInt($, $ * 2)
+                                    ];
+                                }, []),
+                            },
+                            carry: {
+                                max: maxCarry,
+                                prices: [...Array(maxCarry)].reduce($ => {
+                                    return [
+                                        ...$,
+                                        // ? Greedy little airlines
+                                        randomInt($, $ * 2)
+                                    ];
+                                }, []),
+                            },
                         },
-                        prev$: $,
-                        prevFfms: ffms
-                    };
-                }, {
-                    prev$: randomInt(60, 150),
-                    prevFfms: randomInt(10, 750),
-                }) as unknown as InternalFlight['extras'];
-
-                flights.push({
-                    bookerKey: isArrival ? null : firstAirport.chapterKey,
-                    type: isArrival ? 'arrival' : 'departure',
-                    airline: airline.name,
-                    comingFrom: isArrival ? secondAirport.shortName : (shuffle(airports)[0] as InternalAirport).shortName,
-                    landingAt: firstAirport.shortName,
-                    departingTo: isArrival ? null : secondAirport.shortName,
-                    flightNumber: `${airline.codePrefix}${numberGenerator[airline._id.toHexString()]()}`,
-                    baggage: {
-                        checked: {
-                            max: maxChecked,
-                            prices: [...Array(maxChecked)].reduce($ => {
-                                return [
-                                    ...$,
-                                    // ? Greedy little airlines
-                                    randomInt($, $ * 2)
-                                ];
-                            }, []),
-                        },
-                        carry: {
-                            max: maxCarry,
-                            prices: [...Array(maxCarry)].reduce($ => {
-                                return [
-                                    ...$,
-                                    // ? Greedy little airlines
-                                    randomInt($, $ * 2)
-                                ];
-                            }, []),
-                        },
-                    },
-                    ffms: randomInt(2000, 6000),
-                    seats: seatPricing,
-                    extras: extrasPricing,
-                    stochasticStates: states
+                        ffms: randomInt(2000, 6000),
+                        seats: seatPricing,
+                        extras: extrasPricing,
+                        stochasticStates: states
+                    });
                 });
             });
         });
