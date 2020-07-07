@@ -48,7 +48,7 @@ export type GetFliByIdParams = {
     key: string;
 };
 
-const matchableStrings = [
+const primaryMatchTargets = [
     'type',
     'airline',
     'senderAirport',
@@ -57,11 +57,19 @@ const matchableStrings = [
     'baggage',
     'ffms',
     'bookable',
+];
+
+const secondaryMatchTargets = [
     'depart_from_sender',
     'arrive_at_receiver',
     'depart_from_receiver',
     'status',
     'gate',
+];
+
+const matchableStrings = [
+    ...primaryMatchTargets,
+    ...secondaryMatchTargets,
 ];
 
 const matchableSubStrings = ['$gt', '$lt', '$gte', '$lte'];
@@ -195,15 +203,15 @@ export async function searchFlights(params: SeaFliParams) {
         let valNotEmpty = false;
 
         const test = () => Object.keys(val).every(subky => (valNotEmpty = true) && matchableSubStrings.includes(subky)
-            && ['string', 'number'].includes(typeof (val as Record<string, unknown>)[subky]));
+            && typeof (val as Record<string, unknown>)[subky] == 'number');
 
         return !isArray(val)
             && matchableStrings.includes(ky)
-            && (typeof(val) == 'string' || (isObject(val) && valNotEmpty && test()));
+            && (['number', 'string'].includes(typeof(val)) || (isObject(val) && test() && valNotEmpty));
     });
 
     const regexMatchKeysAreValid = () => regexMatchKeys.every(k =>
-        matchableStrings.includes(k) && ['string', 'number'].includes(typeof match[k]));
+        matchableStrings.includes(k) && ['string', 'number'].includes(typeof regexMatch[k]));
 
     if(matchKeys.length && !matchKeysAreValid())
         throw new AppError('invalid match object');
@@ -211,10 +219,53 @@ export async function searchFlights(params: SeaFliParams) {
     if(regexMatchKeys.length && !regexMatchKeysAreValid())
         throw new AppError('invalid regexMatch object');
 
-    // return await (await getDb()).collection<WithId<InternalFlight>>('flights').aggregate<PublicFlight>([
-    //     { $match: { _id: { $in: ids }}},
-    //     ...pipelines.resolveFlightState(key)
-    // ]).toArray();
+    const primaryMatchers: Record<string, unknown> = {};
+    const secondaryMatchers: Record<string, unknown> = {};
+
+    // ? We need to split off the search params that need flight state resolved
+    // ? for both normal matchers and regex matchers (the latter takes
+    // ? precedence due to code order)
+
+    for(const [prop, val] of Object.entries(match)) {
+        if(primaryMatchTargets.includes(prop))
+            primaryMatchers[prop] = val;
+
+        else if(secondaryMatchTargets.includes(prop))
+            secondaryMatchers[prop] = val;
+
+        else
+            throw new GuruMeditationError(`matcher "${prop}" is somehow neither primary nor secondary (1)`);
+    }
+
+    for(const [prop, val] of Object.entries(regexMatch)) {
+        const regexVal = { $regex: val, $options: 'i' };
+
+        if(primaryMatchTargets.includes(prop))
+            primaryMatchers[prop] = regexVal;
+
+        else if(secondaryMatchTargets.includes(prop))
+            secondaryMatchers[prop] = regexVal;
+
+        else
+            throw new GuruMeditationError(`matcher "${prop}" is somehow neither primary nor secondary (2)`);
+    }
+
+    const primaryMatchStage = {
+        $match: {
+            ...(after ? { _id: { [sort == 'asc' ? '$gt' : '$lt']: new ObjectId(after) }} : {}),
+            ...primaryMatchers
+        }
+    };
+
+    const pipeline = [
+        ...(Object.keys(primaryMatchStage.$match).length ? [primaryMatchStage] : []),
+        { $sort: { _id: sort == 'asc' ? 1 : -1 }},
+        { $limit: getEnv().RESULTS_PER_PAGE },
+        ...pipelines.resolveFlightState(key),
+        ...(Object.keys(secondaryMatchers).length ? [{ $match: { ...secondaryMatchers }}] : []),
+    ];
+
+    return await (await getDb()).collection<InternalFlight>('flights').aggregate<PublicFlight>(pipeline).toArray();
 }
 
 export async function generateFlights() {

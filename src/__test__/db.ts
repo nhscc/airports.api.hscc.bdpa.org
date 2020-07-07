@@ -19,6 +19,8 @@ import type {
 
 populateEnv();
 
+export const EXPAND_RESULTS_BY_MULT = 2.5;
+
 export type DummyDbData = {
     keys: ApiKey[];
     flights: InternalFlight[];
@@ -279,34 +281,36 @@ export const unhydratedDummyDbData: DummyDbData = {
     ]
 };
 
-const count = getEnv().RESULTS_PER_PAGE * 2.5;
+const count = getEnv().RESULTS_PER_PAGE * EXPAND_RESULTS_BY_MULT;
+const specialFlightIndex = count - 2;
 
 // ? Rapidly add a bunch of flights for testing purposes
 unhydratedDummyDbData.flights = [...Array(Math.floor(count))].map((_, ndx) => {
-    return cloneDeep(unhydratedDummyDbData.flights[ndx % unhydratedDummyDbData.flights.length]);
+    const flight = cloneDeep(unhydratedDummyDbData.flights[ndx % unhydratedDummyDbData.flights.length]);
+
+    if(ndx == specialFlightIndex) {
+        flight.airline = 'Spirit';
+        flight.ffms = 100000000;
+        flight.stochasticStates = {
+            0: {
+                depart_from_sender: Time.farFuture(),
+                arrive_at_receiver: Time.farFuture(),
+                depart_from_receiver: Time.farFuture(),
+                status: 'boarding',
+                gate: 'B2',
+            },
+            1: {
+                depart_from_sender: 500,
+                arrive_at_receiver: 700,
+                depart_from_receiver: 1000,
+                status: 'past',
+                gate: null,
+            },
+        };
+    }
+
+    return flight;
 });
-
-const specialFlightIndex = count - 2;
-const specialFlight = unhydratedDummyDbData.flights[specialFlightIndex];
-
-specialFlight.airline = 'Spirit';
-specialFlight.ffms = 100000000;
-specialFlight.stochasticStates = {
-    0: {
-        depart_from_sender: Time.farFuture(),
-        arrive_at_receiver: Time.farFuture(),
-        depart_from_receiver: Time.farFuture(),
-        status: 'boarding',
-        gate: 'B2',
-    },
-    1: {
-        depart_from_sender: 500,
-        arrive_at_receiver: 700,
-        depart_from_receiver: 1000,
-        status: 'past',
-        gate: null,
-    },
-};
 
 export async function hydrateDb(db: Db, data: DummyDbData): Promise<HydratedDummyDbData> {
     const newData = cloneDeep(data);
@@ -352,7 +356,8 @@ export async function hydrateDb(db: Db, data: DummyDbData): Promise<HydratedDumm
 }
 
 export function setupJest() {
-    const server = new MongoMemoryServer();
+    const port = getEnv().DEBUG_MODE ? getEnv().MONGODB_MS_PORT : undefined;
+    const server = new MongoMemoryServer({ instance: { port }});
     let connection: MongoClient;
     let hydratedData: HydratedDummyDbData;
     let oldEnv: typeof process.env;

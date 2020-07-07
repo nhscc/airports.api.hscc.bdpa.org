@@ -1,6 +1,6 @@
 import { WithId, ObjectId } from 'mongodb';
 import * as Backend from 'universe/backend'
-import { setupJest, unhydratedDummyDbData } from 'universe/__test__/db'
+import { setupJest, unhydratedDummyDbData, EXPAND_RESULTS_BY_MULT } from 'universe/__test__/db'
 import { getEnv } from 'universe/backend/env'
 import { populateEnv } from 'universe/dev-utils'
 
@@ -37,6 +37,22 @@ const PFlightKeys = [
 ];
 
 const key = Backend.DUMMY_KEY;
+
+const convertIFlightToPFlight = (flight: WithId<InternalFlight>): PublicFlight => {
+    const { _id, booker_key, stochasticStates, ...flightData } = flight;
+
+    return {
+        flight_id: _id,
+        bookable: booker_key == Backend.DUMMY_KEY,
+        ...flightData,
+        ...Object.entries(stochasticStates).reduce((prev, entry) => {
+            if(Number(entry[0]) <= Date.now())
+                return entry[1];
+            else
+                return prev;
+        }, Object.values(stochasticStates)[0])
+    }
+};
 
 describe('universe/backend', () => {
     describe('::getNoFlyList', () => {
@@ -205,20 +221,22 @@ describe('universe/backend', () => {
             expect(Backend.searchFlights({
                 key, after: null, sort: 'asc', match: { type: {} }, regexMatch: {}
             })).toReject();
+
+            expect(Backend.searchFlights({
+                // @ts-expect-error: testing bad arguments
+                key, after: null, sort: 'asc', match: { type: { $in: [] } }, regexMatch: {}
+            })).toReject();
+
+            expect(Backend.searchFlights({
+                key, after: null, sort: 'asc', match: { type: { $lte: undefined } }, regexMatch: {}
+            })).toReject();
+
+            expect(Backend.searchFlights({
+                key, after: null, sort: 'asc', match: { '$_id': 'that' }, regexMatch: {}
+            })).toReject();
         });
 
         it('search returns expected paginated records with empty asc/desc queries', async () => {
-            const convertIFlightToPFlight = (flight: InternalFlight, ndx: number): PublicFlight => {
-                const { booker_key, stochasticStates , ...flightData } = flight;
-
-                return {
-                    flight_id: getHydratedData().flights[ndx]._id,
-                    bookable: booker_key == Backend.DUMMY_KEY,
-                    ...flightData,
-                    ...Object.values(stochasticStates)[0]
-                }
-            };
-
             const count = getEnv().RESULTS_PER_PAGE;
 
             const result1 = await Backend.searchFlights({
@@ -237,13 +255,19 @@ describe('universe/backend', () => {
                 sort: 'desc',
             });
 
-            expect(result1).toBe(unhydratedDummyDbData.flights.slice(count).map(convertIFlightToPFlight));
-            expect(result2).toBe(unhydratedDummyDbData.flights.slice(count).reverse().map(convertIFlightToPFlight));
+            const expFlights = getHydratedData().flights;
+            const expectedFlights1 = expFlights.slice(0, count).map(convertIFlightToPFlight);
+            const expectedFlights2 = expFlights.slice(expFlights.length - count, expFlights.length).reverse().map(convertIFlightToPFlight);
+
+            expect(result1).toStrictEqual(expectedFlights1);
+            expect(result2).toStrictEqual(expectedFlights2);
             expect(result1.every(flight => Object.keys(flight).every(key => PFlightKeys.includes(key)))).toBeTrue();
         });
 
         it('search returns expected paginated records with various queries', async () => {
             const count = getEnv().RESULTS_PER_PAGE;
+            const totalRecords = count * EXPAND_RESULTS_BY_MULT;
+            const expFlights = getHydratedData().flights;
 
             const result1 = await Backend.searchFlights({
                 key,
@@ -255,6 +279,12 @@ describe('universe/backend', () => {
 
             expect(result1.length).toBe(count);
             expect(result1.every(flight => flight.type == 'arrival')).toBeTrue();
+            expect(result1).toStrictEqual(expFlights
+                .filter(flight => flight.type == 'arrival')
+                .reverse()
+                .slice(0, count)
+                .map(convertIFlightToPFlight)
+            );
 
             const result2 = await Backend.searchFlights({
                 key,
@@ -264,13 +294,19 @@ describe('universe/backend', () => {
                 sort: 'desc',
             });
 
-            expect(result2.length).toBe(count);
+            expect(result2.length).toBe(totalRecords / 2 - count + 1);
             expect(result2.every(flight => flight.type == 'arrival')).toBeTrue();
-            expect(result2[0].flight_id).toBe(result1[result1.length - 1].flight_id);
+            expect(result2[0].flight_id).toStrictEqual(result1[result1.length - 1].flight_id);
+            expect(result2.slice(-1)[0].flight_id).toStrictEqual(expFlights
+                .filter(flight => flight.type == 'arrival')
+                .reverse()
+                .slice(-1)
+                .map(convertIFlightToPFlight)[0].flight_id
+            );
 
             const result3 = await Backend.searchFlights({
                 key,
-                after: getHydratedData().flights.slice(-3)[0]._id,
+                after: expFlights.slice(-3)[0]._id,
                 match: { type: 'arrival' },
                 regexMatch: {},
                 sort: 'asc',
@@ -278,21 +314,31 @@ describe('universe/backend', () => {
 
             expect(result3.length).toBe(1);
             expect(result3.every(flight => flight.type == 'arrival')).toBeTrue();
+            expect(result3[0].flight_id).toStrictEqual(expFlights
+                .filter(flight => flight.type == 'arrival')
+                .slice(-1)
+                .map(convertIFlightToPFlight)[0].flight_id
+            );
 
             const result3desc = await Backend.searchFlights({
                 key,
-                after: getHydratedData().flights.slice(-3)[0]._id,
+                after: expFlights[2]._id,
                 match: { type: 'arrival' },
                 regexMatch: {},
                 sort: 'desc',
             });
 
             expect(result3desc.length).toBe(1);
-            expect(result3desc).toEqual(result3.reverse());
+            expect(result3desc[0].flight_id).toStrictEqual(expFlights
+                .filter(flight => flight.type == 'arrival')
+                .reverse()
+                .slice(-1)
+                .map(convertIFlightToPFlight)[0].flight_id
+            );
 
             const result4 = await Backend.searchFlights({
                 key,
-                after: getHydratedData().flights.slice(-3)[0]._id,
+                after: expFlights[2]._id,
                 match: {},
                 regexMatch: {},
                 sort: 'desc',
@@ -302,27 +348,41 @@ describe('universe/backend', () => {
 
             const result5 = await Backend.searchFlights({
                 key,
-                after: getHydratedData().flights.slice(-3)[0]._id,
+                after: expFlights.slice(-3)[0]._id,
                 match: {},
                 regexMatch: {},
                 sort: 'asc',
             });
 
-            expect(result5).toEqual(result4.reverse());
+            expect(result5.length).toBe(2);
 
             const result6 = await Backend.searchFlights({
                 key,
-                after: getHydratedData().flights.slice(-2)[0]._id,
+                after: expFlights[2]._id,
                 match: {},
                 regexMatch: {},
                 sort: 'desc',
             });
 
-            expect(result6.length).toBe(1);
+            expect(result6.length).toBe(expFlights
+                .filter(flight => flight.type == 'arrival')
+                .slice(0, 2)
+                .length
+            );
+
+            const result6X = await Backend.searchFlights({
+                key,
+                after: expFlights.slice(-2)[0]._id,
+                match: {},
+                regexMatch: {},
+                sort: 'desc',
+            });
+
+            expect(result6X.length).toBe(count);
 
             const result7 = await Backend.searchFlights({
                 key,
-                after: getHydratedData().flights.slice(-1)[0]._id,
+                after: expFlights.slice(-1)[0]._id,
                 match: {},
                 regexMatch: {},
                 sort: 'asc',
@@ -348,7 +408,8 @@ describe('universe/backend', () => {
                 sort: 'desc',
             });
 
-            expect(result9.length).toBe(0);
+            // ? regexMatch keys override match keys!
+            expect(result9.length).toBe(count);
 
             const result9X = await Backend.searchFlights({
                 key,
@@ -443,13 +504,13 @@ describe('universe/backend', () => {
 
             const result18 = await Backend.searchFlights({
                 key,
-                after: result1[0].flight_id,
+                after: result17[0].flight_id,
                 match: { ffms: { $gte: 1000000 }, depart_from_sender: 500 },
                 regexMatch: { airline: 's.*t' },
                 sort: 'desc',
             });
 
-            expect(result18.length).toBe(1);
+            expect(result18.length).toBe(0);
 
             const result19 = await Backend.searchFlights({
                 key,
