@@ -281,7 +281,7 @@ export async function generateFlights() {
 
     let objectIdCounter = randomInt(2**10, 2**24 - 1);
     const objectIdRandom = pseudoRandomBytes(5).toString('hex');
-    const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+    const targetDaysInMs = getEnv().FLIGHTS_GENERATE_DAYS * 24 * 60 * 60 * 1000;
     const oneHourInMs = 1000 * 60 * 60;
 
     const hourLevelMsDilation = (epoch: number) => Math.floor(epoch / oneHourInMs) * oneHourInMs;
@@ -293,21 +293,26 @@ export async function generateFlights() {
             + (++objectIdCounter).toString(16));
     };
 
-    // ? Delete any entries created more than 30 days from today
+    // ? Delete any entries created more than FLIGHTS_GENERATE_DAYS days ago
     await flightDb.deleteMany({
-        _id: { $lt: generateObjectIdFromMs(-thirtyDaysInMs) }
+        _id: { $lt: generateObjectIdFromMs(-targetDaysInMs) }
     });
 
     // ? Determine how many hours (if any) need flights generated for them
     const lastFlightId = (await flightDb.find().sort({ _id: -1 }).limit(1).next())?._id ?? new ObjectId();
     const lastFlightHourMs = hourLevelMsDilation(lastFlightId.getTimestamp().getTime());
-    const totalHoursToGenerate = (hourLevelMsDilation(Date.now() + thirtyDaysInMs) - lastFlightHourMs) / oneHourInMs;
+    const totalHoursToGenerate = (hourLevelMsDilation(Date.now() + targetDaysInMs) - lastFlightHourMs) / oneHourInMs;
 
     if(!totalHoursToGenerate)
         return 0;
 
-    const flights: InternalFlight[] = [];
+    const gates = ('abcdefghijklmnopqrstuvwxyz').split('').slice(0, getEnv().AIRPORT_NUM_OF_GATE_LETTERS).map(x => {
+        return [...Array(getEnv().AIRPORT_GATE_NUMBERS_PER_LETTER)].map((_, n) => `${x}${n + 1}`);
+    }).flat();
+
     let prevFlightType: string;
+
+    const flights: InternalFlight[] = [];
 
     [...Array(totalHoursToGenerate)].forEach((_, i) => {
         const flightType = prevFlightType = prevFlightType == 'arrival' ? 'departure' : 'arrival';
@@ -318,17 +323,24 @@ export async function generateFlights() {
         // ? giving API users the impression that flight information is changing
         // ? randomly (like real flights do)
 
-        const airportGatePool: { [objectId: string]: string[] } = {};
-        const sourceDestPairs: { src: ObjectId, dst: ObjectId }[] = [];
+        const gatePool: string[] = cloneDeep(gates);
         const states: InternalFlight['stochasticStates'] = {};
 
-        // 1. Determine this flight's initial (0) state
+        // ? Arrivals land at firstAirport and came from secondAirport
+        // ? Departures land at firstAirport and depart to secondAirport; which
+        // ? airport they came from is randomly determined
+        airports.forEach(firstAirport => {
+            airports.forEach(secondAirport => {
+                // ? Sometimes we skip a source-dest pair in a given hour
+                if(randomInt(1, 100) > getEnv().AIRPORT_PAIRS_USED_PERCENT)
+                    return;
 
-        // 2.
+                flights.push({
+                    bookerKey: '',
 
-        return {
-
-        };
+                });
+            });
+        });
     });
 
     try {
