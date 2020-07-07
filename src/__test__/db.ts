@@ -63,6 +63,7 @@ export const unhydratedDummyDbData: DummyDbData = {
             city: 'Los Angeles',
             state: 'CA',
             country: 'USA',
+            chapterKey: DUMMY_KEY
         },
         {
             name: 'Second Chapter Airport',
@@ -70,6 +71,7 @@ export const unhydratedDummyDbData: DummyDbData = {
             city: 'Chicago',
             state: 'IL',
             country: 'USA',
+            chapterKey: 'xyz4c4d3-294a-4086-9751-f3fce82da'
         },
         {
             name: 'Third Chapter Airport',
@@ -77,6 +79,7 @@ export const unhydratedDummyDbData: DummyDbData = {
             city: 'New York',
             state: 'NY',
             country: 'USA',
+            chapterKey: '35b6ny53-83a7-gf0r-b060-b4ywayrht'
         },
         {
             name: 'Four Chapter Airport',
@@ -84,6 +87,7 @@ export const unhydratedDummyDbData: DummyDbData = {
             city: 'Atlanta',
             state: 'GA',
             country: 'USA',
+            chapterKey: 'h90wgbrd-294a-536h-9751-rydmjetgg'
         },
     ],
     airlines: [
@@ -143,7 +147,7 @@ export const unhydratedDummyDbData: DummyDbData = {
     // ! Note that dummy times here don't make sense; they're only for testing!
     flights: [
         {
-            booker_key: DUMMY_KEY,
+            bookerKey: DUMMY_KEY,
             type: 'arrival',
             airline: 'Delta',
             senderAirport: 'F1A',
@@ -194,23 +198,23 @@ export const unhydratedDummyDbData: DummyDbData = {
             },
             stochasticStates: {
                 [Date.now()]: {
-                    depart_from_sender: Time.nearFuture(),
-                    arrive_at_receiver: Time.nearFuture(),
-                    depart_from_receiver: null,
+                    departFromSender: Time.nearFuture(),
+                    arriveAtReceiver: Time.nearFuture(),
+                    departFromReceiver: null,
                     status: 'scheduled',
                     gate: null,
                 },
                 [Time.nearFuture()]: {
-                    depart_from_sender: Time.nearFuture(),
-                    arrive_at_receiver: Time.nearFuture(),
-                    depart_from_receiver: null,
+                    departFromSender: Time.nearFuture(),
+                    arriveAtReceiver: Time.nearFuture(),
+                    departFromReceiver: null,
                     status: 'landed',
                     gate: 'A1',
                 },
             }
         },
         {
-            booker_key: 'xyz4c4d3-294a-4086-9751-f3fce82da',
+            bookerKey: 'xyz4c4d3-294a-4086-9751-f3fce82da',
             type: 'departure',
             airline: 'United',
             senderAirport: 'CHF',
@@ -265,16 +269,16 @@ export const unhydratedDummyDbData: DummyDbData = {
             },
             stochasticStates: {
                 [Date.now()]: {
-                    depart_from_sender: Time.farFuture(),
-                    arrive_at_receiver: Time.farFuture(),
-                    depart_from_receiver: Time.farFuture(),
+                    departFromSender: Time.farFuture(),
+                    arriveAtReceiver: Time.farFuture(),
+                    departFromReceiver: Time.farFuture(),
                     status: 'boarding',
                     gate: 'B2',
                 },
                 [Time.farFuture()]: {
-                    depart_from_sender: Time.farFuture(),
-                    arrive_at_receiver: Time.farFuture(),
-                    depart_from_receiver: Time.farFuture(),
+                    departFromSender: Time.farFuture(),
+                    arriveAtReceiver: Time.farFuture(),
+                    departFromReceiver: Time.farFuture(),
                     status: 'departed',
                     gate: 'C3',
                 },
@@ -299,16 +303,16 @@ unhydratedDummyDbData.flights = [...Array(Math.floor(count))].map((_, ndx) => {
         flight.ffms = 100000000;
         flight.stochasticStates = {
             0: {
-                depart_from_sender: Time.farFuture(),
-                arrive_at_receiver: Time.farFuture(),
-                depart_from_receiver: Time.farFuture(),
+                departFromSender: Time.farFuture(),
+                arriveAtReceiver: Time.farFuture(),
+                departFromReceiver: Time.farFuture(),
                 status: 'boarding',
                 gate: 'B2',
             },
             1: {
-                depart_from_sender: 500,
-                arrive_at_receiver: 700,
-                depart_from_receiver: 1000,
+                departFromSender: 500,
+                arriveAtReceiver: 700,
+                departFromReceiver: 1000,
                 status: 'past',
                 gate: null,
             },

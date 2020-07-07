@@ -3,8 +3,9 @@ import { getEnv } from 'universe/backend/env'
 import { getDb, pipelines } from 'universe/backend/db'
 import { isArray } from 'util'
 import { getClientIp } from 'request-ip'
-import * as Time from 'multiverse/relative-random-time'
 import { shuffle } from 'fast-shuffle'
+import * as Time from 'multiverse/relative-random-time'
+import cloneDeep from 'clone-deep'
 import randomInt from 'random-int'
 import uniqueRandomArray from 'unique-random-array'
 
@@ -59,9 +60,9 @@ const primaryMatchTargets = [
 ];
 
 const secondaryMatchTargets = [
-    'depart_from_sender',
-    'arrive_at_receiver',
-    'depart_from_receiver',
+    'departFromSender',
+    'arriveAtReceiver',
+    'departFromReceiver',
     'status',
     'gate',
 ];
@@ -306,12 +307,28 @@ export async function generateFlights() {
         return 0;
 
     const flights: InternalFlight[] = [];
+    let prevFlightType: string;
 
     [...Array(totalHoursToGenerate)].forEach((_, i) => {
+        const flightType = prevFlightType = prevFlightType == 'arrival' ? 'departure' : 'arrival';
         const currentHour = lastFlightHourMs + oneHourInMs + i * oneHourInMs;
-        // ? Use a markov model to generate flight information that changes
-        // ? stochastically over time (like real flights do)
-        void currentHour;
+
+        // ? Here we use a markov model to generate future flight stochastic
+        // ? information states that we transition into sequentially over time,
+        // ? giving API users the impression that flight information is changing
+        // ? randomly (like real flights do)
+
+        const airportGatePool: { [objectId: string]: string[] } = {};
+        const sourceDestPairs: { src: ObjectId, dst: ObjectId }[] = [];
+        const states: InternalFlight['stochasticStates'] = {};
+
+        // 1. Determine this flight's initial (0) state
+
+        // 2.
+
+        return {
+
+        };
     });
 
     try {

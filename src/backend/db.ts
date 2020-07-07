@@ -72,7 +72,7 @@ export const pipelines = {
                 bookable: {
                     $cond: {
                         if: {
-                            $eq: ['$booker_key', key]
+                            $eq: ['$bookerKey', key]
                         },
                         then: true,
                         else: false
@@ -91,7 +91,7 @@ export const pipelines = {
             $project: {
                 state: false,
                 _id: false,
-                booker_key: false,
+                bookerKey: false,
                 stochasticStates: false
             }
         }

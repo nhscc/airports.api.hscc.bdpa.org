@@ -29,9 +29,9 @@ const PFlightKeys = [
     'seats',
     'extras',
     'bookable',
-    'depart_from_sender',
-    'arrive_at_receiver',
-    'depart_from_receiver',
+    'departFromSender',
+    'arriveAtReceiver',
+    'departFromReceiver',
     'status',
     'gate',
 ];
@@ -39,11 +39,11 @@ const PFlightKeys = [
 const key = Backend.DUMMY_KEY;
 
 const convertIFlightToPFlight = (flight: WithId<InternalFlight>): PublicFlight => {
-    const { _id, booker_key, stochasticStates, ...flightData } = flight;
+    const { _id, bookerKey, stochasticStates, ...flightData } = flight;
 
     return {
         flight_id: _id,
-        bookable: booker_key == Backend.DUMMY_KEY,
+        bookable: bookerKey == Backend.DUMMY_KEY,
         ...flightData,
         ...Object.entries(stochasticStates).reduce((prev, entry) => {
             if(Number(entry[0]) <= Date.now())
@@ -139,8 +139,8 @@ describe('universe/backend', () => {
             const result1 = await Backend.getFlightsById({ ids: [flight1._id, flight2._id], key });
 
             expect([result1[0].bookable, result1[1].bookable]).toStrictEqual([
-                flight1.booker_key == Backend.DUMMY_KEY,
-                flight2.booker_key == Backend.DUMMY_KEY
+                flight1.bookerKey == Backend.DUMMY_KEY,
+                flight2.bookerKey == Backend.DUMMY_KEY
             ]);
 
             expect(result1.every(flight => {
@@ -485,7 +485,7 @@ describe('universe/backend', () => {
             const result16 = await Backend.searchFlights({
                 key,
                 after: null,
-                match: { arrive_at_receiver: { $lt: 10000 }},
+                match: { arriveAtReceiver: { $lt: 10000 }},
                 regexMatch: {},
                 sort: 'desc',
             });
@@ -495,7 +495,7 @@ describe('universe/backend', () => {
             const result17 = await Backend.searchFlights({
                 key,
                 after: null,
-                match: { ffms: { $gte: 1000000 }, depart_from_sender: 500 },
+                match: { ffms: { $gte: 1000000 }, departFromSender: 500 },
                 regexMatch: { airline: 's.*t' },
                 sort: 'desc',
             });
@@ -505,7 +505,7 @@ describe('universe/backend', () => {
             const result18 = await Backend.searchFlights({
                 key,
                 after: result17[0].flight_id,
-                match: { ffms: { $gte: 1000000 }, depart_from_sender: 500 },
+                match: { ffms: { $gte: 1000000 }, departFromSender: 500 },
                 regexMatch: { airline: 's.*t' },
                 sort: 'desc',
             });

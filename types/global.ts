@@ -7,9 +7,9 @@ export type FlightId = ObjectId;
 export type FlightNumber = string;
 
 export type StochasticFlightState = {
-    depart_from_sender: number;
-    arrive_at_receiver: number;
-    depart_from_receiver: number | null;
+    departFromSender: number;
+    arriveAtReceiver: number;
+    departFromReceiver: number | null;
     status: 'past' | 'scheduled' | 'cancelled' | 'delayed' | 'on time' | 'landed' | 'arrived' | 'boarding' | 'departed';
     gate: string | null;
 };
@@ -23,7 +23,7 @@ export type InternalInfo = {
  * The shape of a flight entry.
  */
 export type InternalFlight = {
-    booker_key: string;
+    bookerKey: string;
     type: 'arrival' | 'departure';
     airline: string;
     senderAirport: string;
@@ -54,14 +54,14 @@ export type InternalFlight = {
         }
     };
     stochasticStates: {
-        [active_after: number]: StochasticFlightState;
+        [activeAfter: number]: StochasticFlightState;
     };
 };
 
 /**
  * The shape of a public airport API result.
  */
-export type PublicFlight = Omit<InternalFlight, 'booker_key' | 'stochasticStates'> & StochasticFlightState & {
+export type PublicFlight = Omit<InternalFlight, 'bookerKey' | 'stochasticStates'> & StochasticFlightState & {
     flight_id: ObjectId;
     bookable: boolean;
 };
@@ -75,6 +75,7 @@ export type InternalAirport = {
     city: string;
     state: string;
     country: string;
+    chapterKey: string | null;
 };
 
 /**
