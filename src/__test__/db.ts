@@ -198,14 +198,14 @@ export const unhydratedDummyDbData: DummyDbData = {
                 },
             },
             stochasticStates: {
-                [0]: {
+                '0': {
                     departFromSender: Time.nearFuture(),
                     arriveAtReceiver: Time.nearFuture(),
                     departFromReceiver: null,
                     status: 'scheduled',
                     gate: null,
                 },
-                [Time.nearFuture()]: {
+                [Time.nearFuture().toString()]: {
                     departFromSender: Time.nearFuture(),
                     arriveAtReceiver: Time.nearFuture(),
                     departFromReceiver: null,
@@ -270,14 +270,14 @@ export const unhydratedDummyDbData: DummyDbData = {
                 },
             },
             stochasticStates: {
-                [0]: {
+                '0': {
                     departFromSender: Time.farFuture(),
                     arriveAtReceiver: Time.farFuture(),
                     departFromReceiver: Time.farFuture(),
                     status: 'boarding',
                     gate: 'B2',
                 },
-                [Date.now()]: {
+                [Date.now().toString()]: {
                     departFromSender: Time.farFuture(),
                     arriveAtReceiver: Time.farFuture(),
                     departFromReceiver: Time.farFuture(),
@@ -306,14 +306,14 @@ unhydratedDummyDbData.flights = [...Array(Math.floor(count))].map((_, ndx) => {
         flight.airline = 'Spirit';
         flight.ffms = 100000000;
         flight.stochasticStates = {
-            0: {
+            '0': {
                 departFromSender: Time.farFuture(),
                 arriveAtReceiver: Time.farFuture(),
                 departFromReceiver: Time.farFuture(),
                 status: 'boarding',
                 gate: 'B2',
             },
-            1: {
+            '1': {
                 departFromSender: 500,
                 arriveAtReceiver: 700,
                 departFromReceiver: 1000,

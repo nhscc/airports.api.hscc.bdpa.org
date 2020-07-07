@@ -13,21 +13,24 @@ import {
 
 import type{ NextApiRequest, NextApiResponse } from 'next'
 
+jest.setTimeout(10**6);
+
 populateEnv();
 
 const { getHydratedData, getDb } = setupJest();
 
 const PFlightKeys = [
-    'flight_id',
     'type',
     'airline',
     'comingFrom',
     'landingAt',
+    'departingTo',
     'flightNumber',
     'baggage',
     'ffms',
     'seats',
     'extras',
+    'flight_id',
     'bookable',
     'departFromSender',
     'arriveAtReceiver',
@@ -525,11 +528,20 @@ describe('universe/backend', () => {
     });
 
     describe('::generateFlights', () => {
-        it('does nothing if there are no airports or no airlines', async () => {
-            expect(await Backend.generateFlights()).toBe(0);
+        it('rejects if there are no airports', async () => {
+            process.env.FLIGHTS_GENERATE_DAYS = '1';
+            await (await getDb()).collection('airports').deleteMany({});
+            expect(Backend.generateFlights()).toReject();
+        });
+
+        it('rejects if there are no airlines', async () => {
+            process.env.FLIGHTS_GENERATE_DAYS = '1';
+            await (await getDb()).collection('airlines').deleteMany({});
+            expect(Backend.generateFlights()).toReject();
         });
 
         it('does something if airports/airlines exist but only AFTER the latest entry if proper time', async () => {
+            process.env.FLIGHTS_GENERATE_DAYS = '1';
             const flightsDb = (await getDb()).collection<WithId<InternalFlight>>('flights');
 
             expect(await Backend.generateFlights()).not.toBe(0);
@@ -539,7 +551,7 @@ describe('universe/backend', () => {
 
             expect(lastFlightId).toBeTruthy();
             expect((await flightsDb.deleteOne({ _id: lastFlightId })).deletedCount).toBe(1);
-            expect(await Backend.generateFlights()).toBe(1);
+            expect(await Backend.generateFlights()).toBe(0);
         });
     });
 

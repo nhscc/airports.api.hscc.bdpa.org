@@ -42,20 +42,20 @@ export type InternalFlight = {
     };
     ffms: number;
     seats: {
-        [seatClass in 'economy' | 'economyPlus' | 'exitRow' | 'firstClass']: {
+        [seatClass: string]: {
             total: number;
             priceDollars: number;
             priceFfms: number;
         }
     },
     extras: {
-        [name in 'wifi' | 'pillow' | 'blanket' | 'headphones' | 'extra food']?: {
+        [name: string]: {
             priceDollars: number;
             priceFfms: number;
         }
     };
     stochasticStates: {
-        [activeAfter: number]: StochasticFlightState;
+        [activeAfter: string]: StochasticFlightState;
     };
 };
 
