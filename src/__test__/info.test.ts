@@ -8,8 +8,7 @@ import * as V2_airports from 'universe/pages/api/v2/info/airports'
 import * as V2_all_extras from 'universe/pages/api/v2/info/all-extras'
 import * as V2_no_fly_list from 'universe/pages/api/v2/info/no-fly-list'
 import * as V2_seat_classes from 'universe/pages/api/v2/info/seat-classes'
-import { getEnv } from 'universe/backend/env'
-import { DUMMY_KEY } from 'universe/backend'
+import { DUMMY_KEY as KEY } from 'universe/backend'
 
 import type { WithConfig } from 'types/global'
 
@@ -44,51 +43,91 @@ process.env.REQUESTS_PER_CONTRIVED_ERROR = '0';
 describe('api/v1/info', () => {
     describe('/airlines', () => {
         it('returns data as expected', async () => {
-            test.todo('TODO');
+            const airlines = getHydratedData().airlines.map(a => {
+                const { name, codePrefix } = a;
+
+                return {
+                    name,
+                    codePrefix
+                };
+            });
+
+            await testApiEndpoint({
+                next: v1Airlines,
+                test: async ({ fetch }) => {
+                    const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
+
+                    expect(response.status).toBe(200);
+                    expect(await response.json()).toStrictEqual({ airlines, success: true });
+                }
+            });
         });
     });
 
     describe('/airports', () => {
         it('returns data as expected', async () => {
-            test.todo('TODO');
+            const airports = getHydratedData().airports.map(a => {
+                const { city, country, state, name, shortName } = a;
+
+                return {
+                    city,
+                    state,
+                    country,
+                    name,
+                    shortName
+                };
+            });
+
+            await testApiEndpoint({
+                next: v1Airports,
+                test: async ({ fetch }) => {
+                    const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
+
+                    expect(response.status).toBe(200);
+                    expect(await response.json()).toStrictEqual({ airports, success: true });
+                }
+            });
         });
     });
 
     describe('/no-fly-list', () => {
         it('returns data as expected', async () => {
-            test.todo('TODO');
+            const noFlyList = getHydratedData().noFlyList.map(item => {
+                const { _id, ...noFly } = item;
+                return noFly;
+            });
+
+            await testApiEndpoint({
+                next: v1NoFlyList,
+                test: async ({ fetch }) => {
+                    const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
+
+                    expect(response.status).toBe(200);
+                    expect(await response.json()).toStrictEqual({ noFlyList, success: true });
+                }
+            });
         });
     });
 });
 
-describe('api/v1/info', () => {
+describe('api/v2/info', () => {
     describe('/airlines', () => {
-        it('returns data as expected', async () => {
-            test.todo('TODO');
-        });
+        test.todo('returns data as expected');
     });
 
     describe('/airports', () => {
-        it('returns data as expected', async () => {
-            test.todo('TODO');
-        });
+        test.todo('returns data as expected');
     });
 
     describe('/all-extras', () => {
-        it('returns data as expected', async () => {
-            test.todo('TODO');
-        });
+        test.todo('returns data as expected');
     });
 
     describe('/no-fly-list', () => {
-        it('returns data as expected', async () => {
-            test.todo('TODO');
-        });
+        test.todo('returns data as expected');
     });
 
     describe('/seat-classes', () => {
-        it('returns data as expected', async () => {
-            test.todo('TODO');
-        });
+        test.todo('returns data as expected');
     });
 });

@@ -9,6 +9,6 @@ export { config } from 'universe/backend/middleware';
 
 export default async function(req: NextApiRequest, res: NextApiResponse) {
     await handleEndpoint(async ({ res }) => {
-        sendHttpOk(res, await getAirlines());
+        sendHttpOk(res, { airlines: await getAirlines() });
     }, { req, res, methods: [ 'GET' ], apiVersion: 1 });
 }

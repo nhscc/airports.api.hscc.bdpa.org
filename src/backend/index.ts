@@ -153,6 +153,7 @@ export async function getNoFlyList() {
 export async function getAirports() {
     return (await getDb()).collection<WithId<InternalAirport>>('airports').find().sort({ id: 1 }).project({
         _id: false,
+        chapterKey: false,
     }).toArray();
 }
 

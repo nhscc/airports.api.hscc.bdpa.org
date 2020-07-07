@@ -3,9 +3,8 @@ import { testApiEndpoint } from 'multiverse/test-api-endpoint'
 import * as V1_all from 'universe/pages/api/v1/flights/all'
 import * as V1_search from 'universe/pages/api/v1/flights/search'
 import * as V1_with_ids from 'universe/pages/api/v1/flights/with-ids'
-import * as V2_flights from 'universe/pages/api/v2/flights/[[...params]]'
-import { getEnv } from 'universe/backend/env'
-import { DUMMY_KEY } from 'universe/backend'
+import * as V2_flights from 'universe/pages/api/v2/flights'
+import { DUMMY_KEY as KEY } from 'universe/backend'
 
 import type { WithConfig } from 'types/global'
 
@@ -28,24 +27,31 @@ process.env.REQUESTS_PER_CONTRIVED_ERROR = '0';
 describe('api/v1/flights', () => {
     describe('/all', () => {
         it('returns data as expected', async () => {
-            test.todo('TODO');
-            // await testApiEndpoint({
-            //     next: v1AllEndpoint,
-            //     test: async ({ fetch }) => {
-            //         const response = await fetch({ headers: { DUMMY_KEY } });
-            //         const json = await response.json();
-            //     }
-            // });
+            const results = getHydratedData().flights
+                .filter(flight => true)
+                .map(flight => {
+                    const { _id, ...publicFlight } = flight;
+                    return publicFlight;
+                });
+
+            await testApiEndpoint({
+                next: v1AllEndpoint,
+                test: async ({ fetch }) => {
+                    const response = await fetch({ headers: { KEY } });
+                    const json = await response.json();
+
+                    expect(response.status).toBe(200);
+                }
+            });
         });
     });
 
     describe('/search', () => {
         it('returns data as expected', async () => {
-            test.todo('TODO');
             // await testApiEndpoint({
             //     next: v1Search,
             //     test: async ({ fetch }) => {
-            //         const response = await fetch({ headers: { DUMMY_KEY } });
+            //         const response = await fetch({ headers: { KEY } });
             //         const json = await response.json();
             //     }
             // });
@@ -54,11 +60,10 @@ describe('api/v1/flights', () => {
 
     describe('/search', () => {
         it('returns data as expected', async () => {
-            test.todo('TODO');
             // await testApiEndpoint({
             //     next: v1WithIds,
             //     test: async ({ fetch }) => {
-            //         const response = await fetch({ headers: { DUMMY_KEY } });
+            //         const response = await fetch({ headers: { KEY } });
             //         const json = await response.json();
             //     }
             // });
@@ -67,14 +72,5 @@ describe('api/v1/flights', () => {
 });
 
 describe('api/v2/flights', () => {
-    it('returns data as expected', async () => {
-        test.todo('TODO');
-        // await testApiEndpoint({
-        //     next: v2Flights,
-        //     test: async ({ fetch }) => {
-        //         const response = await fetch({ headers: { DUMMY_KEY } });
-        //         const json = await response.json();
-        //     }
-        // });
-    });
+    test.todo('returns data as expected');
 });

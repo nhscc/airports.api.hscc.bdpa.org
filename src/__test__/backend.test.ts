@@ -72,7 +72,7 @@ describe('universe/backend', () => {
         it('returns the airport adhering to the PublicAirport type', async () => {
             expect(await Backend.getAirports()).toStrictEqual(unhydratedDummyDbData.airports.map(airport => {
                 // @ts-expect-error: checking for existence of _id
-                const { _id, ...publicAirport } = airport;
+                const { _id, chapterKey, ...publicAirport } = airport;
                 return publicAirport;
             }));
         });
@@ -540,18 +540,18 @@ describe('universe/backend', () => {
             expect(Backend.generateFlights()).toReject();
         });
 
-        it('does something if airports/airlines exist but only AFTER the latest entry if proper time', async () => {
+        it('does something if airports/airlines exist', async () => {
             process.env.FLIGHTS_GENERATE_DAYS = '1';
             const flightsDb = (await getDb()).collection<WithId<InternalFlight>>('flights');
+            await flightsDb.deleteMany({});
+
+            const lastFlightId1 = (await flightsDb.find().sort({ _id: -1 }).limit(1).next())?._id;
+            expect(lastFlightId1).not.toBeTruthy();
 
             expect(await Backend.generateFlights()).not.toBe(0);
-            expect(await Backend.generateFlights()).toBe(0);
 
-            const lastFlightId = (await flightsDb.find().sort({ _id: -1 }).limit(1).next())?._id;
-
-            expect(lastFlightId).toBeTruthy();
-            expect((await flightsDb.deleteOne({ _id: lastFlightId })).deletedCount).toBe(1);
-            expect(await Backend.generateFlights()).toBe(0);
+            const lastFlightId2 = (await flightsDb.find().sort({ _id: -1 }).limit(1).next())?._id;
+            expect(lastFlightId2).toBeTruthy();
         });
     });
 
