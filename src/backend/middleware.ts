@@ -14,7 +14,7 @@ import {
     GuruMeditationError,
     NotFoundError,
     NotAuthorizedError,
-    UpsertFailedError,
+    FlightGenerationError,
     IdTypeError,
     ApiKeyTypeError,
     ValidationError,
@@ -107,7 +107,7 @@ export async function handleEndpoint(fn: AsyncHanCallback, { req, res, methods, 
         if(error instanceof GuruMeditationError)
             sendHttpError(resp, { error: 'sanity check failed: please report exactly what you did just now!' });
 
-        else if((error instanceof UpsertFailedError) ||
+        else if((error instanceof FlightGenerationError) ||
           (error instanceof IdTypeError) ||
           (error instanceof ApiKeyTypeError) ||
           (error instanceof ValidationError)) {

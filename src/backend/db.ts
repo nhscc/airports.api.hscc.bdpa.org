@@ -3,9 +3,6 @@ import { getEnv } from 'universe/backend/env'
 
 let db: Db | null = null;
 
-export const SeatClasses = ['economy', 'economy plus', 'exit row', 'first class'];
-export const AllExtras = ['wifi', 'pillow', 'blanket', 'headphones', 'extra food'];
-
 /**
  * Used to lazily create the database once on-demand instead of immediately when
  * the app runs.
@@ -33,6 +30,7 @@ export async function destroyDb(db: Db) {
         db.dropCollection('airports'),
         db.dropCollection('airlines'),
         db.dropCollection('no-fly-list'),
+        db.dropCollection('info'),
     ]);
 }
 
@@ -51,6 +49,7 @@ export async function initializeDb(db: Db) {
         db.createCollection('airports'),
         db.createCollection('airlines'),
         db.createCollection('no-fly-list'),
+        db.createCollection('info'),
     ]);
 }
 

@@ -47,12 +47,7 @@ export default function Index({ previouslyHydratedDb, shouldHydrateDb, isInProdu
         status = (<span style={{ color: 'green' }}>previously hydrated</span>);
 
     if(shouldHydrateDb)
-        status = (
-            <React.Fragment>
-                <span style={{ color: 'darkred' }}>hydrated</span>{' '}
-                <span style={{ fontWeight: 'normal' }}>(you should probably turn HYDRATE_DB_ON_STARTUP off now)</span>
-            </React.Fragment>
-        );
+        status = (<span style={{ color: 'darkred' }}>hydrated</span>);
 
     return (
         <React.Fragment>

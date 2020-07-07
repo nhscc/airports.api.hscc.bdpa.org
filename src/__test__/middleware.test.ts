@@ -198,11 +198,10 @@ describe('universe/backend/middleware', () => {
 
         it('sends correct HTTP error codes when certain errors occur', async () => {
             const genError = function*() {
-                yield new BackendError.TimeTypeError();
                 yield new BackendError.IdTypeError();
                 yield new BackendError.ApiKeyTypeError();
                 yield new BackendError.ValidationError();
-                yield new BackendError.UpsertFailedError();
+                yield new BackendError.FlightGenerationError();
                 yield new BackendError.NotAuthorizedError();
                 yield new BackendError.NotFoundError();
                 yield new BackendError.AppError();
@@ -210,7 +209,6 @@ describe('universe/backend/middleware', () => {
             }();
 
             const genErrorStatus = function*() {
-                yield 400;
                 yield 400;
                 yield 400;
                 yield 400;

@@ -15,6 +15,7 @@ import type {
     InternalAirline,
     RequestLogEntry,
     LimitedLogEntry,
+    InternalInfo,
 } from 'types/global'
 
 populateEnv();
@@ -27,6 +28,7 @@ export type DummyDbData = {
     airports: InternalAirport[];
     noFlyList: NoFlyListEntry[];
     airlines: InternalAirline[];
+    info: InternalInfo;
 };
 
 export type HydratedDummyDbData = {
@@ -278,7 +280,11 @@ export const unhydratedDummyDbData: DummyDbData = {
                 },
             }
         },
-    ]
+    ],
+    info: {
+        seatClasses: ['economy', 'economy plus', 'exit row', 'first class'],
+        allExtras: ['wifi', 'pillow', 'blanket', 'headphones', 'extra food'],
+    }
 };
 
 const count = getEnv().RESULTS_PER_PAGE * EXPAND_RESULTS_BY_MULT;
@@ -316,24 +322,28 @@ export async function hydrateDb(db: Db, data: DummyDbData): Promise<HydratedDumm
     const newData = cloneDeep(data);
 
     // Insert keys
-    if(newData.keys)
+    if(newData.keys.length)
         await db.collection<WithId<ApiKey>>('keys').insertMany(newData.keys);
 
     // Insert airports
-    if(newData.airports)
+    if(newData.airports.length)
         db.collection<WithId<InternalAirport>>('airports').insertMany(newData.airports);
 
     // Insert airlines
-    if(newData.airlines)
+    if(newData.airlines.length)
         db.collection<WithId<InternalAirline>>('airlines').insertMany(newData.airlines);
 
     // Insert no fly list
-    if(newData.noFlyList)
+    if(newData.noFlyList.length)
         db.collection<WithId<NoFlyListEntry>>('no-fly-list').insertMany(newData.noFlyList);
 
     // Insert flight data
-    if(newData.flights)
+    if(newData.flights.length)
         db.collection<WithId<InternalFlight>>('flights').insertMany(newData.flights);
+
+    // Insert auxiliary information
+    if(newData.info)
+        db.collection('info').insertOne(newData.info);
 
     // Push new requests to the log and update limited-log-mview accordingly
 

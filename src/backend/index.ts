@@ -11,15 +11,17 @@ import uniqueRandomArray from 'unique-random-array'
 import {
     IdTypeError,
     ApiKeyTypeError,
-    TimeTypeError,
-    NotFoundError,
-    UpsertFailedError,
+    FlightGenerationError,
     GuruMeditationError,
     ValidationError,
     AppError,
 } from 'universe/backend/error'
 
-import {
+import type { NextApiRequest } from 'next'
+import type { WithId } from 'mongodb'
+import { pseudoRandomBytes } from 'crypto'
+
+import type {
     NextParamsRR,
     RequestLogEntry,
     LimitedLogEntry,
@@ -28,13 +30,10 @@ import {
     InternalAirport,
     InternalAirline,
     InternalFlight,
-    PublicFlight
+    PublicFlight,
+    InternalInfo
 } from 'types/global'
 
-import type { NextApiRequest } from 'next'
-import type { WithId } from 'mongodb'
-
-const isNumber = (number: unknown) => typeof number == 'number';
 const isObject = (object: unknown) => !isArray(object) && object !== null && typeof object == 'object';
 
 let requestCounter = 0;
@@ -269,6 +268,65 @@ export async function searchFlights(params: SeaFliParams) {
 }
 
 export async function generateFlights() {
-    // TODO (use a MongoDb pipeline for this)
-    // TODO (also, if no keys, no airports, or no airlines, then stop script and output error)
+    const db = await getDb();
+    const airports = await db.collection<WithId<InternalAirport>>('airports').find().toArray();
+    const airlines = await db.collection<WithId<InternalAirline>>('airlines').find().toArray();
+    const info = await db.collection('info').find().next() as WithId<InternalInfo>;
+
+    const flightDb = db.collection<WithId<InternalFlight>>('flights');
+
+    if(!airports.length || !airlines.length)
+        throw new FlightGenerationError('cannot generate flights without airports and airlines');
+
+    let objectIdCounter = randomInt(2**10, 2**24 - 1);
+    const objectIdRandom = pseudoRandomBytes(5).toString('hex');
+    const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+    const oneHourInMs = 1000 * 60 * 60;
+
+    const hourLevelMsDilation = (epoch: number) => Math.floor(epoch / oneHourInMs) * oneHourInMs;
+
+    // * See: https://docs.mongodb.com/manual/reference/method/ObjectId/#ObjectId
+    const generateObjectIdFromMs = (epoch: number) => {
+        return new ObjectId(Math.floor((Date.now() + epoch) / 1000).toString(16)
+            + objectIdRandom
+            + (++objectIdCounter).toString(16));
+    };
+
+    // ? Delete any entries created more than 30 days from today
+    await flightDb.deleteMany({
+        _id: { $lt: generateObjectIdFromMs(-thirtyDaysInMs) }
+    });
+
+    // ? Determine how many hours (if any) need flights generated for them
+    const lastFlightId = (await flightDb.find().sort({ _id: -1 }).limit(1).next())?._id ?? new ObjectId();
+    const lastFlightHourMs = hourLevelMsDilation(lastFlightId.getTimestamp().getTime());
+    const totalHoursToGenerate = (hourLevelMsDilation(Date.now() + thirtyDaysInMs) - lastFlightHourMs) / oneHourInMs;
+
+    if(!totalHoursToGenerate)
+        return 0;
+
+    const flights: InternalFlight[] = [];
+
+    [...Array(totalHoursToGenerate)].forEach((_, i) => {
+        const currentHour = lastFlightHourMs + oneHourInMs + i * oneHourInMs;
+        // ? Use a markov model to generate flight information that changes
+        // ? stochastically over time (like real flights do)
+        void currentHour;
+    });
+
+    try {
+        const operation = await flightDb.insertMany(flights);
+
+        if(!operation.result.ok)
+            throw new FlightGenerationError('flight insertion failed');
+
+        if(operation.insertedCount != totalHoursToGenerate)
+            throw new GuruMeditationError('assert failed: operation.insertedCount != totalHoursToGenerate');
+
+        return operation.insertedCount;
+    }
+
+    catch(e) {
+        throw (e instanceof AppError ? e : new FlightGenerationError(e));
+    }
 }

@@ -1,39 +1,56 @@
 export class AppError extends Error {}
-export class GuruMeditationError extends AppError {}
-export class NotAuthorizedError extends AppError {}
 
-export class UpsertFailedError extends AppError {
-    constructor(message?: string) {
-        super(message || 'data upsert failed');
+export class NamedAppError extends AppError {
+    constructor(name: string, message?: string) {
+        message = message ? `: ${message}` : '';
+        super(`${name}${message}`);
     }
 }
 
-export class NotFoundError<T=string> extends AppError {
+export class GuruMeditationError extends NamedAppError {
+    constructor(message?: string) {
+        super(GuruMeditationError.name, message);
+    }
+}
+
+export class NotAuthorizedError extends NamedAppError {
+    constructor(message?: string) {
+        super(NotAuthorizedError.name, message);
+    }
+}
+
+export class FlightGenerationError extends NamedAppError {
+    constructor(message?: string) {
+        super(FlightGenerationError.name, message || 'data upsert failed');
+    }
+}
+
+export class NotFoundError<T=string> extends NamedAppError {
     constructor(reference?: T) {
-        super(reference ? `item "${reference}" does not exist or was not found` : 'item or resource was not found');
+        super(
+            NotFoundError.name,
+            reference ? `item "${reference}" does not exist or was not found` : 'item or resource was not found'
+        );
     }
 }
 
-export class TimeTypeError extends UpsertFailedError {
-    constructor(message?: string) {
-        super(message || 'invalid `opens` and/or `closes` properties (bad time data?)');
-    }
-}
-
-export class IdTypeError<T=string|number> extends AppError {
+export class IdTypeError<T=string|number> extends NamedAppError {
     constructor(id?: T) {
-        super(id ? `expected valid ObjectId instance, got "${id}" instead` : 'invalid ObjectId encountered');
+        super(
+            IdTypeError.name,
+            id ? `expected valid ObjectId instance, got "${id}" instead` : 'invalid ObjectId encountered'
+        );
     }
 }
 
-export class ApiKeyTypeError extends AppError {
+export class ApiKeyTypeError extends NamedAppError {
     constructor() {
-        super('invalid API key encountered');
+        super(ApiKeyTypeError.name, 'invalid API key encountered');
     }
 }
 
-export class ValidationError extends AppError {
+export class ValidationError extends NamedAppError {
     constructor(message?: string) {
-        super(message ? `validation error: ${message}` : 'validation failed');
+        super(ValidationError.name, message ? `validation error: ${message}` : 'validation failed');
     }
 }

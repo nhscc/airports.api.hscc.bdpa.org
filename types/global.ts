@@ -14,11 +14,16 @@ export type StochasticFlightState = {
     gate: string | null;
 };
 
+export type InternalInfo = {
+    seatClasses: string[];
+    allExtras: string[];
+};
+
 /**
  * The shape of a flight entry.
  */
 export type InternalFlight = {
-    booker_key: string; // ? The chapter allowed to book tickets for this flight
+    booker_key: string;
     type: 'arrival' | 'departure';
     airline: string;
     senderAirport: string;
