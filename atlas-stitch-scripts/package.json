@@ -1,0 +1,8 @@
+{
+    "dependencies": {
+        "random-int": "^2.0.1",
+        "unique-random-array": "^2.0.0",
+        "clone-deep": "^4.0.1",
+        "fast-shuffle": "^4.2.2"
+    }
+}
