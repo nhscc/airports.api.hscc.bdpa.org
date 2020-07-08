@@ -166,7 +166,7 @@ const pipeline = [
 ];
 
 exports = function() {
-    return context.services.get('mars-1')
+    return context.services.get('neptune-1')
         .db('hscc-api-airports')
         .collection('request-log')
         .aggregate(pipeline)

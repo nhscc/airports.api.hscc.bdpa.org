@@ -1,3 +1,13 @@
+/**
+ * Copy-pasted directly from .env file. Unfortunately, we need to keep this
+ * synced manually until a better solution presents itself.
+ */
+const FLIGHTS_GENERATE_DAYS = 30;
+const AIRPORT_NUM_OF_GATE_LETTERS = 4;
+const AIRPORT_GATE_NUMBERS_PER_LETTER = 20;
+const AIRPORT_PAIR_USED_PERCENT = 75;
+const FLIGHT_HOUR_HAS_FLIGHTS_PERCENT = 66;
+
 async function generateFlights(db) {
     const airports = await db.collection('airports').find().toArray();
     const airlines = await db.collection('airlines').find().toArray();
@@ -10,10 +20,10 @@ async function generateFlights(db) {
 
     // ? Let's setup some helpers...
 
-    let objectIdCounter = randomInt(2**10, 2**24 - 1);
+    let objectIdCounter = randomInt(Math.pow(2, 10), Math.pow(2, 23));
     const objectIdRandom = pseudoRandomBytes(5).toString('hex');
 
-    const targetDaysInMs = getEnv().FLIGHTS_GENERATE_DAYS * 24 * 60 * 60 * 1000;
+    const targetDaysInMs = FLIGHTS_GENERATE_DAYS * 24 * 60 * 60 * 1000;
     const threeMinutesInMs = 3 * 60 * 1000;
     const fiveMinutesInMs = 5 * 60 * 1000;
     const tenMinutesInMs = 10 * 60 * 1000;
@@ -44,7 +54,8 @@ async function generateFlights(db) {
     });
 
     // ? Determine how many hours (if any) need flights generated for them
-    const lastFlightId = (await flightDb.find().sort({ _id: -1 }).limit(1).next())?._id ?? new ObjectId();
+    const lastFlight = await flightDb.find().sort({ _id: -1 }).limit(1).next();
+    const lastFlightId = lastFlight._id || new ObjectId();
     const lastFlightHourMs = hourLevelMsDilation(lastFlightId.getTimestamp().getTime());
     const totalHoursToGenerate = (hourLevelMsDilation(Date.now() + targetDaysInMs) - lastFlightHourMs) / oneHourInMs;
 
@@ -53,8 +64,8 @@ async function generateFlights(db) {
 
     // ? Setup some shared structures for later cloning
     const flightNumPool = [...Array(9999)].map((_, j) => j + 1);
-    const gatePool = ('abcdefghijklmnopqrstuvwxyz').split('').slice(0, getEnv().AIRPORT_NUM_OF_GATE_LETTERS).map(x => {
-        return [...Array(getEnv().AIRPORT_GATE_NUMBERS_PER_LETTER)].map((_, n) => `${x}${n + 1}`);
+    const gatePool = ('abcdefghijklmnopqrstuvwxyz').split('').slice(0, AIRPORT_NUM_OF_GATE_LETTERS).map(x => {
+        return [...Array(AIRPORT_GATE_NUMBERS_PER_LETTER)].map((_, n) => `${x}${n + 1}`);
     }).flat();
 
     // ? Carve out a place to stash all flights in existence...
@@ -62,7 +73,7 @@ async function generateFlights(db) {
 
     // ? And now, for every hour, generate a bunch of flights!
     [...Array(totalHoursToGenerate)].forEach((_, i) => {
-        if(chance() > getEnv().FLIGHT_HOUR_HAS_FLIGHTS_PERCENT)
+        if(chance() > FLIGHT_HOUR_HAS_FLIGHTS_PERCENT)
             return;
 
         const currentHour = lastFlightHourMs + oneHourInMs + i * oneHourInMs;
@@ -95,7 +106,7 @@ async function generateFlights(db) {
             airports.forEach(secondAirport => {
                 // ? Sometimes we skip a source-dest pair in a given hour (and
                 // ? planes can't come from and land at the same airport)
-                if(firstAirport._id.equals(secondAirport._id) || chance() > getEnv().AIRPORT_PAIR_USED_PERCENT)
+                if(firstAirport._id.equals(secondAirport._id) || chance() > AIRPORT_PAIR_USED_PERCENT)
                     return;
 
                 let isArrival = false;
@@ -462,12 +473,10 @@ async function generateFlights(db) {
     catch(e) { throw (e instanceof AppError ? e : new FlightGenerationError(e)) }
 }
 
-exports = function() {
-    return context.services.get('mars-1')
-        .db('hscc-api-airports')
-        .collection('request-log')
-        .aggregate(pipeline)
-        .next()
-        // eslint-disable-next-line no-console
-        .catch(e => console.error('Error: ', e));
+exports = async function() {
+    try { await generateFlights(context.services.get('neptune-1').db('hscc-api-airports')) }
+    catch(e) {
+        console.error('Error: ', e);
+        throw e;
+    }
 };
