@@ -63,7 +63,7 @@ export type InternalFlight = {
  * The shape of a public airport API result.
  */
 export type PublicFlight = Omit<InternalFlight, 'bookerKey' | 'stochasticStates'> & StochasticFlightState & {
-    flight_id: ObjectId;
+    flight_id: string;
     bookable: boolean;
 };
 

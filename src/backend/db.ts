@@ -68,7 +68,7 @@ export const pipelines = {
                         },
                     -1],
                 },
-                flight_id: '$_id',
+                flight_id: { $toString: '$_id' },
                 bookable: {
                     $cond: {
                         if: {

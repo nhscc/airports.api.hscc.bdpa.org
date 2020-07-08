@@ -1,7 +1,6 @@
 import { handleEndpoint } from 'universe/backend/middleware'
 import { getFlightsById } from 'universe/backend'
-import { sendHttpOk, sendHttpBadRequest } from 'multiverse/respond'
-import { NotFoundError } from 'universe/backend/error'
+import { sendHttpOk } from 'multiverse/respond'
 import { ObjectId } from 'mongodb'
 
 import type { NextApiResponse, NextApiRequest } from 'next'
@@ -12,7 +11,18 @@ export { config } from 'universe/backend/middleware';
 export default async function(req: NextApiRequest, res: NextApiResponse) {
     await handleEndpoint(async ({ req, res }) => {
         const key = req.headers.key?.toString() || '';
-        const limit = req.query.limit ? parseInt(req.query.limit.toString()) : false;
-        let after: ObjectId | false;
+        let ids: ObjectId[];
+
+        try {
+            const json: string[] = JSON.parse(req.query.ids.toString());
+            ids = json.map(id => {
+                try { return new ObjectId(id) }
+                catch(e) { return null }
+            }).filter((id): id is ObjectId => id != null);
+
+            sendHttpOk(res, { flights: await getFlightsById({ key, ids }) });
+        }
+
+        catch(e) { sendHttpOk(res, { flights: [] }) }
     }, { req, res, methods: [ 'GET' ], apiVersion: 1 });
 }

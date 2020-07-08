@@ -51,6 +51,6 @@ export class ApiKeyTypeError extends NamedAppError {
 
 export class ValidationError extends NamedAppError {
     constructor(message?: string) {
-        super(ValidationError.name, message ? `validation error: ${message}` : 'validation failed');
+        super(ValidationError.name, message ?? 'validation failed');
     }
 }

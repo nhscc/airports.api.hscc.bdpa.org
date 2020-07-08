@@ -1,14 +1,19 @@
 import { WithId, ObjectId } from 'mongodb';
 import * as Backend from 'universe/backend'
-import { setupJest, unhydratedDummyDbData, EXPAND_RESULTS_BY_MULT } from 'universe/__test__/db'
 import { getEnv } from 'universe/backend/env'
 import { populateEnv } from 'universe/dev-utils'
 
 import {
+    setupJest,
+    unhydratedDummyDbData,
+    EXPAND_RESULTS_BY_MULT,
+    convertIFlightToPFlight
+} from 'universe/__test__/db'
+
+import {
     RequestLogEntry,
     LimitedLogEntry,
-    InternalFlight,
-    PublicFlight
+    InternalFlight
 } from 'types/global'
 
 import type{ NextApiRequest, NextApiResponse } from 'next'
@@ -40,22 +45,6 @@ const PFlightKeys = [
 ];
 
 const key = Backend.DUMMY_KEY;
-
-const convertIFlightToPFlight = (flight: WithId<InternalFlight>): PublicFlight => {
-    const { _id, bookerKey, stochasticStates, ...flightData } = flight;
-
-    return {
-        flight_id: _id,
-        bookable: bookerKey == Backend.DUMMY_KEY,
-        ...flightData,
-        ...Object.entries(stochasticStates).reduce((prev, entry) => {
-            if(Number(entry[0]) <= Date.now())
-                return entry[1];
-            else
-                return prev;
-        }, Object.values(stochasticStates)[0])
-    }
-};
 
 describe('universe/backend', () => {
     describe('::getNoFlyList', () => {
@@ -155,7 +144,7 @@ describe('universe/backend', () => {
             expect((await Backend.getFlightsById({
                 ids: [flight2._id],
                 key
-            }))[0].flight_id).toStrictEqual(flight2._id);
+            }))[0].flight_id).toBe(flight2._id.toHexString());
         });
     });
 
@@ -291,7 +280,7 @@ describe('universe/backend', () => {
 
             const result2 = await Backend.searchFlights({
                 key,
-                after: result1[result1.length - 2].flight_id,
+                after: new ObjectId(result1[result1.length - 2].flight_id),
                 match: { type: 'arrival' },
                 regexMatch: {},
                 sort: 'desc',
@@ -507,7 +496,7 @@ describe('universe/backend', () => {
 
             const result18 = await Backend.searchFlights({
                 key,
-                after: result17[0].flight_id,
+                after: new ObjectId(result17[0].flight_id),
                 match: { ffms: { $gte: 1000000 }, departFromSender: 500 },
                 regexMatch: { airline: 's.*t' },
                 sort: 'desc',

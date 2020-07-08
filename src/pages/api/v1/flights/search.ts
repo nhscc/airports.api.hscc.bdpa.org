@@ -12,7 +12,36 @@ export { config } from 'universe/backend/middleware';
 export default async function(req: NextApiRequest, res: NextApiResponse) {
     await handleEndpoint(async ({ req, res }) => {
         const key = req.headers.key?.toString() || '';
-        const limit = req.query.limit ? parseInt(req.query.limit.toString()) : false;
-        let after: ObjectId | false;
+        let after: ObjectId | null;
+        let match: Record<string, unknown>;
+        let regexMatch: Record<string, unknown>;
+
+        try { after = req.query.after ? new ObjectId(req.query.after.toString()) : null }
+        catch(e) { throw new NotFoundError(req.query.after.toString()) }
+
+        try {
+            match = JSON.parse((req.query.match || '{}').toString());
+            regexMatch = JSON.parse((req.query.regexMatch || '{}').toString());
+        }
+        catch(e) { sendHttpBadRequest(res, { error: 'bad match or regexMatch' }) }
+
+        const localSort = (req.query.sort || 'asc').toString();
+
+        if(!['asc', 'desc'].includes(localSort))
+            sendHttpBadRequest(res, { error: 'unrecognized sort option' });
+
+        else {
+            sendHttpOk(res, {
+                flights: await searchFlights({
+                    key,
+                    after,
+                    // @ts-expect-error: validation is handled
+                    match,
+                    // @ts-expect-error: validation is handled
+                    regexMatch,
+                    sort: localSort as 'asc' | 'desc'
+                })
+            });
+        }
     }, { req, res, methods: [ 'GET' ], apiVersion: 1 });
 }

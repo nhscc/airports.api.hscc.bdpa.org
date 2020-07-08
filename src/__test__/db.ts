@@ -16,6 +16,7 @@ import type {
     RequestLogEntry,
     LimitedLogEntry,
     InternalInfo,
+    PublicFlight,
 } from 'types/global'
 
 populateEnv();
@@ -35,6 +36,22 @@ export type HydratedDummyDbData = {
     [P in keyof DummyDbData]: DummyDbData[P] extends (Array<infer T> | undefined)
         ? WithId<T>[]
         : WithId<DummyDbData[P]>;
+};
+
+export const convertIFlightToPFlight = (flight: WithId<InternalFlight>): PublicFlight => {
+    const { _id, bookerKey, stochasticStates, ...flightData } = flight;
+
+    return {
+        flight_id: _id.toHexString(),
+        bookable: bookerKey == DUMMY_KEY,
+        ...flightData,
+        ...Object.entries(stochasticStates).reduce((prev, entry) => {
+            if(Number(entry[0]) <= Date.now())
+                return entry[1];
+            else
+                return prev;
+        }, Object.values(stochasticStates)[0])
+    }
 };
 
 export const unhydratedDummyDbData: DummyDbData = {

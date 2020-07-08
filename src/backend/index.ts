@@ -45,7 +45,7 @@ export const NULL_KEY = '00000000-0000-0000-0000-000000000000';
 export const DUMMY_KEY = '12349b61-83a7-4036-b060-213784b491';
 
 export type GetFliByIdParams = {
-    ids: Array<ObjectId>;
+    ids: ObjectId[];
     key: string;
 };
 
@@ -170,7 +170,7 @@ export async function getFlightsById(params: GetFliByIdParams) {
         throw new IdTypeError();
 
     if(ids.length > getEnv().RESULTS_PER_PAGE)
-        throw new AppError('too many flight_ids specified');
+        throw new ValidationError('too many flight_ids specified');
 
     if(!ids.every(id => id instanceof ObjectId))
         throw new IdTypeError();
@@ -221,10 +221,10 @@ export async function searchFlights(params: SeaFliParams) {
         matchableStrings.includes(k) && ['string', 'number'].includes(typeof regexMatch[k]));
 
     if(matchKeys.length && !matchKeysAreValid())
-        throw new AppError('invalid match object');
+        throw new ValidationError('invalid match object');
 
     if(regexMatchKeys.length && !regexMatchKeysAreValid())
-        throw new AppError('invalid regexMatch object');
+        throw new ValidationError('invalid regexMatch object');
 
     const primaryMatchers: Record<string, unknown> = {};
     const secondaryMatchers: Record<string, unknown> = {};
