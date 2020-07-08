@@ -45,10 +45,9 @@ system.
    in your source code. Save it to a file and `.gitignore` it or save it to an
    environment variable.
 
-3. Since the API is live, that also means you will be able to see and interact
-   with content posted by other teams. Please do not post anything
-   inappropriate. You will only be able to modify your own content, but you will
-   be able to pull down and view any other team's election data.
+3. Since the API is live, you might be able to see or interact
+   with content posted by other teams. If this is the case, please do not post
+   anything inappropriate.
 
 4. If you encounter any vulnerabilities, errors, or other issues, contact NHSCC
    staff via Slack or [open an issue on
@@ -81,9 +80,10 @@ endpoint. This API understands the following HTTP request methods:
 
 ## Globally Unique Flight IDs
 
-To retrieve data about a election, you must know that election's ID. Election
-IDs are globally unique within the API. That is: no two elections will ever have
-the same ID, even across different teams. Use this fact to your advantage.
+To retrieve data aabout one or more flights, you must know that flight's
+`flight_id`. These IDs are globally unique within the API. That is: no two
+flights will ever have the same ID in any instance. Use this fact to your
+advantage.
 
 ## Rate Limits
 
@@ -100,17 +100,14 @@ milliseconds).
 
 ## Pagination
 
-Endpoints that return data for multiple elections are paginated. Such endpoints
-optionally accept a `limit` and `after` parameters. `limit` is a number telling
-the API how many elections you want returned as part of your response (see
-below). `after` is a *MongoDB ObjectId* that determines which item is returned
-first.
+Endpoints that might return a lot of data are paginated. Such endpoints
+optionally accept an `after` parameter, which is a `flight_id` that determines
+which item is returned first. Hence, `after`s are special strings and not
+numbers. Omitting the `after` parameter returns the first 100 flights in the
+system in ascending order.
 
-`limit`s larger than 50 will be rejected. `after`s are special strings and not
-numbers. Omitting the `after` parameter returns the first `limit<=50` elements.
-`limit` must be a non-negative integer.
-
-For example, given the following dataset and a default limit of 3 (max 10):
+For example, given the following dataset and an API with a default result size
+(or "page" size) of 3:
 
 ```JavaScript
 [
@@ -122,21 +119,17 @@ For example, given the following dataset and a default limit of 3 (max 10):
 ]
 ```
 
-Paginated results:
+Suppose we issued the following requests to an API:
 
-`limit=0`: an array with 0 items is returned  
-`limit=1`: an array with only the first item is returned  
-`limit=5`: an array of 5 items is returned (the whole dataset!)  
-`limit=10`: since there are only 5 items total, same as the previous result  
-`limit=10, after=0xabcXYZ`: since *0xabcXYZ* doesn't exist, this is same as the previous result  
-`limit=2, after=0xabc124`: returns an array with 2 items: *0xabc125* and *0xabc126*  
-`limit=1, after=0xabc127`: returns an array with 0 items since there is nothing after *0xabc127*  
-`after=0xabc124`: returns an array with the default limit of 3 items: *0xabc125* through *0xabc127*  
-`limit=0, after=0xabc123`: same as the very first result since `limit=0`; of instead `limit>=0`, an array of the last `max(limit, 4)` items would be returned  
+`/api?after=0xabc123`: responds with an array of 3 items: *0xabc122* through *0xabc126*  
+`/api?after=0xabcXYZ`: responds with an array of 0 items since `item_id` *0xabcXYZ* doesn't exist  
+`/api?after=0xabc124`: responds with an array of 3 items: *0xabc125* through *0xabc127*  
+`/api?after=0xabc127`: responds with an array of 0 items since there is nothing after *0xabc127*  
+`/api?after=0xabc125`: responds with an array of 2 items: *0xabc126* and *0xabc127*  
 
 ## Status Codes
 
-The Elections API will issue responses with one of the following status codes:
+This API will issue responses with one of the following status codes:
 
 | STATUS | MEANING |
 |-----   |-----    |
@@ -192,17 +185,16 @@ The API has full support for Cross Origin Resource Sharing (CORS) for AJAX reque
 - Use [Postman](https://www.postman.com/) (or this documentation) to play with the API.
 - Expect raw JSON that you must parse manually, not raw text or something else.
 - Are you sending properly formatted JSON as your request payload when necessary?
-- Elections in the system created by a specific API key are owned exclusively by that key. To put that another way: you cannot modify elections that do not belong to you. You can only view them.
 - Try outputting to stdout, use `console.log`, or output to some log file when API requests are made and responses received.
-- Elections are returned in FIFO (first-election-in-is-the-first-election-out) ascending/queue order.
 - All time data is represented as the number of milliseconds elapsed since January 1, 1970 00:00:00 UTC.
 - Are you sending the correct headers? You need to specify the `key: your-special-api-key-here` header for all requests and the `'content-type': 'application/json'` header when making POST and PUT requests.
+- Are you [encoding your URI components](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent) properly, especially when you're trying to send the API [JSON objects](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/JSON) via [GET request](https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods)?
 
-## Metadata endpoint [/meta]
+## Metadata endpoints [/info]
 
-This endpoint deals with summary metadata about all elections in the system (deleted elections are excluded).
+These endpoints deal with summary metadata about the system.
 
-### Return metadata about the system [GET]
+### /airlines endpoint [GET /info/airlines]
 
 + Request
 
@@ -216,31 +208,41 @@ See an example
 
     + Attributes (object)
         + success (boolean) - If the request succeeded. Always `true` when status code is 200 and `false` or `undefined` otherwise.
-        + upcomingElections (number) - Total number of elections not yet open.
-        + openElections (number) - Total number of elections currently open.
-        + closedElections (number) - Total number of elections that have closed.
+        + airlines (array[Airline]) - An array of the airlines currently active in the system.
 
     + Body
 
             {
-                "success": true,
-                "upcomingElections": 12,
-                "openElections": 20,
-                "closedElections": 423
+                "airlines": [
+                    {
+                        "name": "Delta",
+                        "codePrefix": "D"
+                    },
+                    {
+                        "name": "American",
+                        "codePrefix": "A"
+                    },
+                    {
+                        "name": "United",
+                        "codePrefix": "U"
+                    },
+                    {
+                        "name": "Southwest",
+                        "codePrefix": "S"
+                    },
+                    {
+                        "name": "Frontier",
+                        "codePrefix": "F"
+                    },
+                    {
+                        "name": "Spirit",
+                        "codePrefix": "P"
+                    }
+                ],
+                "success": true
             }
 
-## Elections endpoint [/elections{?limit,after}]
-
-This endpoint deals with all elections data currently in the system.
-
-> Warning: An `HTTP 400` error response is returned when specifying a `limit` larger than 50 or when including `limit` or `after` query parameters in a non-GET request, both of which are not allowed.
-
-### List all elections in the system [GET]
-
-+ Parameters
-    + limit (optional, number) - <span style="color: gray">[optional]</span> Maximum number of elections returned (less than or equal to 50).
-        + Default: `15`
-    + after (optional, number) - <span style="color: gray">[optional]</span> The `election_id` of the election that exists just before the first returned election in the result list, if it exists.
+### /airports endpoint [GET /info/airports]
 
 + Request
 
@@ -254,181 +256,249 @@ See an example
 
     + Attributes (object)
         + success (boolean) - If the request succeeded. Always `true` when status code is 200 and `false` or `undefined` otherwise.
-        + elections (array[Election]) - An array of election objects. Empty if there are no elections to show.
+        + airports (array[Airport]) - An array of the airports currently active in the system.
+    + Body
+
+            {
+                "airports": [
+                    {
+                        "name": "First Chapter Airport",
+                        "shortName": "F1A",
+                        "city": "Los Angeles",
+                        "state": "CA",
+                        "country": "USA"
+                    },
+                    {
+                        "name": "Second Chapter Airport",
+                        "shortName": "SCA",
+                        "city": "Chicago",
+                        "state": "IL",
+                        "country": "USA"
+                    },
+                    {
+                        "name": "Third Chapter Airport",
+                        "shortName": "TC3",
+                        "city": "New York",
+                        "state": "NY",
+                        "country": "USA"
+                    },
+                    {
+                        "name": "Fourth Chapter Airport",
+                        "shortName": "CHF",
+                        "city": "Atlanta",
+                        "state": "GA",
+                        "country": "USA"
+                    }
+                ],
+                "success": true
+            }
+
+### /no-fly-list endpoint [GET /info/no-fly-list]
+
++ Request
+
+    + Headers
+
+            key: your-special-api-key-here
+            content-type: application/json
+
++ Response 200 (application/json)
+See an example
+
+    + Attributes (object)
+        + success (boolean) - If the request succeeded. Always `true` when status code is 200 and `false` or `undefined` otherwise.
+        + noFlyList (array[NoFlyListEntry]) - A list of people who, if their passenger information matches one of the entries, should not be allowed to book a flight.
+
+    + Body
+
+            {
+                "noFlyList": [
+                    {
+                        "name": {
+                            "first": "Donald",
+                            "middle": "John",
+                            "last": "Trump"
+                        },
+                        "sex": "male",
+                        "birthdate": {
+                            "day": 14,
+                            "month": 6,
+                            "year": 1946
+                        }
+                    },
+                    {
+                        "name": {
+                            "first": "Restricted",
+                            "middle": "User",
+                            "last": "Flier"
+                        },
+                        "sex": "male",
+                        "birthdate": {
+                            "day": 25,
+                            "month": 12,
+                            "year": 1985
+                        }
+                    }
+                ],
+                "success": true
+            }
+
+## Flights endpoints [/flights]
+
+With these endpoints you can access all flight data in the system.
+
+### /all endpoint [GET /flights/all{?after}]
+
+Returns all endpoints in the system in ascending order (oldest first). Returns at most 100 results per query. Supports [range queries](https://en.wikipedia.org/wiki/Range_query_(database)) using `after`.
+
++ Parameters
+    + after (optional, flight_id) - <span style="color: gray">[optional]</span> Return only those flights that occur *after* `flight_id` in the result list.
+
++ Request
+
+    + Headers
+
+            key: your-special-api-key-here
+            content-type: application/json
+
++ Response 200 (application/json)
+See an example
+
+    + Attributes (object)
+        + success (boolean) - If the request succeeded. Always `true` when status code is 200 and `false` or `undefined` otherwise.
+        + flights (array[Flight]) - An array of flight objects. Empty if there are no flights left to show.
 
     + Body
 
             {
                 "success": true,
-                "elections": [
+                "flights": [
                     {
-                        "election_id": "5ec8adf06e38137ff2e5876f",
-                        "title": "My election #1",
-                        "description": "My demo election!",
-                        "options": [],
-                        "created": 1589347376211,
-                        "opens": 1589347379811,
-                        "closes": 1589347380731,
-                        "owned": true,
-                        "deleted": false
+                        "type": "departure",
+                        "airline": "Delta",
+                        "comingFrom": "SCA",
+                        "landingAt": "CHF",
+                        "departingTo": "F1A",
+                        "flightNumber": "D1759",
+                        "flight_id": "5f04f0607a927fab9cfbddfd",
+                        "bookable": false,
+                        "arriveAtReceiver": 1594160038503,
+                        "departFromSender": 1594151700108,
+                        "departFromReceiver": 1594160938503,
+                        "status": "past",
+                        "gate": null,
+                        "seatPrice": 123.45
                     },
                     {
-                        "election_id": "5ec8adf06e38137ff2e5876e",
-                        "title": "My election #2",
-                        "description": "A custom election I made",
-                        "options": ["Option 1", "Option 2"],
-                        "created": 1589347376211,
-                        "opens": 1589347379811,
-                        "closes": 1589347380731,
-                        "owned": false,
-                        "deleted": true
+                        "type": "arrival",
+                        "airline": "Spirit",
+                        "comingFrom": "SCA",
+                        "landingAt": "CHF",
+                        "departingTo": null,
+                        "flightNumber": "P9573",
+                        "flight_id": "5f04f0607a927fab9cfbddfe",
+                        "bookable": false,
+                        "arriveAtReceiver": 1594161359678,
+                        "departFromSender": 1594149044209,
+                        "departFromReceiver": null,
+                        "status": "cancelled",
+                        "gate": null,
+                        "seatPrice": 843.25
                     },
                     {
-                        "election_id": "5ec8adf06e38137ff2e5876d",
-                        "title": "My election #3",
-                        "description": "An election to end all elections?",
-                        "options": ["Vanilla", "Chocolate"],
-                        "created": 1589347376211,
-                        "opens": 1589347379811,
-                        "closes": 1589347380731,
-                        "owned": true,
-                        "deleted": false
+                        "type": "departure",
+                        "airline": "Delta",
+                        "comingFrom": "F1A",
+                        "landingAt": "CHF",
+                        "departingTo": "SCA",
+                        "flightNumber": "D5877",
+                        "flight_id": "5f04f0607a927fab9cfbddff",
+                        "bookable": false,
+                        "arriveAtReceiver": 1594160035976,
+                        "departFromSender": 1594142174400,
+                        "departFromReceiver": 1594160935976,
+                        "status": "past",
+                        "gate": null,
+                        "seatPrice": 251.77
+                    },
+                    {
+                        "type": "arrival",
+                        "airline": "Southwest",
+                        "comingFrom": "TC3",
+                        "landingAt": "F1A",
+                        "departingTo": null,
+                        "flightNumber": "S5994",
+                        "flight_id": "5f04fe707a927fab9cfbde00",
+                        "bookable": false,
+                        "arriveAtReceiver": 1594164307128,
+                        "departFromSender": 1594153712900,
+                        "departFromReceiver": null,
+                        "status": "past",
+                        "gate": null,
+                        "seatPrice": 350.76
                     }
                 ]
             }
 
-### Create a new election [POST]
+### /search endpoint [GET /flights/search{?after,match,regexMatch,sort}]
 
-+ Request
+This endpoint allows you to search through all flights in the system. Without any parameters, it acts just like the `/all` endpoint. Returns at most 100 results per query. Supports [range queries](https://en.wikipedia.org/wiki/Range_query_(database)) using `after`. Other available parameters are: `match`, `regexMatch`, and `sort`. Sort can be either `asc` or `desc` and determines the sort order (sorted by creation timestamp) of the flights returned from the API. `match` and `regexMatch` let you filter out which flights you want returned in the response.
 
-    + Headers
+Note that the values of `match` and `regexMatch` **must be [URI encoded](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent) [JSON objects](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/JSON)**! If they aren't, you'll receive an error.
 
-            key: your-special-api-key-here
-            content-type: application/json
+Examples:
 
-    + Attributes (New Election)
+Suppose you want to *match* all the flights that have a status of `"cancelled"`.
 
-    + Body
+1. Come up with the JSON object to describe your query:
 
-            {
-                "title": "My election #4",
-                "description": "Posting a new election, look at me!",
-                "options": ["Option A", "Option B", "Option C"],
-                "opens": 1889347379811,
-                "closes": 1989347380731
-            }
+```JavaScript
+var myQueryObject = { "status": "cancelled" }
+```
 
-+ Response 200 (application/json)
-See an example
+2. Stringify the JSON object and then URI encode it in whatever language you're using.
 
-    + Attributes (object)
-        + success (boolean) - If the request succeeded. Always `true` when status code is 200 and `false` or `undefined` otherwise.
-        + election_id (string) - The unique MongoDB ID of the newly created election. Example: `ac166a46-8a89-4556-8fa0-7e6919a536b5`.
+```JavaScript
+var myQuery = encodeURIComponent(JSON.stringify(myQueryObject))
+```
 
-    + Body
+3. Add the stringified JSON to your request URL and send it
 
-            {
-                "success": true,
-                "election_id": "5ec8adf06e38137ff2e5876c"
-            }
+```JavaScript
+var myURL = "https://airports.api.hscc.bdpa.org/v1/flights/search?match=" + myQuery
 
-## Election endpoint [/election/{election_id}]
+sendRequestToAPI(myURL)
+```
 
-This endpoint returns an expanded data object describing the election specified via **election_id**.
+You can also use `match` queries to search for flights with numbers greater than or less than some other number:
 
-+ Parameters
-    + election_id (string) - The unique MongoDB ID of the election targeted by some operation.
+```JavaScript
+var myQueryObject = { "seatPrice": { $gt: 400 } }
+```
 
-### Return data about an election [GET]
+This means "return all the flights that have a seat price greater than 400". Along with `"$gt"` for "greater than," there's also `"$gte"` for "greater than or equal to," `"$lt"` for "less than," and `"$lte"` for "less than or equal to". If you've used MongoDB before, these should look familiar.
 
-+ Request
+Note that any `match` filters are applied **in a case sensitive manner**, meaning `"united"` won't match `"United"`, so watch out! If you want case-insensitive searching or you're an otherwise advanced programmer, you can use Regular Expressions via `regexMatch`. Unlike `match`, `regexMatch` does not allow for less than/greater than queries.
 
-    + Headers
+For example, if you wanted to find all the Delta flights that are currently landed at `"ORD"` airport (`match`) but only at a gate that begins with A (`regexMatch`) sorted in descending order, you could use the following:
 
-            key: your-special-api-key-here
-            content-type: application/json
+```JavaScript
+var myNormalQueryObject = { "airline": "Delta", "landingAt": "ORD" }
+var myRegexQueryObject = { "gate": "^A" }
 
-+ Response 200 (application/json)
-See an example
+var myNormalQuery = encodeURIComponent(JSON.stringify(myNormalQueryObject))
+var myRegexQuery = encodeURIComponent(JSON.stringify(myRegexQueryObject))
 
-    + Attributes (Election)
-        + success (boolean) - If the request succeeded. Always `true` when status code is 200 and `false` or `undefined` otherwise.
+var myURL = "https://airports.api.hscc.bdpa.org/v1/flights/search?match=" + myNormalQuery + "&regexMatch=" + myRegexQuery + "sort=desc"
 
-    + Body
-
-            {
-                "success": true,
-                "election_id": "5ec8adf06e38137ff2e5876b",
-                "title": "My election #2",
-                "description": "A custom election I made",
-                "options": ["Option 1", "Option 2"],
-                "created": 1589347376211,
-                "opens": 1589347379811,
-                "closes": 1589347380731,
-                "owned": false,
-                "deleted": true
-            }
-
-### Merge data into an existing election [PUT]
-
-+ Request
-
-    + Headers
-
-            key: your-special-api-key-here
-            content-type: application/json
-
-    + Attributes (Patch Election)
-
-    + Body
-
-            {
-                "description": "Posting a new description, look at me!",
-                "options": ["Option X", "Option Y", "Option Z"]
-            }
-
-+ Response 200 (application/json)
-See an example
-
-    + Attributes (object)
-        + success (boolean) - If the request succeeded. Always `true` when status code is 200 and `false` or `undefined` otherwise.
-
-    + Body
-
-            {
-                "success": true,
-                // ...the keys and values that were successfully merged are returned
-            }
-
-### Delete an election [DELETE]
-
-+ Request
-
-    + Headers
-
-            key: your-special-api-key-here
-            content-type: application/json
-
-+ Response 200 (application/json)
-See an example
-
-    + Attributes (object)
-        + success (boolean) - If the request succeeded. Always `true` when status code is 200 and `false` or `undefined` otherwise.
-
-    + Body
-
-            {
-                "success": true
-            }
-
-## Voters endpoint [/election/{election_id}/voters]
-
-This endpoint deals with an election's mappings between voter IDs and rankings (votes).
+sendRequestToAPI(myURL)
+```
 
 + Parameters
-    + election_id (string) - The unique MongoDB ID of the election targeted by some operation.
-
-### Return an election's mapping of voters to rankings [GET]
+    + after (optional, flight_id) - <span style="color: gray">[optional]</span> Return only those flights that occur *after* `flight_id` in the result list.
+    + match (optional, flight_id) - <span style="color: gray">[optional]</span> A URI encoded JSON object describing the flight properties you're looking for. Case sensitive. Can also do greater than/less than queries as well.
+    + regexMatch (optional, flight_id) - <span style="color: gray">[optional]</span> A URI encoded JSON object describing the flight properties that you're looking for. Case-*insensitive* regular expressions can be used here. You **cannot** also do greater than/less than queries as well.
+    + sort (optional, flight_id) - <span style="color: gray">[optional]</span> Determines the sort order. Possible values are: `asc` or `desc`.
 
 + Request
 
@@ -442,21 +512,105 @@ See an example
 
     + Attributes (object)
         + success (boolean) - If the request succeeded. Always `true` when status code is 200 and `false` or `undefined` otherwise.
-        + votes (array[Vote]) - Array of vote objects representing the ranked choices of voters.
+        + flights (array[Flight]) - An array of flight objects. Empty if there are no flights left to show or your search query returned no results.
 
     + Body
 
             {
                 "success": true,
-                "votes": [
-                    {"voter_id":"1","ranking":["Biden", "Warren", "Sanders"]},
-                    {"voter_id":"2","ranking":["Sanders", "Warren", "Biden"]},
-                    {"voter_id":"3","ranking":["Warren", "Sanders", "Biden"]},
-                    {"voter_id":"4","ranking":["Warren", "Biden", "Sanders"]}
+                "flights": [
+                    {
+                        "type": "departure",
+                        "airline": "Delta",
+                        "comingFrom": "SCA",
+                        "landingAt": "CHF",
+                        "departingTo": "F1A",
+                        "flightNumber": "D1759",
+                        "flight_id": "5f04f0607a927fab9cfbddfd",
+                        "bookable": false,
+                        "arriveAtReceiver": 1594160038503,
+                        "departFromSender": 1594151700108,
+                        "departFromReceiver": 1594160938503,
+                        "status": "past",
+                        "gate": null,
+                        "seatPrice": 123.45
+                    },
+                    {
+                        "type": "arrival",
+                        "airline": "Spirit",
+                        "comingFrom": "SCA",
+                        "landingAt": "CHF",
+                        "departingTo": null,
+                        "flightNumber": "P9573",
+                        "flight_id": "5f04f0607a927fab9cfbddfe",
+                        "bookable": false,
+                        "arriveAtReceiver": 1594161359678,
+                        "departFromSender": 1594149044209,
+                        "departFromReceiver": null,
+                        "status": "cancelled",
+                        "gate": null,
+                        "seatPrice": 843.25
+                    },
+                    {
+                        "type": "departure",
+                        "airline": "Delta",
+                        "comingFrom": "F1A",
+                        "landingAt": "CHF",
+                        "departingTo": "SCA",
+                        "flightNumber": "D5877",
+                        "flight_id": "5f04f0607a927fab9cfbddff",
+                        "bookable": false,
+                        "arriveAtReceiver": 1594160035976,
+                        "departFromSender": 1594142174400,
+                        "departFromReceiver": 1594160935976,
+                        "status": "past",
+                        "gate": null,
+                        "seatPrice": 251.77
+                    },
+                    {
+                        "type": "arrival",
+                        "airline": "Southwest",
+                        "comingFrom": "TC3",
+                        "landingAt": "F1A",
+                        "departingTo": null,
+                        "flightNumber": "S5994",
+                        "flight_id": "5f04fe707a927fab9cfbde00",
+                        "bookable": false,
+                        "arriveAtReceiver": 1594164307128,
+                        "departFromSender": 1594153712900,
+                        "departFromReceiver": null,
+                        "status": "past",
+                        "gate": null,
+                        "seatPrice": 350.76
+                    }
                 ]
             }
 
-### Replace an election's mapping of voters to rankings [PUT]
+### /with-ids endpoint [GET /flights/with-ids{?ids}]
+
+Returns a list of flights corresponding to the `ids` parameter. Results will probably not be in order. Like `match` and `regexMatch`, `ids` must be URI encoded and JSON serialized. Unlike `match` or `regexMatch`, it is an array.
+
+For example, if I wanted to get the flight data for `flight_ids` `"5f04f0607a927fab9cfbddff"` and `"5f04fe707a927fab9cfbde00"`:
+
+1. Put the IDs in an array:
+
+```JavaScript
+var myTargetIds = ["5f04f0607a927fab9cfbddff", "5f04fe707a927fab9cfbde00"]
+```
+
+2. Stringify the array and then URI encode it in whatever language you're using.
+
+```JavaScript
+var myQuery = encodeURIComponent(JSON.stringify(myTargetIds))
+```
+
+3. Add the stringified JSON to your request URL and send it
+
+```JavaScript
+var myURL = "https://airports.api.hscc.bdpa.org/v1/flights/with-ids?ids=" + myQuery
+
+sendRequestToAPI(myURL)
+```
 
 + Request
 
@@ -465,60 +619,119 @@ See an example
             key: your-special-api-key-here
             content-type: application/json
 
-    + Attributes (array[Vote])
-
-    + Body
-
-            [
-                {"voter_id": "voter1@email.com", "ranking": ["Option X", "Option Y"]},
-                {"voter_id": "voter2@email.com", "ranking": ["Option Z", "Option X"]},
-                {"voter_id": "voter3@email.com", "ranking": ["Option Z", "Option Y"]}
-            ]
-
 + Response 200 (application/json)
 See an example
 
     + Attributes (object)
         + success (boolean) - If the request succeeded. Always `true` when status code is 200 and `false` or `undefined` otherwise.
+        + flights (array[Flight]) - An array of flight objects. Empty if there are no flights left to show or no flights matched your ids. Order is not guaranteed to match the order of IDs in `ids` parameter.
 
     + Body
 
             {
-                "success": true
+                "success": true,
+                "flights": [
+                    {
+                        "type": "departure",
+                        "airline": "Delta",
+                        "comingFrom": "SCA",
+                        "landingAt": "CHF",
+                        "departingTo": "F1A",
+                        "flightNumber": "D1759",
+                        "flight_id": "5f04f0607a927fab9cfbddfd",
+                        "bookable": false,
+                        "arriveAtReceiver": 1594160038503,
+                        "departFromSender": 1594151700108,
+                        "departFromReceiver": 1594160938503,
+                        "status": "past",
+                        "gate": null,
+                        "seatPrice": 123.45
+                    },
+                    {
+                        "type": "arrival",
+                        "airline": "Spirit",
+                        "comingFrom": "SCA",
+                        "landingAt": "CHF",
+                        "departingTo": null,
+                        "flightNumber": "P9573",
+                        "flight_id": "5f04f0607a927fab9cfbddfe",
+                        "bookable": false,
+                        "arriveAtReceiver": 1594161359678,
+                        "departFromSender": 1594149044209,
+                        "departFromReceiver": null,
+                        "status": "cancelled",
+                        "gate": null,
+                        "seatPrice": 843.25
+                    },
+                    {
+                        "type": "departure",
+                        "airline": "Delta",
+                        "comingFrom": "F1A",
+                        "landingAt": "CHF",
+                        "departingTo": "SCA",
+                        "flightNumber": "D5877",
+                        "flight_id": "5f04f0607a927fab9cfbddff",
+                        "bookable": false,
+                        "arriveAtReceiver": 1594160035976,
+                        "departFromSender": 1594142174400,
+                        "departFromReceiver": 1594160935976,
+                        "status": "past",
+                        "gate": null,
+                        "seatPrice": 251.77
+                    },
+                    {
+                        "type": "arrival",
+                        "airline": "Southwest",
+                        "comingFrom": "TC3",
+                        "landingAt": "F1A",
+                        "departingTo": null,
+                        "flightNumber": "S5994",
+                        "flight_id": "5f04fe707a927fab9cfbde00",
+                        "bookable": false,
+                        "arriveAtReceiver": 1594164307128,
+                        "departFromSender": 1594153712900,
+                        "departFromReceiver": null,
+                        "status": "past",
+                        "gate": null,
+                        "seatPrice": 350.76
+                    }
+                ]
             }
 
 ## Data Structures
 
-### Vote (object)
+### Flight (object)
 
-+ `voter_id` (string) - A unique (relative to your app) identifier representing a voter in your own system. This can be whatever string you'd like it to be. Example: `"myemail@me.com"`. Can be empty. **There cannot be two objects with the same `voter_id` in the same array of votes.**
-+ ranking (array) - Whichever ranked choices the voter made when casting their vote. From left to right, the order of the array represents most preferred to least preferred. Example: `["Obama", "Romney"]`. Guaranteed to contain only valid options per election. Can be empty. Duplicates not allowed.
++ flight_id (string) - A unique immutable MongoDB ID representing the flight. Generated automatically by the server. Example: `5ec8adf06e38137ff2e58769`.
++ type (string) - The type of flight. Flights can either be an `"arrival"` or a `"departure"`.
++ airline (string) - The airline that owns this flight. For example: `"Delta"`
++ comingFrom (string) - The `shortName` of the airport this plane is flying in from. Example: `"ATL"`.
++ landingAt (string) - The `shortName` of the airport this plane is currently flying to. Example: `"MDW"`.
++ departingTo (string) - The `shortName` of the airport this plane will depart to afterwards. If `type="arrival"` then this will always be `null` since this flight isn't departing after landing. Example: `"LAX"`.
++ flightNumber (string) - The unique flight code given to this plane by its airline. For example: `"U5946"`
++ departFromSender (number) - When this flight took off from the `comingFrom` airport [in milliseconds since the unix epoch](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now). Generated automatically by the server. Guaranteed to be smaller than `arriveAtReceiver`. Example: `1579345900650`.
++ arriveAtReceiver (number) - When this flight will arrive at the `landingAt` airport [in milliseconds since the unix epoch](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now). Generated automatically by the server. Guaranteed to be smaller than `departFromReceiver`. Example: `1579345900650`.
++ departFromReceiver (number) - When this flight will depart from the `landingAt` airport [in milliseconds since the unix epoch](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now) and start flying towards `departingTo`. Generated automatically by the server. Example: `1579345900650`.
++ status (string) - The current status of this flight. Possible values are: `"past"`, `"scheduled"`, `"cancelled"`, `"delayed"`, `"on time"`, `"landed"`, `"arrived"`, `"boarding"`, and `"departed"`.
++ gate (string) - A string representing the gate this plane is currently docked at or `null` if there is no gate determination. Example: `"C17"`.
++ bookable (boolean) - `true` if this flight is landing at your team's airport (and so you should allow people to book tickets for it), otherwise `false`.
++ seatPrice (number) - The price of buying a seat on this plane. Example: `350.76`.
 
-### Election (object)
+### Airport (object)
 
-+ election_id (string) - A unique immutable MongoDB ID representing the election. Generated automatically by the server. Example: `5ec8adf06e38137ff2e58769`.
-+ title (string) - Title of the election. Example: `"My Election"`.
-+ description (string) - Description of the election. Example: `"An election"`. Can be empty.
-+ options (array) - Array of options (strings) voters are allowed to select from. Example: `["Biden", "Warren"]`. Can be empty. Duplicates not allowed.
-+ created (number) - When this election was created [in milliseconds since the unix epoch](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now). Generated automatically by the server. Not guaranteed to be smaller than `opens`. Example: `1579345900650`.
-+ opens (number) - When this election opens for voting [in milliseconds since the unix epoch](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now). Must be smaller than `closes` and should be larger than [`Date.now()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now). Example: `1589346000600`.
-+ closes (number) - When this election closes to voting [in milliseconds since the unix epoch](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now). Must be larger than `opens`. Example: `1589346900600`.
-+ owned (boolean) - If the API `Key` making the request created this election or not. Example: `true`
-+ deleted (boolean) - If this election has been marked as deleted. Example: `false`.
++ name (string) - The full name of this airport. Example: `"BDPA Chicago Airport"`.
++ shortName (string) - The three letter "short name" of this airport. Example: `"ORD"`.
++ city (string) - The city in which this airport resides. Example: `"Chicago"`.
++ state (string) - The state in which this airport resides. Example: `"IL"`.
++ country (string) - The country in which this airport resides. Example: `"USA"`.
 
-### New Election (object)
+### Airline (object)
 
-+ title (string) - <span style="color: darkred">[required]</span> Title of the election. Example: `My Election`.
-+ description (string) - <span style="color: gray">[optional]</span> Description of the election. Example: `Election`. Can be empty.
-+ options (array) - <span style="color: gray">[optional]</span> Array of options voters are allowed to select from. Example: `["Biden", "Sanders"]`. Array elements must be strings. Can be empty. Duplicates not allowed.
-+ opens (number) - <span style="color: darkred">[required]</span> When this election opens for voting [in milliseconds since the unix epoch](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now). Must be smaller than `closes` but larger than [`Date.now()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now). Example: `1589346000600`.
-+ closes (number) - <span style="color: darkred">[required]</span> When this election closes to voting [in milliseconds since the unix epoch](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now). Must be larger than `opens`. Example: `1589346900600`.
++ name (string) - The name of this airline. Example: `"United"`.
++ codePrefix (string) - A letter prefixed to the flight numbers of all planes owned by this airline. Example: `"U"`.
 
-### Patch Election (object)
+### NoFlyListEntry (object)
 
-+ title (string) - <span style="color: gray">[optional]</span> Title of the election. Example: `My Election`.
-+ description (string) - <span style="color: gray">[optional]</span> Description of the election. Example: `Election`. Can be empty.
-+ options (array) - <span style="color: gray">[optional]</span> Array of options voters are allowed to select from. Example: `["Biden", "Sanders"]`. Array elements must be strings. Can be empty. Duplicates not allowed. **Specifying this property will clear any votes associated with this election**.
-+ opens (number) - <span style="color: gray">[optional]</span> When this election opens for voting [in milliseconds since the unix epoch](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now). Must be smaller than `closes` but larger than [`Date.now()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now). Example: `1589346000600`. **When specifying this property, you must also specify the `closes` property.**
-+ closes (number) - <span style="color: gray">[optional]</span> When this election closes to voting [in milliseconds since the unix epoch](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now). Must be larger than `opens`. Example: `1589346900600`. **When specifying this property, you must also specify the `opens` property.**
-+ deleted (boolean) - <span style="color: gray">[optional]</span> If this election has been marked as deleted. Only accepts `false`. Use the [proper endpoint](https://hsccdfbb7244.docs.apiary.io/#/reference/0/election-endpoint/delete-an-election) to set this to `true`. Example: `false`.
++ name (object) - A first, middle, and last name. Example: `{ "first": "Restricted", "middle": "User", "last": "Person" }`.
++ sex (string) - Either `"male"` or `"female"` (we're not concerned with gender here)
++ birthdate (object) - A day, month, and year. Example: `{ "day": 14, "month": 6, "year": 1946 }`.

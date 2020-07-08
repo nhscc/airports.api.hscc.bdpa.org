@@ -43,8 +43,10 @@ export function getEnv(loud=false) {
         console.info(env);
     }
 
-    // @ts-expect-error: testing NODE_ENV for bad values
-    if(env.NODE_ENV == 'unknown' || (isServer() && env.MONGODB_URI === '') ||
+    // ? Typescript troubles
+    const NODE_X: string = env.NODE_ENV;
+
+    if(NODE_X == 'unknown' || (isServer() && env.MONGODB_URI === '') ||
        _mustBeGtZero.some(v => !isNumber(v) || v < 0)) {
         throw new AppError('illegal environment detected, check environment variables');
     }
