@@ -4,11 +4,11 @@ import * as V1_all from 'universe/pages/api/v1/flights/all'
 import * as V1_search from 'universe/pages/api/v1/flights/search'
 import * as V1_with_ids from 'universe/pages/api/v1/flights/with-ids'
 import * as V2_flights from 'universe/pages/api/v2/flights'
-import { DUMMY_KEY as KEY } from 'universe/backend'
+import { DUMMY_KEY as KEY, convertPFlightToPFlightForV1Only } from 'universe/backend'
 import { getEnv } from 'universe/backend/env'
-import { ObjectId } from 'mongodb'
+import { ObjectId, WithId } from 'mongodb'
 
-import type { WithConfig, PublicFlight } from 'types/global'
+import type { WithConfig, PublicFlight, InternalFlight } from 'types/global'
 
 const RESULT_SIZE = getEnv().RESULTS_PER_PAGE;
 
@@ -26,12 +26,16 @@ v1WithIds.config = V1_with_ids.config;
 const v2Flights: WithConfig<typeof V2_flights.default> = V2_flights.default;
 v2Flights.config = V2_flights.config;
 
+const convertIFlightToPFlightForV1Only = (flight: WithId<InternalFlight>) => {
+    return convertPFlightToPFlightForV1Only(convertIFlightToPFlight(flight));
+};
+
 process.env.REQUESTS_PER_CONTRIVED_ERROR = '0';
 
 describe('api/v1/flights', () => {
     describe('/all', () => {
         it('returns expected number of public flights by default in FIFO order', async () => {
-            const results = getHydratedData().flights.slice(0, getEnv().RESULTS_PER_PAGE).map(convertIFlightToPFlight);
+            const results = getHydratedData().flights.slice(0, getEnv().RESULTS_PER_PAGE).map(convertIFlightToPFlightForV1Only);
 
             await testApiEndpoint({
                 next: v1AllEndpoint,
@@ -47,7 +51,7 @@ describe('api/v1/flights', () => {
         });
 
         it('returns expected number of public flights in FIFO order respecting offset (after)', async () => {
-            const flights = getHydratedData().flights.map(convertIFlightToPFlight);
+            const flights = getHydratedData().flights.map(convertIFlightToPFlightForV1Only);
 
             const genUrl = function*() {
                 yield `/?after=`;
@@ -162,7 +166,7 @@ describe('api/v1/flights', () => {
         });
 
         it('returns expected public flights with respect to offset (after)', async () => {
-            const flights = getHydratedData().flights.map(convertIFlightToPFlight);
+            const flights = getHydratedData().flights.map(convertIFlightToPFlightForV1Only);
 
             const genUrl = function*() {
                 yield `/?after=`;
@@ -191,7 +195,7 @@ describe('api/v1/flights', () => {
         });
 
         it('returns expected public flights in the requested sort order', async () => {
-            const flights = getHydratedData().flights.map(convertIFlightToPFlight);
+            const flights = getHydratedData().flights.map(convertIFlightToPFlightForV1Only);
 
             const genUrl = function*() {
                 yield `/?sort=`;
@@ -224,18 +228,18 @@ describe('api/v1/flights', () => {
         });
 
         it('returns expected public flights with respect to match', async () => {
-            const flights = getHydratedData().flights.map(convertIFlightToPFlight);
+            const flights = getHydratedData().flights.map(convertIFlightToPFlightForV1Only);
             const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
             const genUrl = function*() {
                 yield `/?match=${encode({ airline: 'Spirit' })}`;
                 yield `/?match=${encode({ type: 'departure' })}`;
                 yield `/?match=${encode({ landingAt: 'F1A' })}`;
-                yield `/?match=${encode({ ffms: 5000 })}`;
-                yield `/?match=${encode({ ffms: { $gt: 5000 } })}`;
-                yield `/?match=${encode({ ffms: { $gte: 5000 } })}`;
-                yield `/?match=${encode({ ffms: { $lt: 5000 } })}`;
-                yield `/?match=${encode({ ffms: { $lte: 5000 } })}`;
+                yield `/?match=${encode({ seatPrice: 500 })}`;
+                yield `/?match=${encode({ seatPrice: { $gt: 500 } })}`;
+                yield `/?match=${encode({ seatPrice: { $gte: 500 } })}`;
+                yield `/?match=${encode({ seatPrice: { $lt: 500 } })}`;
+                yield `/?match=${encode({ seatPrice: { $lte: 500 } })}`;
             }();
 
             await testApiEndpoint({
@@ -252,11 +256,11 @@ describe('api/v1/flights', () => {
                         flights.filter(f => f.airline == 'Spirit').slice(0, RESULT_SIZE),
                         flights.filter(f => f.type == 'departure').slice(0, RESULT_SIZE),
                         flights.filter(f => f.landingAt == 'F1A').slice(0, RESULT_SIZE),
-                        flights.filter(f => f.ffms == 5000).slice(0, RESULT_SIZE),
-                        flights.filter(f => f.ffms > 5000).slice(0, RESULT_SIZE),
-                        flights.filter(f => f.ffms >= 5000).slice(0, RESULT_SIZE),
-                        flights.filter(f => f.ffms < 5000).slice(0, RESULT_SIZE),
-                        flights.filter(f => f.ffms <= 5000).slice(0, RESULT_SIZE),
+                        flights.filter(f => f.seatPrice == 500).slice(0, RESULT_SIZE),
+                        flights.filter(f => f.seatPrice > 500).slice(0, RESULT_SIZE),
+                        flights.filter(f => f.seatPrice >= 500).slice(0, RESULT_SIZE),
+                        flights.filter(f => f.seatPrice < 500).slice(0, RESULT_SIZE),
+                        flights.filter(f => f.seatPrice <= 500).slice(0, RESULT_SIZE),
                     ]);
                 }
             });
@@ -275,7 +279,7 @@ describe('api/v1/flights', () => {
         });
 
         it('returns expected public flights with respect to regexMatch', async () => {
-            const flights = getHydratedData().flights.map(convertIFlightToPFlight);
+            const flights = getHydratedData().flights.map(convertIFlightToPFlightForV1Only);
             const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
             const genUrl = function*() {
@@ -303,22 +307,59 @@ describe('api/v1/flights', () => {
                     ]);
                 }
             });
+        });
+
+        it('regexMatch errors properly with bad inputs', async () => {
+            const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
+
+            const genUrl = function*() {
+                yield `/?regexMatch=${encode({ ffms: { $gt: 500 }})}`;
+                yield `/?regexMatch=${encode({ bad: 'super-bad' })}`;
+                yield `/?regexMatch=${encode({ seatPrice: 500 })}`;
+            }();
 
             await testApiEndpoint({
+                requestPatcher: req => { req.url = genUrl.next().value || undefined },
+
                 next: v1Search,
-                requestPatcher: req => { req.url = `/?regexMatch=${encode({ ffms: { $gt: 500 }})}` },
-                test: async ({ fetch }) => expect((await fetch({ headers: { KEY } })).status).toBe(400)
+                test: async ({ fetch }) => {
+                    await Promise.all([...Array(3)].map(_ => {
+                        return fetch({ headers: { KEY } }).then(r => r.status).then(s => expect(s).toBe(400));
+                    }));
+                }
             });
+        });
+
+        it('ensure seats, baggage, extras, bookable, and flight_id cannot be matched against', async () => {
+            const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
+
+            const genUrl = function*() {
+                yield `/?match=${encode({ seats: 'super-bad' })}`;
+                yield `/?match=${encode({ baggage: 'super-bad' })}`;
+                yield `/?match=${encode({ extras: 'super-bad' })}`;
+                yield `/?match=${encode({ bookable: 'super-bad'})}`;
+                yield `/?match=${encode({ flight_id: 'super-bad' })}`;
+                yield `/?regexMatch=${encode({ seats: 'super-bad' })}`;
+                yield `/?regexMatch=${encode({ baggage: 'super-bad' })}`;
+                yield `/?regexMatch=${encode({ bookable: 'super-bad' })}`;
+                yield `/?regexMatch=${encode({ extras: 'super-bad' })}`;
+                yield `/?regexMatch=${encode({ flight_id: 'super-bad' })}`;
+            }();
 
             await testApiEndpoint({
+                requestPatcher: req => { req.url = genUrl.next().value || undefined },
+
                 next: v1Search,
-                requestPatcher: req => { req.url = `/?regexMatch=${encode({ bad: 'super-bad' })}` },
-                test: async ({ fetch }) => expect((await fetch({ headers: { KEY } })).status).toBe(400)
+                test: async ({ fetch }) => {
+                    await Promise.all([...Array(10)].map(_ => {
+                        return fetch({ headers: { KEY } }).then(r => r.status).then(s => expect(s).toBe(400));
+                    }));
+                }
             });
         });
 
         it('returns expected public flights with respect to all parameters simultaneously', async () => {
-            const flights = getHydratedData().flights.map(convertIFlightToPFlight);
+            const flights = getHydratedData().flights.map(convertIFlightToPFlightForV1Only);
             const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
             const genUrl = function*() {

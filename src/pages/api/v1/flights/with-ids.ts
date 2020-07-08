@@ -1,5 +1,5 @@
 import { handleEndpoint } from 'universe/backend/middleware'
-import { getFlightsById } from 'universe/backend'
+import { getFlightsById, convertPFlightToPFlightForV1Only } from 'universe/backend'
 import { sendHttpOk } from 'multiverse/respond'
 import { ObjectId } from 'mongodb'
 
@@ -20,7 +20,7 @@ export default async function(req: NextApiRequest, res: NextApiResponse) {
                 catch(e) { return null }
             }).filter((id): id is ObjectId => id != null);
 
-            sendHttpOk(res, { flights: await getFlightsById({ key, ids }) });
+            sendHttpOk(res, { flights: (await getFlightsById({ key, ids })).map(convertPFlightToPFlightForV1Only) });
         }
 
         catch(e) { sendHttpOk(res, { flights: [] }) }

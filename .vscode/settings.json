@@ -33,6 +33,7 @@
     "ywayrht"
   ],
   "files.exclude": {
-    "build": true
+    "build": true,
+    "external-scripts/bin": true
   }
 }

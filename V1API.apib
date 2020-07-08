@@ -497,7 +497,7 @@ sendRequestToAPI(myURL)
 + Parameters
     + after (optional, flight_id) - <span style="color: gray">[optional]</span> Return only those flights that occur *after* `flight_id` in the result list.
     + match (optional, flight_id) - <span style="color: gray">[optional]</span> A URI encoded JSON object describing the flight properties you're looking for. Case sensitive. Can also do greater than/less than queries as well.
-    + regexMatch (optional, flight_id) - <span style="color: gray">[optional]</span> A URI encoded JSON object describing the flight properties that you're looking for. Case-*insensitive* regular expressions can be used here. You **cannot** also do greater than/less than queries as well.
+    + regexMatch (optional, flight_id) - <span style="color: gray">[optional]</span> A URI encoded JSON object describing the flight properties that you're looking for. Case-*insensitive* regular expressions can be used here. You **cannot** also do greater than/less than queries and **all regexes must be strings** (no numbers).
     + sort (optional, flight_id) - <span style="color: gray">[optional]</span> Determines the sort order. Possible values are: `asc` or `desc`.
 
 + Request
@@ -715,7 +715,7 @@ See an example
 + status (string) - The current status of this flight. Possible values are: `"past"`, `"scheduled"`, `"cancelled"`, `"delayed"`, `"on time"`, `"landed"`, `"arrived"`, `"boarding"`, and `"departed"`.
 + gate (string) - A string representing the gate this plane is currently docked at or `null` if there is no gate determination. Example: `"C17"`.
 + bookable (boolean) - `true` if this flight is landing at your team's airport (and so you should allow people to book tickets for it), otherwise `false`.
-+ seatPrice (number) - The price of buying a seat on this plane. Example: `350.76`.
++ seatPrice (number) - The price of booking this flight. Example: `350.76`.
 
 ### Airport (object)
 

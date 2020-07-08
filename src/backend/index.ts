@@ -56,9 +56,8 @@ const primaryMatchTargets = [
     'landingAt',
     'departingTo',
     'flightNumber',
-    'baggage',
     'ffms',
-    'bookable',
+    'seats.economy.priceDollars',
 ];
 
 const secondaryMatchTargets = [
@@ -93,6 +92,15 @@ export type SeaFliParams = {
     };
     sort: 'asc' | 'desc';
 };
+
+export function convertPFlightToPFlightForV1Only(flight: PublicFlight) {
+    const { extras, baggage, ffms, seats, ...publicV1Flight } = flight;
+
+    return {
+        ...publicV1Flight,
+        seatPrice: Object.values(seats)[0].priceDollars
+    };
+}
 
 export async function isKeyAuthentic(key: string): Promise<boolean> {
     if(!key || typeof key != 'string')
@@ -218,7 +226,7 @@ export async function searchFlights(params: SeaFliParams) {
     });
 
     const regexMatchKeysAreValid = () => regexMatchKeys.every(k =>
-        matchableStrings.includes(k) && ['string', 'number'].includes(typeof regexMatch[k]));
+        matchableStrings.includes(k) && typeof regexMatch[k] == 'string');
 
     if(matchKeys.length && !matchKeysAreValid())
         throw new ValidationError('invalid match object');

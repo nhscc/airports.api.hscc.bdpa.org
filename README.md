@@ -16,6 +16,11 @@ Version 2 root URI: https://airports.api.hscc.bdpa.org/v2
 Version 1 documentation and playground with examples: https://hsccdfbb7244.docs.apiary.io
 Version 2 documentation and playground with examples: https://hscc210ff8c0.docs.apiary.io
 
+> Warning: if you've enabled the V1 API, the `"economy"` seat class MUST EXIST
+> in the database (in the `info` collection, `seatClasses` array) or there will
+> be undefined behavior when matching using `seatPrice` for `/flights/search`
+> queries.
+
 ## Running a local version of the API
 
 You should be using the production version of the API (and your key) for your
