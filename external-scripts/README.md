@@ -11,7 +11,7 @@ Use the following with this directory as the current working directory:
 npx @zeit/ncc build generate-flights.ts --out bin
 ```
 
-You can also use handy NPM run script:
+You can also use handy NPM run script to build any buildable external scripts:
 
 ```
 npm run build-externals
