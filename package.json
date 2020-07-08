@@ -17,7 +17,7 @@
     "list-tasks": "npm run && echo \"Compiling gulp task list...\" && gulp --tasks",
     "repl": "rlwrap npx -p @babel/core -p @babel/node babel-node",
     "preinstall": "npx npm-force-resolutions",
-    "check-types": "(command -v unbuffer >/dev/null && (unbuffer tsc; unbuffer eslint .) | less -R -FX || (tsc; eslint .)) && echo \"no problems detected!\""
+    "check-types": "(command -v unbuffer >/dev/null && (unbuffer tsc; unbuffer eslint .) | less -R -FX || (tsc; eslint .))"
   },
   "author": "Xunnamius",
   "license": "ISC",

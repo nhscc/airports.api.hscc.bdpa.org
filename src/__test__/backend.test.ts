@@ -514,6 +514,18 @@ describe('universe/backend', () => {
 
             expect(result19.every(flight => flight.gate === null)).toBeTrue();
         });
+
+        it('does not throw when there are no flights in the system', async () => {
+            await (await getDb()).collection('flights').deleteMany({});
+
+            expect(Backend.searchFlights({
+                key,
+                after: null,
+                match: {},
+                regexMatch: {},
+                sort: 'asc',
+            })).not.toReject();
+        });
     });
 
     describe('::generateFlights', () => {

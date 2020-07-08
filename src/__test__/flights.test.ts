@@ -5,14 +5,14 @@ import * as V1_search from 'universe/pages/api/v1/flights/search'
 import * as V1_with_ids from 'universe/pages/api/v1/flights/with-ids'
 import * as V2_flights from 'universe/pages/api/v2/flights'
 import { DUMMY_KEY as KEY } from 'universe/backend'
-
-import type { WithConfig, PublicFlight } from 'types/global'
 import { getEnv } from 'universe/backend/env'
 import { ObjectId } from 'mongodb'
 
+import type { WithConfig, PublicFlight } from 'types/global'
+
 const RESULT_SIZE = getEnv().RESULTS_PER_PAGE;
 
-const { getHydratedData } = setupJest();
+const { getHydratedData, getDb } = setupJest();
 
 const v1AllEndpoint: WithConfig<typeof V1_all.default> = V1_all.default;
 v1AllEndpoint.config = V1_all.config;
@@ -117,6 +117,20 @@ describe('api/v1/flights', () => {
                         404,
                         200
                     ]);
+                }
+            });
+        });
+
+        it('does not throw when there are no flights in the system', async () => {
+            await (await getDb()).collection('flights').deleteMany({});
+
+            await testApiEndpoint({
+                next: v1AllEndpoint,
+                test: async ({ fetch }) => {
+                    const response = await fetch({ headers: { KEY } });
+
+                    expect(response.status).toBe(200);
+                    expect((await response.json()).success).toBe(true);
                 }
             });
         });
