@@ -17,7 +17,8 @@
     "list-tasks": "npm run && echo \"Compiling gulp task list...\" && gulp --tasks",
     "repl": "rlwrap npx -p @babel/core -p @babel/node babel-node",
     "preinstall": "npx npm-force-resolutions",
-    "check-types": "(command -v unbuffer >/dev/null && (unbuffer tsc; unbuffer eslint .) | less -R -FX || (tsc; eslint .))"
+    "check-types": "(command -v unbuffer >/dev/null && (unbuffer tsc; unbuffer eslint .) | less -R -FX || (tsc; eslint .))",
+    "build-externals": "npx @zeit/ncc build external-scripts/generate-flights.ts --out external-scripts/bin"
   },
   "author": "Xunnamius",
   "license": "ISC",
