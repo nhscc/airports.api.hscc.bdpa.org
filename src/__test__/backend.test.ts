@@ -249,7 +249,7 @@ describe('universe/backend', () => {
 
             const expFlights = getHydratedData().flights;
             const expectedFlights1 = expFlights.slice(0, count).map(convertIFlightToPFlight);
-            const expectedFlights2 = expFlights.slice(expFlights.length - count, expFlights.length).reverse().map(convertIFlightToPFlight);
+            const expectedFlights2 = expFlights.slice(-count).reverse().map(convertIFlightToPFlight);
 
             expect(result1).toStrictEqual(expectedFlights1);
             expect(result2).toStrictEqual(expectedFlights2);
@@ -513,6 +513,61 @@ describe('universe/backend', () => {
             });
 
             expect(result19.every(flight => flight.gate === null)).toBeTrue();
+        });
+
+        it('search returns expected paginated records with secondary matchers', async () => {
+            const count = getEnv().RESULTS_PER_PAGE;
+
+            const result1 = await Backend.searchFlights({
+                key,
+                after: null,
+                match: { arriveAtReceiver: { $gte: Date.now() }},
+                regexMatch: {},
+                sort: 'asc',
+            });
+
+            const result2 = await Backend.searchFlights({
+                key,
+                after: null,
+                match: { arriveAtReceiver: { $gte: Date.now() }},
+                regexMatch: {},
+                sort: 'desc',
+            });
+
+            const result3 = await Backend.searchFlights({
+                key,
+                after: null,
+                match: {},
+                regexMatch: { status: 'landed|departed' },
+                sort: 'asc',
+            });
+
+            const result4 = await Backend.searchFlights({
+                key,
+                after: null,
+                match: {},
+                regexMatch: { status: 'landed|departed' },
+                sort: 'desc',
+            });
+
+            const expFlights = getHydratedData().flights.map(convertIFlightToPFlight);
+            const expectedFlights1 = expFlights.filter(f => f.arriveAtReceiver >= Date.now()).slice(0, count);
+            const expectedFlights2 = expFlights
+                .filter(f => f.arriveAtReceiver >= Date.now())
+                .slice(-count)
+                .reverse();
+            const expectedFlights3 = expFlights.filter(f => /landed|departed/.test(f.status)).slice(0, count);
+            const expectedFlights4 = expFlights
+                .filter(f => /landed|departed/.test(f.status))
+                .slice(-count)
+                .reverse();
+
+            expect(result1).toStrictEqual(expectedFlights1);
+            expect(result2).toStrictEqual(expectedFlights2);
+            expect(result3).toStrictEqual(expectedFlights3);
+            expect(result4).toStrictEqual(expectedFlights4);
+            expect(result1.every(flight => Object.keys(flight).every(key => PFlightKeys.includes(key)))).toBeTrue();
+            expect(result3.every(flight => Object.keys(flight).every(key => PFlightKeys.includes(key)))).toBeTrue();
         });
 
         it('does not throw when there are no flights in the system', async () => {

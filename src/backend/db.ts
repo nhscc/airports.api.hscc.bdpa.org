@@ -56,7 +56,7 @@ export async function initializeDb(db: Db) {
 }
 
 export const pipelines = {
-    resolveFlightState: (key: string) => [
+    resolveFlightState: (key: string, removeId: boolean) => [
         {
             $addFields: {
                 state: {
@@ -92,7 +92,7 @@ export const pipelines = {
         {
             $project: {
                 state: false,
-                _id: false,
+                ...(removeId ? { _id: false } : {}),
                 bookerKey: false,
                 stochasticStates: false
             }

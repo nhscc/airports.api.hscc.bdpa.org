@@ -191,7 +191,7 @@ export async function getFlightsById(params: GetFliByIdParams) {
 
     return await (await getDb()).collection<WithId<InternalFlight>>('flights').aggregate<PublicFlight>([
         { $match: { _id: { $in: ids }}},
-        ...pipelines.resolveFlightState(key)
+        ...pipelines.resolveFlightState(key, /*removeId=*/true)
     ]).toArray();
 }
 
@@ -274,10 +274,11 @@ export async function searchFlights(params: SeaFliParams) {
 
     const pipeline = [
         ...(Object.keys(primaryMatchStage.$match).length ? [primaryMatchStage] : []),
-        ...pipelines.resolveFlightState(key),
+        ...pipelines.resolveFlightState(key, /*removeId=*/false),
         ...(Object.keys(secondaryMatchers).length ? [{ $match: { ...secondaryMatchers }}] : []),
         { $sort: { _id: sort == 'asc' ? 1 : -1 }},
         { $limit: getEnv().RESULTS_PER_PAGE },
+        { $project: { _id: false }}
     ];
 
     // TODO: the database design can be optimized by popping the stochastic
