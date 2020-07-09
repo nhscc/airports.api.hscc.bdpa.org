@@ -274,11 +274,16 @@ export async function searchFlights(params: SeaFliParams) {
 
     const pipeline = [
         ...(Object.keys(primaryMatchStage.$match).length ? [primaryMatchStage] : []),
-        { $sort: { _id: sort == 'asc' ? 1 : -1 }},
-        { $limit: getEnv().RESULTS_PER_PAGE },
         ...pipelines.resolveFlightState(key),
         ...(Object.keys(secondaryMatchers).length ? [{ $match: { ...secondaryMatchers }}] : []),
+        { $sort: { _id: sort == 'asc' ? 1 : -1 }},
+        { $limit: getEnv().RESULTS_PER_PAGE },
     ];
+
+    // TODO: the database design can be optimized by popping the stochastic
+    // TODO: states out of their flight documents and placing them in their own
+    // TODO: collection, where we can put an index on them. But unless the slow
+    // TODO: queries become a problem, this will do for now.
 
     return await (await getDb()).collection<InternalFlight>('flights').aggregate<PublicFlight>(pipeline).toArray();
 }

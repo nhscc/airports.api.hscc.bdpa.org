@@ -40,6 +40,8 @@ export async function destroyDb(db: Db) {
 export async function initializeDb(db: Db) {
     // TODO: Add validation rules during createCollection phase
     // TODO: Make an index over key in keys (if not exists)
+    // TODO: Pop stochastic states out of flight documents and make indices over
+    // TODO:    all time-related data. This will dramatically speed up searches!
 
     await Promise.all([
         db.createCollection('keys'),
