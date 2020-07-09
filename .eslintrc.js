@@ -86,7 +86,8 @@ module.exports = {
         'import/ignore': [
             // ? Don't go complaining about anything that we don't own
             '.*/node_modules/.*',
+            '.*/bin/.*'
         ]
     },
-    ignorePatterns: ['coverage', 'build', '/gulpfile.js', '/next.config.js']
+    ignorePatterns: ['coverage', 'build', '/gulpfile.js', '/next.config.js', 'bin']
 };
