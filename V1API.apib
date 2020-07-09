@@ -483,7 +483,7 @@ This means "return all the flights that have a seat price greater than 400". Alo
 
 Note that any `match` filters are applied **in a case sensitive manner**, meaning `"united"` won't match `"United"`, so watch out! If you want case-insensitive searching or you're an otherwise advanced programmer, you can use Regular Expressions via `regexMatch`. Unlike `match`, `regexMatch` does not allow for less than/greater than queries.
 
-For example, if you wanted to find all the *Delta flights* (`match`) that are *currently landed* (`regexMatch`) at *`"ATL"` airport* (`match` again) but *only at a gate that begins with A* (`regexMatch` again) with *the most recent flights appearing first* (`sort`), you could use the following:
+For example, if you wanted to find all the *Delta flights* (`match`) that are *currently on the ground* (`regexMatch`) at *`"ATL"` airport* (`match` again) but *only at a gate that begins with A* (`regexMatch` again) with *the most recent flights appearing first* (`sort`), you could use the following:
 
 ```JavaScript
 var myNormalQueryObject = { "airline": "Delta", "landingAt": "ATL" }
