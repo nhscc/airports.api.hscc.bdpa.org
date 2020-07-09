@@ -296,7 +296,7 @@ export async function generateFlights() {
 
     // ? Let's setup some helpers...
 
-    let objectIdCounter = randomInt(2**10, 2**24 - 1);
+    let objectIdCounter = randomInt(2**10, 2**21 - 1);
     const objectIdRandom = pseudoRandomBytes(5).toString('hex');
 
     const targetDaysInMs = getEnv().FLIGHTS_GENERATE_DAYS * 24 * 60 * 60 * 1000;
@@ -344,7 +344,13 @@ export async function generateFlights() {
     }).flat();
 
     // ? Carve out a place to stash all flights in existence...
+    // TODO: We could implement this more memory-efficiently by writing out
+    // TODO: our results incrementally using a MongoDB bulk write operation
+    // TODO: instead of stashing them all in one spot
     const flights: WithId<InternalFlight>[] = [];
+
+    // ? Ensure a fair distribution of arrivals and departures
+    let isArrival = false;
 
     // ? And now, for every hour, generate a bunch of flights!
     [...Array(totalHoursToGenerate)].forEach((_, i) => {
@@ -384,9 +390,8 @@ export async function generateFlights() {
                 if(firstAirport._id.equals(secondAirport._id) || chance() > getEnv().AIRPORT_PAIR_USED_PERCENT)
                     return;
 
-                let isArrival = false;
-
                 activeAirlines.forEach(airline => {
+                    // ? This flight will be the opposite type of the last one
                     isArrival = !isArrival;
 
                     // ? Next, we determine how many checked bags and carry-ons

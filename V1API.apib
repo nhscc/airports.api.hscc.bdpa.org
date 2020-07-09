@@ -49,11 +49,12 @@ system.
    with content posted by other teams. If this is the case, please do not post
    anything inappropriate.
 
-4. If you encounter any vulnerabilities, errors, or other issues, contact NHSCC
-   staff via Slack or [open an issue on
-   GitHub](https://github.com/nhscc/airports.api.hscc.bdpa.org). For
-   significant enough finds, bonus points may be awarded. On the other hand,
-   abusing any vulnerability or bug may result in disqualification.
+4. If you have a relevant feature request or you encounter any vulnerabilities,
+   errors, or other issues, don't hesitate to contact NHSCC staff via Slack or
+   [open an issue on
+   GitHub](https://github.com/nhscc/airports.api.hscc.bdpa.org). For significant
+   enough finds, bonus points may be awarded. On the other hand, abusing any
+   vulnerability or bug may result in disqualification.
 
 5. **The API was built to randomly return errors every so often**. That means
    your app must be prepared to deal with `HTTP 555` and other bad responses.
@@ -100,10 +101,12 @@ milliseconds).
 
 ## Pagination
 
-Endpoints that might return a lot of data are paginated. Such endpoints
+Endpoints that might return a lot of data are paginated (via [range
+queries](https://en.wikipedia.org/wiki/Range_query_(database))). Such endpoints
 optionally accept an `after` parameter, which is a `flight_id` that determines
-which item is returned first. Hence, `after`s are special strings and not
-numbers. Omitting the `after` parameter returns the first 100 flights in the
+which item is returned first (the first item will be the first `flight_id` that
+comes *after* the `after` `flight_id`). Hence, `after`s are special strings and
+not numbers. Omitting the `after` parameter returns the first 100 flights in the
 system in ascending order.
 
 For example, given the following dataset and an API with a default result size
@@ -121,7 +124,7 @@ For example, given the following dataset and an API with a default result size
 
 Suppose we issued the following requests to an API:
 
-`/api?after=0xabc123`: responds with an array of 3 items: *0xabc122* through *0xabc126*  
+`/api?after=0xabc123`: responds with an array of 3 items: *0xabc124* through *0xabc126*  
 `/api?after=0xabcXYZ`: responds with an array of 0 items since `item_id` *0xabcXYZ* doesn't exist  
 `/api?after=0xabc124`: responds with an array of 3 items: *0xabc125* through *0xabc127*  
 `/api?after=0xabc127`: responds with an array of 0 items since there is nothing after *0xabc127*  
@@ -182,11 +185,11 @@ The API has full support for Cross Origin Resource Sharing (CORS) for AJAX reque
 ## Tips for debugging
 
 - Are you using the right method?
-- Use [Postman](https://www.postman.com/) (or this documentation) to play with the API.
-- Expect raw JSON that you must parse manually, not raw text or something else.
-- Are you sending properly formatted JSON as your request payload when necessary?
+- Use this documentation (click "see example," then click "Try console") or use [Postman](https://www.postman.com/) to play with the API.
+- Expect a raw JSON response body that you must parse manually, not raw text or something else.
+- Are you sending properly formatted JSON payloads in your request body when necessary?
 - Try outputting to stdout, use `console.log`, or output to some log file when API requests are made and responses received.
-- All time data is represented as the number of milliseconds elapsed since January 1, 1970 00:00:00 UTC.
+- All time data is represented as [the number of milliseconds elapsed since January 1, 1970 00:00:00 UTC](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now).
 - Are you sending the correct headers? You need to specify the `key: your-special-api-key-here` header for all requests and the `'content-type': 'application/json'` header when making POST and PUT requests.
 - Are you [encoding your URI components](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent) properly, especially when you're trying to send the API [JSON objects](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/JSON) via [GET request](https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods)?
 
@@ -480,11 +483,11 @@ This means "return all the flights that have a seat price greater than 400". Alo
 
 Note that any `match` filters are applied **in a case sensitive manner**, meaning `"united"` won't match `"United"`, so watch out! If you want case-insensitive searching or you're an otherwise advanced programmer, you can use Regular Expressions via `regexMatch`. Unlike `match`, `regexMatch` does not allow for less than/greater than queries.
 
-For example, if you wanted to find all the Delta flights that are currently landed at `"ORD"` airport (`match`) but only at a gate that begins with A (`regexMatch`) sorted in descending order, you could use the following:
+For example, if you wanted to find all the *Delta flights* (`match`) that are *currently landed* (`regexMatch`) at *`"ATL"` airport* (`match` again) but *only at a gate that begins with A* (`regexMatch` again) with *the most recent flights appearing first* (`sort`), you could use the following:
 
 ```JavaScript
-var myNormalQueryObject = { "airline": "Delta", "landingAt": "ORD" }
-var myRegexQueryObject = { "gate": "^A" }
+var myNormalQueryObject = { "airline": "Delta", "landingAt": "ATL" }
+var myRegexQueryObject = { "gate": "^A", "status": "landed|arrived|boarding" }
 
 var myNormalQuery = encodeURIComponent(JSON.stringify(myNormalQueryObject))
 var myRegexQuery = encodeURIComponent(JSON.stringify(myRegexQueryObject))
@@ -494,11 +497,13 @@ var myURL = "https://airports.api.hscc.bdpa.org/v1/flights/search?match=" + myNo
 sendRequestToAPI(myURL)
 ```
 
+> Notice: when testing using this Apiary documentation, they are nice enough to handle the URI encode and JSON stringify steps for you! All you have to do is type in a proper JSON object for the request to succeed. You can even copy and paste the `myXQueryObject`s from the examples above directly into the Try Console! Try it out by clicking "See an example" and then "Try console".
+
 + Parameters
     + after (optional, flight_id) - <span style="color: gray">[optional]</span> Return only those flights that occur *after* `flight_id` in the result list.
-    + match (optional, flight_id) - <span style="color: gray">[optional]</span> A URI encoded JSON object describing the flight properties you're looking for. Case sensitive. Can also do greater than/less than queries as well.
-    + regexMatch (optional, flight_id) - <span style="color: gray">[optional]</span> A URI encoded JSON object describing the flight properties that you're looking for. Case-*insensitive* regular expressions can be used here. You **cannot** also do greater than/less than queries and **all regexes must be strings** (no numbers).
-    + sort (optional, flight_id) - <span style="color: gray">[optional]</span> Determines the sort order. Possible values are: `asc` or `desc`.
+    + match (optional, string) - <span style="color: gray">[optional]</span> A URI encoded JSON object describing the flight properties you're looking for. Case sensitive. Can also do greater than/less than queries as well. **If you're using the Apiary Try Console, you do not have to URI encode or stringify the JSON object, just type it in directly!**
+    + regexMatch (optional, string) - <span style="color: gray">[optional]</span> A URI encoded JSON object describing the flight properties that you're looking for. Case-*insensitive* regular expressions can be used here. You **cannot** do greater than/less than queries and **all regexes must be strings** (no numbers). **If you're using the Apiary Try Console, you do not have to URI encode or stringify the JSON object, just type it in directly!**
+    + sort (optional, string) - <span style="color: gray">[optional]</span> Determines the sort order. Possible values are: `asc` or `desc`.
 
 + Request
 
@@ -590,12 +595,12 @@ See an example
 
 Returns a list of flights corresponding to the `ids` parameter. Results will probably not be in order. Like `match` and `regexMatch`, `ids` must be URI encoded and JSON serialized. Unlike `match` or `regexMatch`, it is an array.
 
-For example, if I wanted to get the flight data for `flight_ids` `"5f04f0607a927fab9cfbddff"` and `"5f04fe707a927fab9cfbde00"`:
+For example, if I wanted to get the flight data for IDs `"5f04f0607a927fab9cfbddfd"` and `"5f04f0607a927fab9cfbddfe"`:
 
 1. Put the IDs in an array:
 
 ```JavaScript
-var myTargetIds = ["5f04f0607a927fab9cfbddff", "5f04fe707a927fab9cfbde00"]
+var myTargetIds = ["5f04f0607a927fab9cfbddfd", "5f04f0607a927fab9cfbddfe"]
 ```
 
 2. Stringify the array and then URI encode it in whatever language you're using.
@@ -611,6 +616,9 @@ var myURL = "https://airports.api.hscc.bdpa.org/v1/flights/with-ids?ids=" + myQu
 
 sendRequestToAPI(myURL)
 ```
+
++ Parameters
+    + ids (optional, array[flight_id]) - <span style="color: gray">[optional]</span> A URI encoded JSON object (an array) of the `flight_id`s you're looking for. Will return at most 100 flights. **If you're using the Apiary Try Console, you do not have to URI encode or stringify the JSON object, just type it in directly!**
 
 + Request
 
@@ -662,38 +670,6 @@ See an example
                         "status": "cancelled",
                         "gate": null,
                         "seatPrice": 843.25
-                    },
-                    {
-                        "type": "departure",
-                        "airline": "Delta",
-                        "comingFrom": "F1A",
-                        "landingAt": "CHF",
-                        "departingTo": "SCA",
-                        "flightNumber": "D5877",
-                        "flight_id": "5f04f0607a927fab9cfbddff",
-                        "bookable": false,
-                        "arriveAtReceiver": 1594160035976,
-                        "departFromSender": 1594142174400,
-                        "departFromReceiver": 1594160935976,
-                        "status": "past",
-                        "gate": null,
-                        "seatPrice": 251.77
-                    },
-                    {
-                        "type": "arrival",
-                        "airline": "Southwest",
-                        "comingFrom": "TC3",
-                        "landingAt": "F1A",
-                        "departingTo": null,
-                        "flightNumber": "S5994",
-                        "flight_id": "5f04fe707a927fab9cfbde00",
-                        "bookable": false,
-                        "arriveAtReceiver": 1594164307128,
-                        "departFromSender": 1594153712900,
-                        "departFromReceiver": null,
-                        "status": "past",
-                        "gate": null,
-                        "seatPrice": 350.76
                     }
                 ]
             }
