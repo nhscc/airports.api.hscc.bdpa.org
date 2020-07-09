@@ -58,6 +58,7 @@ const primaryMatchTargets = [
     'flightNumber',
     'ffms',
     'seats.economy.priceDollars',
+    '_id'
 ];
 
 const secondaryMatchTargets = [
@@ -83,12 +84,12 @@ export type SeaFliParams = {
     key: string;
     after: ObjectId | null;
     match: {
-        [specifier: string]: string | number | {
+        [specifier: string]: string | number | ObjectId | {
             [subspecifier in '$gt' | '$lt' | '$gte' | '$lte']?: string | number
         }
     };
     regexMatch: {
-        [specifier: string]: string
+        [specifier: string]: string | ObjectId
     };
     sort: 'asc' | 'desc';
 };
@@ -197,6 +198,7 @@ export async function getFlightsById(params: GetFliByIdParams) {
 
 export async function searchFlights(params: SeaFliParams) {
     const { key, after, match, regexMatch, sort } = params;
+    let regexMatchObjectIds: ObjectId[] = [];
 
     if(!key || typeof key != 'string')
         throw new ApiKeyTypeError();
@@ -210,6 +212,28 @@ export async function searchFlights(params: SeaFliParams) {
     if(!isObject(match) || !isObject(regexMatch))
         throw new ValidationError('missing match and/or regexMatch');
 
+    if(match._id)
+        throw new ValidationError('invalid match object (1)');
+
+    if(regexMatch._id)
+        throw new ValidationError('invalid regexMatch object (1)');
+
+    try {
+        if(match.flight_id) {
+            match._id = new ObjectId(match.flight_id as string);
+            delete match.flight_id;
+        }
+
+        if(regexMatch.flight_id) {
+            regexMatchObjectIds = regexMatch.flight_id.toString().split('|').map(oid => new ObjectId(oid));
+            delete regexMatch.flight_id;
+        }
+    }
+
+    catch(e) {
+        throw new ValidationError('bad flight_id encountered')
+    }
+
     const matchKeys = Object.keys(match);
     const regexMatchKeys = Object.keys(regexMatch);
 
@@ -222,17 +246,17 @@ export async function searchFlights(params: SeaFliParams) {
 
         return !isArray(val)
             && matchableStrings.includes(ky)
-            && (['number', 'string'].includes(typeof(val)) || (isObject(val) && test() && valNotEmpty));
+            && (val instanceof ObjectId || ['number', 'string'].includes(typeof(val)) || (isObject(val) && test() && valNotEmpty));
     });
 
     const regexMatchKeysAreValid = () => regexMatchKeys.every(k =>
-        matchableStrings.includes(k) && typeof regexMatch[k] == 'string');
+        matchableStrings.includes(k) && (regexMatch[k] instanceof ObjectId || typeof regexMatch[k] == 'string'));
 
     if(matchKeys.length && !matchKeysAreValid())
-        throw new ValidationError('invalid match object');
+        throw new ValidationError('invalid match object (2)');
 
     if(regexMatchKeys.length && !regexMatchKeysAreValid())
-        throw new ValidationError('invalid regexMatch object');
+        throw new ValidationError('invalid regexMatch object (2)');
 
     const primaryMatchers: Record<string, unknown> = {};
     const secondaryMatchers: Record<string, unknown> = {};
@@ -274,6 +298,7 @@ export async function searchFlights(params: SeaFliParams) {
 
     const pipeline = [
         ...(Object.keys(primaryMatchStage.$match).length ? [primaryMatchStage] : []),
+        ...(regexMatchObjectIds.length ? [{ $match: { _id: { $in: regexMatchObjectIds }}}] : []),
         ...pipelines.resolveFlightState(key, /*removeId=*/false),
         ...(Object.keys(secondaryMatchers).length ? [{ $match: { ...secondaryMatchers }}] : []),
         { $sort: { _id: sort == 'asc' ? 1 : -1 }},

@@ -330,7 +330,7 @@ describe('api/v1/flights', () => {
             });
         });
 
-        it('ensure seats, baggage, extras, bookable, and flight_id cannot be matched against', async () => {
+        it('ensure seats, baggage, extras, bookable, and _id cannot be matched against', async () => {
             const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
             const genUrl = function*() {
@@ -338,12 +338,12 @@ describe('api/v1/flights', () => {
                 yield `/?match=${encode({ baggage: 'super-bad' })}`;
                 yield `/?match=${encode({ extras: 'super-bad' })}`;
                 yield `/?match=${encode({ bookable: 'super-bad'})}`;
-                yield `/?match=${encode({ flight_id: 'super-bad' })}`;
+                yield `/?match=${encode({ _id: 'super-bad' })}`;
                 yield `/?regexMatch=${encode({ seats: 'super-bad' })}`;
                 yield `/?regexMatch=${encode({ baggage: 'super-bad' })}`;
                 yield `/?regexMatch=${encode({ bookable: 'super-bad' })}`;
                 yield `/?regexMatch=${encode({ extras: 'super-bad' })}`;
-                yield `/?regexMatch=${encode({ flight_id: 'super-bad' })}`;
+                yield `/?regexMatch=${encode({ _id: 'super-bad' })}`;
             }();
 
             await testApiEndpoint({

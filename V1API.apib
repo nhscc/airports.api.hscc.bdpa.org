@@ -19,7 +19,7 @@ their own unique path and requirements.
 GitHub](https://github.com/nhscc/airports.api.hscc.bdpa.org). If you have any
 troubles, please open an issue there.
 
-## Requesting a key
+## Requesting a Key
 
 To access the majority of this API's endpoints requires a key. If your team
 wants a key, or needs to replace a lost or stolen key, please contact NHSCC
@@ -30,7 +30,7 @@ When you get your key, include it in your requests' header as `key:
 your-special-api-key-here` and you will be immediately authenticated into the
 system.
 
-## Rules of API access
+## Rules of API Access
 
 1. Do not bombard the API with requests or you risk permanent IP/subnet ban.
    **Limit your apps to no more than 10 requests per second per API key**. If
@@ -65,7 +65,7 @@ system.
    `JSON.stringify()` and `JSON.parse()` or whatever language equivalent is
    available to you is your friend!
 
-## Request methods
+## Request Methods
 
 This API is based on [simple REST
 principles](https://searchapparchitecture.techtarget.com/definition/RESTful-API).
@@ -182,7 +182,7 @@ response will look like the following:
 
 The API has full support for Cross Origin Resource Sharing (CORS) for AJAX requests.
 
-## Tips for debugging
+## Tips or Debugging
 
 - Are you using the right method?
 - Use this documentation (click "see example," then click "Try console") or use [Postman](https://www.postman.com/) to play with the API.
@@ -193,11 +193,11 @@ The API has full support for Cross Origin Resource Sharing (CORS) for AJAX reque
 - Are you sending the correct headers? You need to specify the `key: your-special-api-key-here` header for all requests and the `'content-type': 'application/json'` header when making POST and PUT requests.
 - Are you [encoding your URI components](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent) properly, especially when you're trying to send the API [JSON objects](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/JSON) via [GET request](https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods)?
 
-## Metadata endpoints [/info]
+## Metadata Endpoints [/info]
 
 These endpoints deal with summary metadata about the system.
 
-### /airlines endpoint [GET /info/airlines]
+### /airlines Endpoint [GET /info/airlines]
 
 + Request
 
@@ -245,7 +245,7 @@ See an example
                 "success": true
             }
 
-### /airports endpoint [GET /info/airports]
+### /airports Endpoint [GET /info/airports]
 
 + Request
 
@@ -296,7 +296,7 @@ See an example
                 "success": true
             }
 
-### /no-fly-list endpoint [GET /info/no-fly-list]
+### /no-fly-list Endpoint [GET /info/no-fly-list]
 
 + Request
 
@@ -346,13 +346,13 @@ See an example
                 "success": true
             }
 
-## Flight endpoints [/flights]
+## Flight Endpoints [/flights]
 
 With these endpoints you can access all flight data in the system.
 
-### /all endpoint [GET /flights/all{?after}]
+### /all Endpoint [GET /flights/all{?after}]
 
-Returns all endpoints in the system in ascending order (oldest first). Returns at most 100 results per query. Supports [range queries](https://en.wikipedia.org/wiki/Range_query_(database)) using `after`.
+Returns all flights in the system in ascending order (oldest first). Returns at most 100 results per query. Supports [range queries](https://en.wikipedia.org/wiki/Range_query_(database)) using `after`.
 
 + Parameters
     + after (optional, flight_id) - <span style="color: gray">[optional]</span> Return only those flights that occur *after* `flight_id` in the result list.
@@ -443,7 +443,7 @@ See an example
                 ]
             }
 
-### /search endpoint [GET /flights/search{?after,match,regexMatch,sort}]
+### /search Endpoint [GET /flights/search{?after,match,regexMatch,sort}]
 
 This endpoint allows you to search through all flights in the system. Without any parameters, it acts just like the `/all` endpoint. Returns at most 100 results per query. Supports [range queries](https://en.wikipedia.org/wiki/Range_query_(database)) using `after`. Other available parameters are: `match`, `regexMatch`, and `sort`. Sort can be either `asc` or `desc` and determines the sort order (sorted by creation timestamp) of the flights returned from the API. `match` and `regexMatch` let you filter out which flights you want returned in the response.
 
@@ -476,7 +476,7 @@ sendRequestToAPI(myURL)
 You can also use `match` queries to search for flights with numbers greater than or less than some other number:
 
 ```JavaScript
-var myQueryObject = { "seatPrice": { $gt: 400 } }
+var myQueryObject = { "seatPrice": { "$gt": 400 } }
 ```
 
 This means "return all the flights that have a seat price greater than 400". Along with `"$gt"` for "greater than," there's also `"$gte"` for "greater than or equal to," `"$lt"` for "less than," and `"$lte"` for "less than or equal to". If you've used MongoDB before, these should look familiar.
@@ -591,7 +591,7 @@ See an example
                 ]
             }
 
-### /with-ids endpoint [GET /flights/with-ids{?ids}]
+### /with-ids Endpoint [GET /flights/with-ids{?ids}]
 
 Returns a list of flights corresponding to the `ids` parameter. Results will probably not be in order. Like `match` and `regexMatch`, `ids` must be URI encoded and JSON serialized. Unlike `match` or `regexMatch`, it is an array.
 

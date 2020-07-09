@@ -581,6 +581,26 @@ describe('universe/backend', () => {
                 sort: 'asc',
             })).not.toReject();
         });
+
+        it('searches by flight_id via match and regexMatch work as expected', async () => {
+            const expectedFlights = getHydratedData().flights.slice(2, 4).map(convertIFlightToPFlight);
+
+            expect(await Backend.searchFlights({
+                key,
+                after: null,
+                match: { flight_id: expectedFlights[0].flight_id },
+                regexMatch: {},
+                sort: 'asc',
+            })).toStrictEqual([expectedFlights[0]]);
+
+            expect(await Backend.searchFlights({
+                key,
+                after: null,
+                match: {},
+                regexMatch: { flight_id: expectedFlights.map(f => f.flight_id).join('|') },
+                sort: 'asc',
+            })).toStrictEqual(expectedFlights);
+        });
     });
 
     describe('::generateFlights', () => {
