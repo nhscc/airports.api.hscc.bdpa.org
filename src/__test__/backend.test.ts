@@ -131,8 +131,8 @@ describe('universe/backend', () => {
             const result1 = await Backend.getFlightsById({ ids: [flight1._id, flight2._id], key });
 
             expect([result1[0].bookable, result1[1].bookable]).toStrictEqual([
-                flight1.bookerKey == Backend.DUMMY_KEY,
-                flight2.bookerKey == Backend.DUMMY_KEY
+                flight1.type == 'departure' && flight1.bookerKey == Backend.DUMMY_KEY,
+                flight2.type == 'departure' && flight2.bookerKey == Backend.DUMMY_KEY
             ]);
 
             expect(result1.every(flight => {

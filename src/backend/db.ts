@@ -74,7 +74,10 @@ export const pipelines = {
                 bookable: {
                     $cond: {
                         if: {
-                            $eq: ['$bookerKey', key]
+                            $and: [
+                                { $eq: ['$bookerKey', key] },
+                                { $eq: ['$type', 'departure'] }
+                            ]
                         },
                         then: true,
                         else: false

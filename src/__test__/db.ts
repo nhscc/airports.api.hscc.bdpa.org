@@ -43,7 +43,7 @@ export const convertIFlightToPFlight = (flight: WithId<InternalFlight>): PublicF
 
     return {
         flight_id: _id.toHexString(),
-        bookable: bookerKey == DUMMY_KEY,
+        bookable: flight.type == 'arrival' ? false : bookerKey == DUMMY_KEY,
         ...flightData,
         ...Object.entries(stochasticStates).reduce((prev, entry) => {
             if(Number(entry[0]) <= Date.now())
