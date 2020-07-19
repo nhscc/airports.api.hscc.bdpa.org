@@ -339,6 +339,7 @@ export async function generateFlights() {
     const thirtyMinutesInMs = 30 * 60 * 1000;
     const thirtyOneMinutesInMs = 31 * 60 * 1000;
     const oneHourInMs = 60 * 60 * 1000;
+    const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
 
     const chance = () => randomInt(1, 100);
     const hourLevelMsDilation = (epoch: number) => Math.floor(epoch / oneHourInMs) * oneHourInMs;
@@ -355,13 +356,13 @@ export async function generateFlights() {
         return new ObjectId(hex);
     };
 
-    // ? Delete any entries created more than FLIGHTS_GENERATE_DAYS days ago
+    // ? Delete any entries created more than 7 days ago
     const deleteResult = await flightDb.deleteMany({
-        _id: { $lt: generateObjectIdFromMs(Date.now() - targetDaysInMs) }
+        _id: { $lt: generateObjectIdFromMs(Date.now() - sevenDaysInMs) }
     });
 
     // eslint-disable-next-line no-console
-    console.info(`api   - Deleted ${deleteResult.deletedCount} flights older than ${getEnv().FLIGHTS_GENERATE_DAYS} days`);
+    console.info(`api   - Deleted ${deleteResult.deletedCount} flights older than 7 days`);
 
     // ? Determine how many hours (if any) need flights generated for them
     const lastFlightId = (await flightDb.find().sort({ _id: -1 }).limit(1).next())?._id ?? new ObjectId();
