@@ -39,7 +39,6 @@ export async function destroyDb(db: Db) {
  */
 export async function initializeDb(db: Db) {
     // TODO: Add validation rules during createCollection phase
-    // TODO: Make an index over key in keys (if not exists)
     // TODO: Pop stochastic states out of flight documents and make indices over
     // TODO:    all time-related data. This will dramatically speed up searches!
 
@@ -52,6 +51,16 @@ export async function initializeDb(db: Db) {
         db.createCollection('airlines'),
         db.createCollection('no-fly-list'),
         db.createCollection('info'),
+    ]);
+
+    const flights = db.collection('flights');
+
+    await Promise.all([
+        flights.createIndex({ type: 1 }),
+        flights.createIndex({ airline: 1 }),
+        flights.createIndex({ departingTo: 1 }),
+        flights.createIndex({ landingAt: 1 }),
+        flights.createIndex({ ffms: 1 }),
     ]);
 }
 

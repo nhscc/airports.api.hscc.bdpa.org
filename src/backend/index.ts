@@ -356,14 +356,20 @@ export async function generateFlights() {
     };
 
     // ? Delete any entries created more than FLIGHTS_GENERATE_DAYS days ago
-    await flightDb.deleteMany({
+    const deleteResult = await flightDb.deleteMany({
         _id: { $lt: generateObjectIdFromMs(Date.now() - targetDaysInMs) }
     });
+
+    // eslint-disable-next-line no-console
+    console.info(`api   - Deleted ${deleteResult.deletedCount} flights older than ${getEnv().FLIGHTS_GENERATE_DAYS} days`);
 
     // ? Determine how many hours (if any) need flights generated for them
     const lastFlightId = (await flightDb.find().sort({ _id: -1 }).limit(1).next())?._id ?? new ObjectId();
     const lastFlightHourMs = hourLevelMsDilation(lastFlightId.getTimestamp().getTime());
     const totalHoursToGenerate = (hourLevelMsDilation(Date.now() + targetDaysInMs) - lastFlightHourMs) / oneHourInMs;
+
+    // eslint-disable-next-line no-console
+    console.info(`api   - Generating ${totalHoursToGenerate} hours worth of flights...`);
 
     if(!totalHoursToGenerate)
         return 0;
@@ -396,6 +402,9 @@ export async function generateFlights() {
                 [airline._id.toHexString()]: uniqueRandomArray(cloneDeep(flightNumPool))
             };
         }, {});
+
+        // eslint-disable-next-line no-console
+        console.info(`api   ↳ Generating flights for hour ${currentHour} (${i+1}/${totalHoursToGenerate})`);
 
         // ? Arrivals land at firstAirport and came from secondAirport
         // ? Departures land at firstAirport and depart to secondAirport; which
@@ -769,6 +778,9 @@ export async function generateFlights() {
         if(!flights.length)
             return 0;
 
+        // eslint-disable-next-line no-console
+        console.info(`api   - Committing ${flights.length} flights into database...`);
+
         // ? All the main repository of flight data to the database in one shot!
         const operation = await flightDb.insertMany(flights);
 
@@ -777,6 +789,9 @@ export async function generateFlights() {
 
         if(operation.insertedCount != flights.length)
             throw new GuruMeditationError('assert failed: operation.insertedCount != totalHoursToGenerate');
+
+        // eslint-disable-next-line no-console
+        console.info(`api   - Operation completed successfully!`);
 
         return operation.insertedCount;
     }

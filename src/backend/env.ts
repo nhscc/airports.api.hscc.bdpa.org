@@ -40,7 +40,7 @@ export function getEnv(loud=false) {
 
     if(loud && env.NODE_ENV == 'development') {
         /* eslint-disable-next-line no-console */
-        console.info(env);
+        console.info(`debug - ${env}`);
     }
 
     // ? Typescript troubles
