@@ -182,7 +182,7 @@ response will look like the following:
 
 The API has full support for Cross Origin Resource Sharing (CORS) for AJAX requests.
 
-## Tips or Debugging
+## Tips for Debugging
 
 - Are you using the right method?
 - Use this documentation (click "see example," then click "Try console") or use [Postman](https://www.postman.com/) to play with the API.
@@ -445,7 +445,7 @@ See an example
 
 ### /search Endpoint [GET /flights/search{?after,match,regexMatch,sort}]
 
-This endpoint allows you to search through all flights in the system. Without any parameters, it acts just like the `/all` endpoint. Returns at most 100 results per query. Supports [range queries](https://en.wikipedia.org/wiki/Range_query_(database)) using `after`. Other available parameters are: `match`, `regexMatch`, and `sort`. Sort can be either `asc` or `desc` and determines the sort order (sorted by creation timestamp) of the flights returned from the API. `match` and `regexMatch` let you filter out which flights you want returned in the response.
+This endpoint allows you to search through all flights in the system. Without any parameters, it acts just like the `/all` endpoint. Returns at most 100 results per query. Supports [range queries](https://en.wikipedia.org/wiki/Range_query_(database)) using `after`. Other available parameters are: `match`, `regexMatch`, and `sort`. `sort` can be either `asc` or `desc` and determines the sort order (sorted by creation timestamp) of the flights returned from the API. `match` and `regexMatch` let you filter out which flights you want returned in the response.
 
 Note that the values of `match` and `regexMatch` **must be [URI encoded](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent) [JSON objects](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/JSON)**! If they aren't, you'll receive an error.
 

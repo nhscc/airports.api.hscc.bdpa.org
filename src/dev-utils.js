@@ -35,6 +35,6 @@ module.exports = {
         // ? Resolve the true node/application environment mode --> NODE_ENV
         // ? Recognized values: development, test, production
         // eslint-disable-next-line no-console
-        !process.env.NODE_ENV && console.warn(`WARNING: process.env.NODE_ENV resolved to "${process.env.NODE_ENV}"!`);
+        !process.env.NODE_ENV && console.warn(`warn  - process.env.NODE_ENV resolved to "${process.env.NODE_ENV}"!`);
     }
 };
