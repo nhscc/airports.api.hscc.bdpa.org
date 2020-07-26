@@ -44,7 +44,7 @@ export async function initializeDb(db: Db) {
 
     await Promise.all([
         db.createCollection('keys'),
-        db.createCollection('request-log', { capped: true, size: 1000000, max: 10000 }),
+        db.createCollection('request-log', { capped: true, size: 10000000, max: 10000 }),
         db.createCollection('limited-log-mview'),
         db.createCollection('flights'),
         db.createCollection('airports'),
