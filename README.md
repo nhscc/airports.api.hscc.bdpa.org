@@ -13,7 +13,7 @@ them](https://github.com/nhscc/airports.api.hscc.bdpa.org/issues/new)!
 
 Version 1 root URI: https://airports.api.hscc.bdpa.org/v1  
 Version 2 root URI: https://airports.api.hscc.bdpa.org/v2  
-Version 1 documentation and playground with examples: https://hsccdfbb7244.docs.apiary.io
+Version 1 documentation and playground with examples: https://hsccdfbb7244.docs.apiary.io  
 Version 2 documentation and playground with examples: https://hscc210ff8c0.docs.apiary.io
 
 > Warning: if you've enabled the V1 API, the `"economy"` seat class MUST EXIST
