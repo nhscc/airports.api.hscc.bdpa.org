@@ -1,7 +1,8 @@
-import { WithId, ObjectId } from 'mongodb';
+import { WithId, ObjectId } from 'mongodb'
 import * as Backend from 'universe/backend'
 import { getEnv } from 'universe/backend/env'
 import { populateEnv } from 'universe/dev-utils'
+import sha256 from 'crypto-js/sha256'
 
 import {
     setupJest,
@@ -12,8 +13,7 @@ import {
 
 import {
     RequestLogEntry,
-    LimitedLogEntry,
-    InternalFlight
+    LimitedLogEntry
 } from 'types/global'
 
 import type{ NextApiRequest, NextApiResponse } from 'next'
@@ -77,6 +77,16 @@ describe('universe/backend', () => {
         });
     });
 
+    describe('::getApiKeys', () => {
+        it('returns the airline data as expected', async () => {
+            expect(await Backend.getApiKeys()).toStrictEqual(unhydratedDummyDbData.keys.map(key => {
+                // @ts-expect-error: checking for existence of _id
+                const { _id, ...publicApiKey } = { ...key, key: sha256(key.key).toString() };
+                return publicApiKey;
+            }));
+        });
+    });
+
     describe('::getFlightsById', () => {
         it('throws if bad arguments', () => {
             // @ts-expect-error: testing bad arguments
@@ -130,7 +140,7 @@ describe('universe/backend', () => {
 
             const result1 = await Backend.getFlightsById({ ids: [flight1._id, flight2._id], key });
 
-            expect([result1[0].bookable, result1[1].bookable]).toStrictEqual([
+            expect([result1[0]?.bookable, result1[1]?.bookable]).toStrictEqual([
                 flight1.type == 'departure' && flight1.bookerKey == Backend.DUMMY_KEY,
                 flight2.type == 'departure' && flight2.bookerKey == Backend.DUMMY_KEY
             ]);
@@ -603,33 +613,33 @@ describe('universe/backend', () => {
         });
     });
 
-    describe('::generateFlights', () => {
-        it('rejects if there are no airports', async () => {
-            process.env.FLIGHTS_GENERATE_DAYS = '1';
-            await (await getDb()).collection('airports').deleteMany({});
-            expect(Backend.generateFlights()).toReject();
-        });
+    // describe('::generateFlights', () => {
+    //     it('rejects if there are no airports', async () => {
+    //         process.env.FLIGHTS_GENERATE_DAYS = '1';
+    //         await (await getDb()).collection('airports').deleteMany({});
+    //         expect(Backend.generateFlights()).toReject();
+    //     });
 
-        it('rejects if there are no airlines', async () => {
-            process.env.FLIGHTS_GENERATE_DAYS = '1';
-            await (await getDb()).collection('airlines').deleteMany({});
-            expect(Backend.generateFlights()).toReject();
-        });
+    //     it('rejects if there are no airlines', async () => {
+    //         process.env.FLIGHTS_GENERATE_DAYS = '1';
+    //         await (await getDb()).collection('airlines').deleteMany({});
+    //         expect(Backend.generateFlights()).toReject();
+    //     });
 
-        it('does something if airports/airlines exist', async () => {
-            process.env.FLIGHTS_GENERATE_DAYS = '1';
-            const flightsDb = (await getDb()).collection<WithId<InternalFlight>>('flights');
-            await flightsDb.deleteMany({});
+    //     it('does something if airports/airlines exist', async () => {
+    //         process.env.FLIGHTS_GENERATE_DAYS = '1';
+    //         const flightsDb = (await getDb()).collection<WithId<InternalFlight>>('flights');
+    //         await flightsDb.deleteMany({});
 
-            const lastFlightId1 = (await flightsDb.find().sort({ _id: -1 }).limit(1).next())?._id;
-            expect(lastFlightId1).not.toBeTruthy();
+    //         const lastFlightId1 = (await flightsDb.find().sort({ _id: -1 }).limit(1).next())?._id;
+    //         expect(lastFlightId1).not.toBeTruthy();
 
-            expect(await Backend.generateFlights()).not.toBe(0);
+    //         expect(await Backend.generateFlights()).not.toBe(0);
 
-            const lastFlightId2 = (await flightsDb.find().sort({ _id: -1 }).limit(1).next())?._id;
-            expect(lastFlightId2).toBeTruthy();
-        });
-    });
+    //         const lastFlightId2 = (await flightsDb.find().sort({ _id: -1 }).limit(1).next())?._id;
+    //         expect(lastFlightId2).toBeTruthy();
+    //     });
+    // });
 
     describe('::addToRequestLog', () => {
         it('adds request to log as expected', async () => {

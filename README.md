@@ -29,8 +29,9 @@ of the API to make requests against. This API is self-contained aside from
 MongoDB; everything you need to run it locally is in this repo (except a running
 MongoDB instance). Follow the instructions below:
 
-> This project has been tested on Linux (Kubuntu) and Windows 10 Pro. If you
-> encounter any issues (especially Windows-specific issues), please [report
+> This project has been tested on Linux (Kubuntu) and Windows 10 Pro (**not
+> WSL**). If you encounter any issues (especially Windows-specific issues),
+> please [report
 > them](https://github.com/nhscc/airports.api.hscc.bdpa.org/issues/new).
 
 1. Ensure the latest [NodeJS](https://nodejs.org/en/) and
@@ -57,6 +58,8 @@ MongoDB instance). Follow the instructions below:
      specified in the connect URI automatically configured and hydrated
 5. At this point you should test that the API will work on your system. To do
    this, run the command `npm test` in your terminal
+   > If you're using WSL, you may experience problems. In that case, try running
+   > the test suite outside of WSL.
 6. If all tests passed, you can start up the API in development mode by running
    the `npm run dev` command
    * If you're on Windows, run `npm run dev-windows` instead!

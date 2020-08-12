@@ -1,24 +1,47 @@
 import * as React from 'react'
+import { useState } from 'react'
 import { getEnv } from 'universe/backend/env'
 import { getDb, initializeDb, destroyDb } from 'universe/backend/db'
 import { hydrateDb, unhydratedDummyDbData } from 'universe/__test__/db'
-import { generateFlights } from 'universe/backend'
+import { generateFlights, getApiKeys } from 'universe/backend'
+
+import {
+    isValidAdminKey,
+    findOneFlightOrNull,
+    getCurrentAndNextFlightStates,
+    forceNextFlightState,
+    upsertOverrideEntryFor,
+    deleteOverrideEntryFor
+} from 'universe/frontend'
+
+import type { NextPageContext } from 'next'
+import {ApiKey} from 'types/global'
+import {FetchError} from 'universe/backend/error'
 
 type Props = {
     previouslyHydratedDb: boolean;
     shouldHydrateDb: boolean;
     isInProduction: boolean;
     nodeEnv: string;
+    toolsMode: boolean;
+    apiKeys: ApiKey[] | null;
 };
 
 let previouslyHydratedDb = false;
 
-export async function getServerSideProps() {
+export async function getServerSideProps(context: NextPageContext) {
     const env = getEnv();
-    const shouldHydrateDb = env.NODE_ENV == 'development' && !previouslyHydratedDb && env.HYDRATE_DB_ON_STARTUP;
+    const toolsMode = context.query.tools !== undefined;
+    const shouldHydrateDb = !toolsMode && env.NODE_ENV == 'development' && !previouslyHydratedDb && env.HYDRATE_DB_ON_STARTUP;
+    let apiKeys: Props['apiKeys'] = null;
+
+    if(toolsMode)
+        apiKeys = await getApiKeys();
 
     const props = {
         isInProduction: env.NODE_ENV == 'production',
+        toolsMode,
+        apiKeys,
         shouldHydrateDb,
         previouslyHydratedDb,
         nodeEnv: env.NODE_ENV
@@ -40,19 +63,373 @@ export async function getServerSideProps() {
     return { props };
 }
 
-export default function Index({ previouslyHydratedDb, shouldHydrateDb, isInProduction, nodeEnv }: Props) {
-    let status = (<span style={{ color: 'gray' }}>unchanged</span>);
+export default function Index({ previouslyHydratedDb, shouldHydrateDb, isInProduction, nodeEnv, toolsMode, apiKeys }: Props) {
+    apiKeys = apiKeys ?? [];
 
-    if(previouslyHydratedDb)
-        status = (<span style={{ color: 'green' }}>previously hydrated</span>);
+    if(toolsMode) {
+        const [ adminKey, setAdminKey ] = useState<string | null>(null);
+        const [ authenticated, setAuthenticated ] = useState(false);
+        const [ targetTeam, setTargetTeam ] = useState<string | null>(null);
+        const [ currentFlightState, setCurrentFlightState ] = useState<string | null>(null);
+        const [ nextFlightState, setNextFlightState ] = useState<string | null>(null);
+        const [ targetFlightId, setTargetFlightId ] = useState<string | null>(null);
+        const [ toolView, setToolView ] = useState(0);
+        const [ redirectTo, setRedirectTo ] = useState(0);
+        const [ errorElement, setErrorElement ] = useState(<React.Fragment />);
 
-    if(shouldHydrateDb)
-        status = (<span style={{ color: 'darkred' }}>hydrated</span>);
+        const [ flightNumber, setFlightNumber ] = useState('');
+        const [ flightType, setFlightType ] = useState('');
+        const [ flightStatus, setFlightStatus ] = useState('');
+        const [ flightComingFrom, setFlightComingFrom ] = useState('');
+        const [ flightLandingAt, setFlightLandingAt ] = useState('');
+        const [ flightDepartingTo, setFlightDepartingTo ] = useState('');
 
-    return (
-        <React.Fragment>
-            <p>Psst: there is no web frontend for this API.</p>
-            { !isInProduction && <p><strong>{`[ NODE_ENV=${nodeEnv} | db=`}{status}{' ]'}</strong></p> }
-        </React.Fragment>
-    );
+        const [ respondWithCode, setRespondWithCode ] = useState<number | null>(null);
+        const [ respondWithJSON, setRespondWithJSON ] = useState<string | null>(null);
+
+        const handleTargetTeamChange = (e: React.ChangeEvent<HTMLSelectElement>) => setTargetTeam(e.target.value);
+        const handleRespondWithJSONChanges = (e: React.ChangeEvent<HTMLTextAreaElement>) => setRespondWithJSON(e.target.value);
+        const handleAdminKeyUpdate = (e: React.ChangeEvent<HTMLInputElement>) => setAdminKey(e.target.value);
+
+        const handleRespondWithCodeChanges = (e: React.ChangeEvent<HTMLSelectElement>) =>
+            setRespondWithCode(e.target.value == '0' ? null : parseInt(e.target.value));
+
+        const handleToolChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+            setTargetFlightId(null);
+            setNextFlightState(null);
+            setToolView(parseInt(e.target.value || '0'));
+        };
+
+        const handleAuthentication = async () => {
+            adminKey && (await isValidAdminKey(adminKey))
+                ? setAuthenticated(true)
+                : setErrorElement(<span className="error">Error: bad key</span>);
+        };
+
+        if(!authenticated || !adminKey) {
+            return (
+                <div>
+                    <p>
+                        <label>Enter your admin key:</label>
+                        <input type="text" onChange={handleAdminKeyUpdate} value={adminKey || ''} />
+                        {errorElement}
+                    </p>
+                    <button onClick={handleAuthentication}>Authenticate</button>
+                </div>
+            );
+        }
+
+        else {
+            let instructions: JSX.Element = <React.Fragment></React.Fragment>;
+            let inputElements: JSX.Element = <React.Fragment></React.Fragment>;
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
+            let formSubmitHandler: React.EventHandler<React.SyntheticEvent> = () => {};
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
+            let formResetHandler: React.EventHandler<React.SyntheticEvent> = () => {};
+
+            if(toolView == 0) { // * Tool explanation view
+                instructions = (
+                    <React.Fragment>
+                        <p>These tools should be used to help you test out a team's solution. Select the tool above or click its name below to begin. If you're at all confused at any point, feel free to post your questions on Slack!</p>
+                        <p><a href="#" onClick={() => setToolView(2)}>Tool 1</a>: This tool allows you to change a flight's data so you can see how a team's solution reacts.</p>
+                        <p><a href="#" onClick={() => setToolView(3)}>Tool 2</a>: This tool allows you to change a flight's data so you can see how a team's solution reacts.</p>
+                        <p><a href="#" onClick={() => setToolView(4)}>Tool 3</a>: This tool allows you to change a flight's data so you can see how a team's solution reacts.</p>
+                    </React.Fragment>
+                );
+            }
+
+            else if(toolView == 1) { // * Search flight view
+                instructions = (
+                    <React.Fragment>
+                        Enter one or more of the following criteria to search for the flight you want to change. Since flight numbers are reused periodically, you should enter the flight number along with a few of the other criteria to narrow down your search.
+                        <hr />
+                    </React.Fragment>
+                );
+
+                inputElements = (
+                    <React.Fragment>
+                        <p>
+                            <label>Flight number:</label>
+                            <input
+                                type="text"
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFlightNumber(e.target.value)}
+                                value={flightNumber}
+                            />
+                        </p>
+                        <p>
+                            <label>Flight type:</label>
+                            <input
+                                type="text"
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFlightType(e.target.value)}
+                                value={flightType}
+                            />
+                        </p>
+                        <p>
+                            <label>Flight status:</label>
+                            <input
+                                type="text"
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFlightStatus(e.target.value)}
+                                value={flightStatus}
+                            />
+                        </p>
+                        <p>
+                            <label>Flight coming from:</label>
+                            <input
+                                type="text"
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFlightComingFrom(e.target.value)}
+                                value={flightComingFrom}
+                            />
+                        </p>
+                        <p>
+                            <label>Flight landing at:</label>
+                            <input
+                                type="text"
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFlightLandingAt(e.target.value)}
+                                value={flightLandingAt}
+                            />
+                        </p>
+                        <p>
+                            <label>Flight departing to:</label>
+                            <input
+                                type="text"
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFlightDepartingTo(e.target.value)}
+                                value={flightDepartingTo}
+                            />
+                        </p>
+                        <p>{errorElement}</p>
+                        <p><button type="submit">Search</button></p>
+                    </React.Fragment>
+                );
+
+                formSubmitHandler = async (e: React.FormEvent<HTMLFormElement>) => {
+                    e.preventDefault();
+
+                    try {
+                        const { flightId, error } = await findOneFlightOrNull({
+                            adminKey,
+                            criteria: {
+                                flightNumber,
+                                flightType,
+                                flightStatus,
+                                flightComingFrom,
+                                flightLandingAt,
+                                flightDepartingTo
+                            }
+                        });
+
+                        const { currentState, nextState } = await getCurrentAndNextFlightStates({ adminKey, flightId });
+
+                        if(flightId) {
+                            setTargetFlightId(flightId);
+                            setCurrentFlightState(currentState);
+                            setNextFlightState(nextState);
+                            setToolView(redirectTo);
+                            setRedirectTo(0);
+                        }
+
+                        else throw new FetchError(error);
+                    }
+
+                    catch(e) {
+                        setErrorElement(<span className="error">Error: {e.toString()}</span>);
+                    }
+                };
+            }
+
+            else if(toolView == 2) { // * Tool 1 view
+                if(targetFlightId === null) {
+                    setRedirectTo(2);
+                    setToolView(1);
+                }
+
+                else {
+                    instructions = (
+                        <React.Fragment>
+                            Press the button below to immediately change certain properties of the flight you searched for. After about a minute or two, the flight data visible in the team's solution you're looking at should update to match what you see below. Are expectations met?
+                            <hr />
+                        </React.Fragment>
+                    );
+
+                    inputElements = (
+                        <React.Fragment>
+                            <p>
+                                <label>Target flight ID:</label>
+                                <input
+                                    type="text"
+                                    disabled={true}
+                                    value={targetFlightId}
+                                />
+                            </p>
+                            <p>
+                                <label>Current state of this flight:</label>
+                                <textarea
+                                    disabled={true}
+                                    value={currentFlightState || ''}
+                                />
+                            </p>
+                            <p>
+                                <label>Next state of this flight:</label>
+                                <textarea
+                                    disabled={true}
+                                    value={nextFlightState || ''}
+                                />
+                            </p>
+                            <p>{errorElement}</p>
+                            <p><button type="submit">Change flight to next state</button></p>
+                        </React.Fragment>
+                    );
+
+                    formSubmitHandler = async (e: React.FormEvent<HTMLFormElement>) => {
+                        e.preventDefault();
+
+                        try {
+                            const { newCurrentState, newNextState } = await forceNextFlightState({
+                                adminKey,
+                                flightId: targetFlightId
+                            });
+
+                            setCurrentFlightState(newCurrentState);
+                            setNextFlightState(newNextState);
+                            setErrorElement(<span className="success">State updated successfully!</span>)
+                        }
+
+                        catch(e) {
+                            setErrorElement(<span className="error">Error: {e.toString()}</span>);
+                        }
+                    };
+                }
+            }
+
+            else if(toolView == 3) { // * Tool 2 view
+                if(targetFlightId === null) {
+                    setRedirectTo(3);
+                    setToolView(1);
+                }
+
+                else {
+                    instructions = (
+                        <React.Fragment>
+                            When the arrival time or gate of a flight changes in the API, that change should be reflected in the app after a minute or two. Click below to change the data of the flight you searched for.
+                            <hr />
+                            <p><a href="#" onClick={() => setToolView(2)}>Click here</a> to use this tool.</p>
+                        </React.Fragment>
+                    );
+                }
+            }
+
+            else if(toolView == 4) { // * Tool 3 view
+                instructions = (
+                    <React.Fragment>
+                        Use this tool to make all API requests coming from a specific team return whatever data you want. If you want the API to start sending error codes, select one of the options under "Respond with code" below and press "activate". To allow the API to respond to requests normally, press "deactivate". All API changes expire after 2 minutes.
+                        <hr />
+                    </React.Fragment>
+                );
+
+                inputElements = (
+                    <React.Fragment>
+                        <p>{errorElement}</p>
+                        <p>
+                            <label>Team:</label>
+                            <select onChange={handleTargetTeamChange} value={targetTeam || '#'}>
+                                <option value="#" disabled={true}>[select a team]</option>
+                                { apiKeys.map((item, ndx) => <option value={ndx}>{item.owner}</option>) }
+                            </select>
+                        </p>
+                        <p>
+                            <label>Respond with code:</label>
+                            <select onChange={handleRespondWithCodeChanges} value={respondWithCode || '#'}>
+                                <option value="#" disabled={true}>...</option>
+                                <option>404</option>
+                                <option>420</option>
+                                <option>500</option>
+                                <option>501</option>
+                                <option>505</option>
+                            </select>
+
+                            <label>Respond with JSON:</label>
+                            <textarea
+                                onChange={handleRespondWithJSONChanges}
+                                placeholder="(must be valid JSON)"
+                                value={respondWithJSON || ''}
+                            />
+                        </p>
+                        <button type="submit" disabled={!respondWithCode && !respondWithJSON}>Activate</button>
+                        <button type="reset">Deactivate</button>
+                    </React.Fragment>
+                );
+
+                formSubmitHandler = async (e: React.FormEvent<HTMLFormElement>) => {
+                    e.preventDefault();
+
+                    try {
+                        if(!targetTeam) throw new FetchError('no team selected');
+
+                        const json = respondWithJSON ? JSON.parse(respondWithJSON) : null;
+
+                        const error = (await upsertOverrideEntryFor({
+                            adminKey,
+                            code: respondWithCode,
+                            json,
+                            targetTeam
+                        })).error;
+
+                        if(error) throw new FetchError(error);
+                    }
+
+                    catch(e) { setErrorElement(<span className="error">Error: invalid JSON provided</span>) }
+                };
+
+                formResetHandler = (e: React.FormEvent<HTMLFormElement>) => {
+                    e.preventDefault();
+
+                    try {
+                        if(!targetTeam) throw new FetchError('no team selected');
+
+                        setRespondWithCode(null);
+                        setRespondWithJSON(null);
+                        deleteOverrideEntryFor({ adminKey, targetTeam });
+                        setErrorElement(<span className="success">Response override reset successfully!</span>);
+                    }
+
+                    catch(e) {
+                        setErrorElement(<span className="error">Error: {e.toString()}</span>);
+                    }
+                };
+            }
+
+            return (
+                <div>
+                    <div>
+                        <label>Select tool:</label>
+                        <select onChange={handleToolChange} value={toolView}>
+                            <option value={0}>[home view]</option>
+                            <option value={1} disabled={true}>[search view]</option>
+                            <option value={2}>tool 1</option>
+                            <option value={3}>tool 2</option>
+                            <option value={4}>tool 3</option>
+                        </select>
+                    </div>
+                    <div>{ instructions }</div>
+                    <form onSubmit={formSubmitHandler} onReset={formResetHandler}>{ inputElements }</form>
+                </div>
+            );
+        }
+    }
+
+    else {
+        let status = (<span style={{ color: 'gray' }}>unchanged</span>);
+
+        if(previouslyHydratedDb)
+            status = (<span style={{ color: 'green' }}>previously hydrated</span>);
+
+        if(shouldHydrateDb)
+            status = (<span style={{ color: 'darkred' }}>hydrated</span>);
+
+        return (
+            <React.Fragment>
+                <p>Psst: there is no web frontend for this API.</p>
+                { !isInProduction && <p><strong>{`[ NODE_ENV=${nodeEnv} | db=`}{status}{' ]'}</strong></p> }
+            </React.Fragment>
+        );
+    }
 }

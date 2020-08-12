@@ -3,6 +3,7 @@ import { parse as parseAsBytes } from 'bytes'
 import isServer from 'multiverse/is-server-side'
 import { MIN_RESULT_PER_PAGE } from 'universe/backend'
 import { AppError } from 'universe/backend/error'
+import {ApiError} from 'next/dist/next-server/server/api-utils'
 
 export function getEnv(loud=false) {
     const env = {
@@ -22,7 +23,13 @@ export function getEnv(loud=false) {
         REQUESTS_PER_CONTRIVED_ERROR: parseInt(process.env.REQUESTS_PER_CONTRIVED_ERROR ?? '-Infinity'),
         MAX_CONTENT_LENGTH_BYTES: parseAsBytes(process.env.MAX_CONTENT_LENGTH_BYTES || '-Infinity'),
         HYDRATE_DB_ON_STARTUP: !isU(process.env.HYDRATE_DB_ON_STARTUP) && process.env.HYDRATE_DB_ON_STARTUP !== 'false',
-        DEBUG_MODE: /--debug|--inspect/.test(process.execArgv.join(' '))
+        DEBUG_MODE: /--debug|--inspect/.test(process.execArgv.join(' ')),
+        ifExists: (variable: string, action?: string) => {
+            if(process.env[variable] === undefined)
+                throw new AppError(`attempted ${action ? 'to ' + action : 'execution'} without first defining ${variable} in environment`);
+
+            return process.env[variable] as string;
+        }
     };
 
     const onlyIfServer = (envVar: unknown) => isServer() ? [envVar] : [];

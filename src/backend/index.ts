@@ -7,6 +7,7 @@ import { shuffle } from 'fast-shuffle'
 import cloneDeep from 'clone-deep'
 import randomInt from 'random-int'
 import uniqueRandomArray from 'unique-random-array'
+import sha256 from 'crypto-js/sha256'
 
 import {
     IdTypeError,
@@ -32,6 +33,7 @@ import type {
     InternalFlight,
     PublicFlight,
     InternalInfo,
+    PublicAirport,
 } from 'types/global'
 
 const isObject = (object: unknown) => !isArray(object) && object !== null && typeof object == 'object';
@@ -110,6 +112,13 @@ export async function isKeyAuthentic(key: string): Promise<boolean> {
     return !!await (await getDb()).collection<WithId<ApiKey>>('keys').find({ key }).limit(1).count();
 }
 
+export async function isAdminKeyAuthentic(key: string): Promise<boolean> {
+    if(!key || typeof key != 'string')
+        throw new ApiKeyTypeError();
+
+    return !!await (await getDb()).collection<WithId<ApiKey>>('admin-keys').find({ key }).limit(1).count();
+}
+
 /**
  * Note that this async function does not have to be awaited. It's fire and
  * forget!
@@ -154,22 +163,28 @@ export function isDueForContrivedError(): boolean {
 }
 
 export async function getNoFlyList() {
-    return (await getDb()).collection<WithId<NoFlyListEntry>>('no-fly-list').find().sort({ id: 1 }).project({
+    return (await getDb()).collection<NoFlyListEntry>('no-fly-list').find().sort({ id: 1 }).project({
         _id: false,
     }).toArray();
 }
 
 export async function getAirports() {
-    return (await getDb()).collection<WithId<InternalAirport>>('airports').find().sort({ id: 1 }).project({
+    return (await getDb()).collection<InternalAirport>('airports').find().sort({ id: 1 }).project({
         _id: false,
         chapterKey: false,
     }).toArray();
 }
 
 export async function getAirlines() {
-    return (await getDb()).collection<WithId<InternalAirline>>('airlines').find().sort({ id: 1 }).project({
+    return (await getDb()).collection<InternalAirline>('airlines').find().sort({ id: 1 }).project({
         _id: false,
     }).toArray();
+}
+
+export async function getApiKeys() {
+    return (await (await getDb()).collection<ApiKey>('keys').find().sort({ id: 1 }).project({
+        _id: false,
+    }).toArray()).map(apiKey => ({ ...apiKey, key: sha256(apiKey.key).toString() }));
 }
 
 export async function getFlightsById(params: GetFliByIdParams) {

@@ -54,3 +54,9 @@ export class ValidationError extends NamedAppError {
         super(ValidationError.name, message ?? 'validation failed');
     }
 }
+
+export class FetchError extends NamedAppError {
+    constructor(message?: string) {
+        super(FetchError.name, message ?? 'fetch failed');
+    }
+}
