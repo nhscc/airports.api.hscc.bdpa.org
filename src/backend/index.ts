@@ -384,11 +384,15 @@ export async function generateFlights() {
     const lastFlightHourMs = hourLevelMsDilation(lastFlightId.getTimestamp().getTime());
     const totalHoursToGenerate = (hourLevelMsDilation(Date.now() + targetDaysInMs) - lastFlightHourMs) / oneHourInMs;
 
+    if(totalHoursToGenerate <= 0) {
+        // eslint-disable-next-line no-console
+        console.info(`api   - No flights need to be generated yet (${totalHoursToGenerate}). Terminated.`);
+
+        return 0;
+    }
+
     // eslint-disable-next-line no-console
     console.info(`api   - Generating ${totalHoursToGenerate} hours worth of flights...`);
-
-    if(!totalHoursToGenerate)
-        return 0;
 
     // ? Setup some shared structures for later cloning
     const flightNumPool = [...Array(9999)].map((_, j) => j + 1);

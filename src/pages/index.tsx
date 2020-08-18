@@ -1,9 +1,10 @@
 import * as React from 'react'
 import { useState } from 'react'
-import { getEnv } from 'universe/backend/env'
-import { getDb, initializeDb, destroyDb } from 'universe/backend/db'
 import { hydrateDb, unhydratedDummyDbData } from 'universe/__test__/db'
 import { generateFlights, getApiKeys } from 'universe/backend'
+import { getEnv } from 'universe/backend/env'
+import { getDb, initializeDb, destroyDb } from 'universe/backend/db'
+import { FetchError } from 'universe/backend/error'
 
 import {
     isValidAdminKey,
@@ -15,8 +16,7 @@ import {
 } from 'universe/frontend'
 
 import type { NextPageContext } from 'next'
-import {ApiKey} from 'types/global'
-import {FetchError} from 'universe/backend/error'
+import type { ApiKey } from 'types/global'
 
 type Props = {
     previouslyHydratedDb: boolean;

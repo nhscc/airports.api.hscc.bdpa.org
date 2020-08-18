@@ -1,9 +1,7 @@
 import { isNumber, isUndefined as isU } from 'util'
 import { parse as parseAsBytes } from 'bytes'
 import isServer from 'multiverse/is-server-side'
-import { MIN_RESULT_PER_PAGE } from 'universe/backend'
 import { AppError } from 'universe/backend/error'
-import {ApiError} from 'next/dist/next-server/server/api-utils'
 
 export function getEnv(loud=false) {
     const env = {
@@ -58,8 +56,8 @@ export function getEnv(loud=false) {
         throw new AppError('illegal environment detected, check environment variables');
     }
 
-    if(env.RESULTS_PER_PAGE < MIN_RESULT_PER_PAGE)
-        throw new AppError(`RESULTS_PER_PAGE must be >= ${MIN_RESULT_PER_PAGE}`);
+    if(env.RESULTS_PER_PAGE < 15)
+        throw new AppError(`RESULTS_PER_PAGE must be >= 15`);
 
     if(env.AIRPORT_NUM_OF_GATE_LETTERS > 26)
         throw new AppError(`AIRPORT_NUM_OF_GATE_LETTERS must be <= 26`);
