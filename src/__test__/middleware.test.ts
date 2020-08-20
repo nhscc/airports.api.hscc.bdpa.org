@@ -443,5 +443,20 @@ describe('universe/backend/middleware', () => {
                 test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(200)
             });
         });
+
+        it('parses url parameters as expected', async () => {
+            expect.hasAssertions();
+
+            await testApiEndpoint({
+                requestPatcher: req => { req.url = '/?some=url&yes'; req.headers.key = DUMMY_KEY },
+                handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(async ({ req, res }) => {
+                    expect(req.query).toStrictEqual({ some: 'url', yes: '' });
+                    res.status(200).send({});
+                }, { req, res, methods: ['GET'] }),
+                test: async ({ fetch }: TestParams) => {
+                    expect((await fetch()).status).toBe(200);
+                }
+            });
+        });
     });
 });

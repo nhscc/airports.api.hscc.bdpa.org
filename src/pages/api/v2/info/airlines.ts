@@ -1,3 +1,5 @@
+import { getAirlines } from 'universe/backend'
+import { sendHttpOk } from 'multiverse/respond'
 import { handleEndpoint } from 'universe/backend/middleware'
 
 import type { NextApiResponse, NextApiRequest } from 'next'
@@ -6,5 +8,7 @@ import type { NextApiResponse, NextApiRequest } from 'next'
 export { config } from 'universe/backend/middleware';
 
 export default async function(req: NextApiRequest, res: NextApiResponse) {
-    await handleEndpoint(async () => undefined, { req, res, methods: [ 'GET' ], apiVersion: 2 });
+    await handleEndpoint(async ({ res }) => {
+        sendHttpOk(res, { airlines: await getAirlines() });
+    }, { req, res, methods: [ 'GET' ], apiVersion: 2 });
 }

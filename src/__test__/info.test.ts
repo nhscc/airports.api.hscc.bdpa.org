@@ -39,6 +39,7 @@ const v2SeatClasses: WithConfig<typeof V2_seat_classes.default> = V2_seat_classe
 v2SeatClasses.config = V2_seat_classes.config;
 
 process.env.REQUESTS_PER_CONTRIVED_ERROR = '0';
+process.env.DISABLED_API_VERSIONS = '';
 
 describe('api/v1/info', () => {
     describe('/airlines', () => {
@@ -118,22 +119,114 @@ describe('api/v1/info', () => {
 
 describe('api/v2/info', () => {
     describe('/airlines', () => {
-        test.todo('returns data as expected');
+        it('returns data as expected', async () => {
+            expect.hasAssertions();
+
+            const airlines = getHydratedData().airlines.map(a => {
+                const { name, codePrefix } = a;
+
+                return {
+                    name,
+                    codePrefix
+                };
+            });
+
+            await testApiEndpoint({
+                handler: v2Airlines,
+                test: async ({ fetch }) => {
+                    const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
+
+                    expect(response.status).toBe(200);
+                    expect(await response.json()).toStrictEqual({ airlines, success: true });
+                }
+            });
+        });
     });
 
     describe('/airports', () => {
-        test.todo('returns data as expected');
+        it('returns data as expected', async () => {
+            expect.hasAssertions();
+
+            const airports = getHydratedData().airports.map(a => {
+                const { city, country, state, name, shortName } = a;
+
+                return {
+                    city,
+                    state,
+                    country,
+                    name,
+                    shortName
+                };
+            });
+
+            await testApiEndpoint({
+                handler: v2Airports,
+                test: async ({ fetch }) => {
+                    const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
+
+                    expect(response.status).toBe(200);
+                    expect(await response.json()).toStrictEqual({ airports, success: true });
+                }
+            });
+        });
     });
 
     describe('/all-extras', () => {
-        test.todo('returns data as expected');
+        it('returns data as expected', async () => {
+            expect.hasAssertions();
+
+            await testApiEndpoint({
+                handler: v2AllExtras,
+                test: async ({ fetch }) => {
+                    const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
+
+                    expect(response.status).toBe(200);
+                    expect(await response.json()).toStrictEqual({
+                        extras: getHydratedData().info.allExtras,
+                        success: true
+                    });
+                }
+            });
+        });
     });
 
     describe('/no-fly-list', () => {
-        test.todo('returns data as expected');
+        it('returns data as expected', async () => {
+            expect.hasAssertions();
+
+            const noFlyList = getHydratedData().noFlyList.map(item => {
+                const { _id, ...noFly } = item;
+                return noFly;
+            });
+
+            await testApiEndpoint({
+                handler: v2NoFlyList,
+                test: async ({ fetch }) => {
+                    const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
+
+                    expect(response.status).toBe(200);
+                    expect(await response.json()).toStrictEqual({ noFlyList, success: true });
+                }
+            });
+        });
     });
 
     describe('/seat-classes', () => {
-        test.todo('returns data as expected');
+        it('returns data as expected', async () => {
+            expect.hasAssertions();
+
+            await testApiEndpoint({
+                handler: v2SeatClasses,
+                test: async ({ fetch }) => {
+                    const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
+
+                    expect(response.status).toBe(200);
+                    expect(await response.json()).toStrictEqual({
+                        seats: getHydratedData().info.seatClasses,
+                        success: true
+                    });
+                }
+            });
+        });
     });
 });

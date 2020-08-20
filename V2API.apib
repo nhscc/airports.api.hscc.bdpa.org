@@ -36,9 +36,9 @@ The old `/flights/*` endpoints have been replaced with the new unified
 `/flights` endpoint. Any API calls using the deprecated endpoints need to be
 updated to use the new endpoint.
 
-All of the functionality of the old endpints is available using the new unified
-endpoint. The deprecated `/flights/all` can be emulated using `/flights` without
-query parameters. The deprecated `/flights/search` can be emulated using
+All of the functionality of the old flight endpoints is available using the new
+unified endpoint. The deprecated `/flights/all` can be emulated using `/flights`
+without query parameters. The deprecated `/flights/search` can be emulated using
 `/flights` directly with `match`, `regexMatch`, and `sort` query parameters. The
 deprecated `/flights/with-ids` endpoint can be emulated using `match` or
 `regexMatch` query parameters. [See
@@ -468,7 +468,7 @@ var myQuery = encodeURIComponent(JSON.stringify(myQueryObject))
 3. Add the stringified JSON to your request URL and send it
 
 ```JavaScript
-var myURL = "https://airports.api.hscc.bdpa.org/v2/flights/search?match=" + myQuery
+var myURL = "https://airports.api.hscc.bdpa.org/v2/flights?match=" + myQuery
 
 sendRequestToAPI(myURL)
 ```
@@ -492,7 +492,7 @@ var myRegexQueryObject = { "gate": "^A", "status": "landed|arrived|boarding" }
 var myNormalQuery = encodeURIComponent(JSON.stringify(myNormalQueryObject))
 var myRegexQuery = encodeURIComponent(JSON.stringify(myRegexQueryObject))
 
-var myURL = "https://airports.api.hscc.bdpa.org/v2/flights/search?match=" + myNormalQuery + "&regexMatch=" + myRegexQuery + "sort=desc"
+var myURL = "https://airports.api.hscc.bdpa.org/v2/flights?match=" + myNormalQuery + "&regexMatch=" + myRegexQuery + "sort=desc"
 
 sendRequestToAPI(myURL)
 ```
