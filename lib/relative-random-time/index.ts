@@ -10,6 +10,8 @@ const NEAR_SMALLEST_ABS = 10**3;
 
 const dateTLS = (time: number): string => (!isFinite(time) && time.toString()) || (new Date(time)).toLocaleString();
 
+export class BadBoundsError extends RangeError {}
+
 /**
  * Returns a number between bounds[0] and bounds[1] (inclusive) that is higher
  * than `before` but lower than `after`.
@@ -24,7 +26,7 @@ export function fromTimespan({ bounds, before, after }: TimespanParams): number 
 
     if(floor > ceiling) {
         const errorPreamble = 'bad bounds. Cannot choose a time that occurs before';
-        throw new Error(`${errorPreamble} ${dateTLS(ceiling)} yet after ${dateTLS(floor)}`);
+        throw new BadBoundsError(`${errorPreamble} ${dateTLS(ceiling)} yet after ${dateTLS(floor)}`);
     }
 
     return randomInt(ceiling, floor);

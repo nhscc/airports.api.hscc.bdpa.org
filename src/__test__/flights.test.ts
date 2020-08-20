@@ -6,8 +6,9 @@ import * as V1_with_ids from 'universe/pages/api/v1/flights/with-ids'
 import * as V2_flights from 'universe/pages/api/v2/flights'
 import { DUMMY_KEY as KEY, convertPFlightToPFlightForV1Only } from 'universe/backend'
 import { getEnv } from 'universe/backend/env'
-import { ObjectId, WithId } from 'mongodb'
+import { ObjectId } from 'mongodb'
 
+import type { WithId } from 'mongodb'
 import type { WithConfig, PublicFlight, InternalFlight } from 'types/global'
 
 const RESULT_SIZE = getEnv().RESULTS_PER_PAGE;
@@ -35,22 +36,26 @@ process.env.REQUESTS_PER_CONTRIVED_ERROR = '0';
 describe('api/v1/flights', () => {
     describe('/all', () => {
         it('returns expected number of public flights by default in FIFO order', async () => {
+            expect.hasAssertions();
+
             const results = getHydratedData().flights.slice(0, getEnv().RESULTS_PER_PAGE).map(convertIFlightToPFlightForV1Only);
 
             await testApiEndpoint({
-                next: v1AllEndpoint,
+                handler: v1AllEndpoint,
                 test: async ({ fetch }) => {
                     const response = await fetch({ headers: { KEY } });
                     const json = await response.json();
 
                     expect(response.status).toBe(200);
                     expect(json.success).toBe(true);
-                    expect(json.flights).toEqual(results);
+                    expect(json.flights).toStrictEqual(results);
                 }
             });
         });
 
         it('returns expected number of public flights in FIFO order respecting offset (after)', async () => {
+            expect.hasAssertions();
+
             const flights = getHydratedData().flights.map(convertIFlightToPFlightForV1Only);
 
             const genUrl = function*() {
@@ -68,8 +73,7 @@ describe('api/v1/flights', () => {
 
             await testApiEndpoint({
                 requestPatcher: req => { req.url = genUrl.next().value || undefined },
-
-                next: v1AllEndpoint,
+                handler: v1AllEndpoint,
                 test: async ({ fetch }) => {
                     const responses = await Promise.all([...Array(10)].map(_ => {
                         return fetch({ headers: { KEY } }).then(r => r.ok ? r.json() : null);
@@ -94,6 +98,8 @@ describe('api/v1/flights', () => {
         });
 
         it('does the right thing when garbage offsets (after) are provided', async () => {
+            expect.hasAssertions();
+
             const genUrl = function*() {
                 yield `/?after=-5`;
                 yield `/?after=a`;
@@ -106,7 +112,7 @@ describe('api/v1/flights', () => {
 
             await testApiEndpoint({
                 requestPatcher: req => { req.url = genUrl.next().value || undefined },
-                next: v1AllEndpoint,
+                handler: v1AllEndpoint,
                 test: async ({ fetch }) => {
                     const responses = await Promise.all([...Array(7)].map(_ => {
                         return fetch({ headers: { KEY } }).then(r => r.status);
@@ -126,10 +132,12 @@ describe('api/v1/flights', () => {
         });
 
         it('does not throw when there are no flights in the system', async () => {
+            expect.hasAssertions();
+
             await (await getDb()).collection('flights').deleteMany({});
 
             await testApiEndpoint({
-                next: v1AllEndpoint,
+                handler: v1AllEndpoint,
                 test: async ({ fetch }) => {
                     const response = await fetch({ headers: { KEY } });
 
@@ -142,10 +150,12 @@ describe('api/v1/flights', () => {
 
     describe('/search', () => {
         it('returns same flights as /all if no query params given', async () => {
+            expect.hasAssertions();
+
             let v1AllFlight: PublicFlight[];
 
             await testApiEndpoint({
-                next: v1AllEndpoint,
+                handler: v1AllEndpoint,
                 test: async ({ fetch }) => {
                     const response = await fetch({ headers: { KEY }});
                     v1AllFlight = (await response.json()).flights;
@@ -153,19 +163,22 @@ describe('api/v1/flights', () => {
             });
 
             await testApiEndpoint({
-                next: v1Search,
+                handler: v1Search,
                 test: async ({ fetch }) => {
                     const response = await fetch({ headers: { KEY } });
                     const json = await response.json();
 
                     expect(response.status).toBe(200);
                     expect(json.success).toBe(true);
+                    expect(v1AllFlight).not.toBeEmpty();
                     expect(json.flights).toStrictEqual(v1AllFlight);
                 }
             });
         });
 
         it('returns expected public flights with respect to offset (after)', async () => {
+            expect.hasAssertions();
+
             const flights = getHydratedData().flights.map(convertIFlightToPFlightForV1Only);
 
             const genUrl = function*() {
@@ -177,7 +190,7 @@ describe('api/v1/flights', () => {
             await testApiEndpoint({
                 requestPatcher: req => { req.url = genUrl.next().value || undefined },
 
-                next: v1Search,
+                handler: v1Search,
                 test: async ({ fetch }) => {
                     const responses = await Promise.all([...Array(3)].map(_ => {
                         return fetch({ headers: { KEY } }).then(r => r.ok ? r.json() : null);
@@ -195,6 +208,8 @@ describe('api/v1/flights', () => {
         });
 
         it('returns expected public flights in the requested sort order', async () => {
+            expect.hasAssertions();
+
             const flights = getHydratedData().flights.map(convertIFlightToPFlightForV1Only);
 
             const genUrl = function*() {
@@ -207,7 +222,7 @@ describe('api/v1/flights', () => {
             await testApiEndpoint({
                 requestPatcher: req => { req.url = genUrl.next().value || undefined },
 
-                next: v1Search,
+                handler: v1Search,
                 test: async ({ fetch }) => {
                     const responses = await Promise.all([...Array(4)].map(_ => {
                         return fetch({ headers: { KEY } }).then(r => r.ok ? r.json() : r.status);
@@ -228,6 +243,8 @@ describe('api/v1/flights', () => {
         });
 
         it('returns expected public flights with respect to match', async () => {
+            expect.hasAssertions();
+
             const flights = getHydratedData().flights.map(convertIFlightToPFlightForV1Only);
             const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
@@ -245,7 +262,7 @@ describe('api/v1/flights', () => {
             await testApiEndpoint({
                 requestPatcher: req => { req.url = genUrl.next().value || undefined },
 
-                next: v1Search,
+                handler: v1Search,
                 test: async ({ fetch }) => {
                     const responses = await Promise.all([...Array(8)].map(_ => {
                         return fetch({ headers: { KEY } }).then(r => r.ok ? r.json() : r.status);
@@ -266,19 +283,21 @@ describe('api/v1/flights', () => {
             });
 
             await testApiEndpoint({
-                next: v1Search,
+                handler: v1Search,
                 requestPatcher: req => { req.url = `/?match=${encode({ ffms: { $eq: 500 }})}` },
                 test: async ({ fetch }) => expect((await fetch({ headers: { KEY } })).status).toBe(400)
             });
 
             await testApiEndpoint({
-                next: v1Search,
+                handler: v1Search,
                 requestPatcher: req => { req.url = `/?match=${encode({ bad: 500 })}` },
                 test: async ({ fetch }) => expect((await fetch({ headers: { KEY } })).status).toBe(400)
             });
         });
 
         it('returns expected public flights with respect to regexMatch', async () => {
+            expect.hasAssertions();
+
             const flights = getHydratedData().flights.map(convertIFlightToPFlightForV1Only);
             const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
@@ -292,7 +311,7 @@ describe('api/v1/flights', () => {
             await testApiEndpoint({
                 requestPatcher: req => { req.url = genUrl.next().value || undefined },
 
-                next: v1Search,
+                handler: v1Search,
                 test: async ({ fetch }) => {
                     const responses = await Promise.all([...Array(4)].map(_ => {
                         return fetch({ headers: { KEY } }).then(r => r.ok ? r.json() : r.status);
@@ -310,6 +329,8 @@ describe('api/v1/flights', () => {
         });
 
         it('regexMatch errors properly with bad inputs', async () => {
+            expect.hasAssertions();
+
             const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
             const genUrl = function*() {
@@ -321,7 +342,7 @@ describe('api/v1/flights', () => {
             await testApiEndpoint({
                 requestPatcher: req => { req.url = genUrl.next().value || undefined },
 
-                next: v1Search,
+                handler: v1Search,
                 test: async ({ fetch }) => {
                     await Promise.all([...Array(3)].map(_ => {
                         return fetch({ headers: { KEY } }).then(r => r.status).then(s => expect(s).toBe(400));
@@ -331,6 +352,8 @@ describe('api/v1/flights', () => {
         });
 
         it('ensure seats, baggage, extras, bookable, and _id cannot be matched against', async () => {
+            expect.hasAssertions();
+
             const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
             const genUrl = function*() {
@@ -349,7 +372,7 @@ describe('api/v1/flights', () => {
             await testApiEndpoint({
                 requestPatcher: req => { req.url = genUrl.next().value || undefined },
 
-                next: v1Search,
+                handler: v1Search,
                 test: async ({ fetch }) => {
                     await Promise.all([...Array(10)].map(_ => {
                         return fetch({ headers: { KEY } }).then(r => r.status).then(s => expect(s).toBe(400));
@@ -359,6 +382,8 @@ describe('api/v1/flights', () => {
         });
 
         it('returns expected public flights with respect to all parameters simultaneously', async () => {
+            expect.hasAssertions();
+
             const flights = getHydratedData().flights.map(convertIFlightToPFlightForV1Only);
             const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
@@ -370,7 +395,7 @@ describe('api/v1/flights', () => {
             await testApiEndpoint({
                 requestPatcher: req => { req.url = genUrl.next().value || undefined },
 
-                next: v1Search,
+                handler: v1Search,
                 test: async ({ fetch }) => {
                     const responses = await Promise.all([...Array(2)].map(_ => {
                         return fetch({ headers: { KEY } }).then(r => r.ok ? r.json() : r.status);
@@ -388,6 +413,8 @@ describe('api/v1/flights', () => {
 
     describe('/with-ids', () => {
         it('returns expected flights by default in FIFO order', async () => {
+            expect.hasAssertions();
+
             const flightIds = getHydratedData().flights.map(flight => flight._id.toHexString());
             const encode = (ids: string[]) => encodeURIComponent(JSON.stringify(ids));
 
@@ -405,7 +432,7 @@ describe('api/v1/flights', () => {
 
             await testApiEndpoint({
                 requestPatcher: req => { req.url = genUrl.next().value || undefined },
-                next: v1WithIds,
+                handler: v1WithIds,
                 test: async ({ fetch }) => {
                     const responses = await Promise.all([...Array(9)].map(_ => {
                         return fetch({ headers: { KEY } }).then(r => r.ok ? r.json() : null);
@@ -429,6 +456,8 @@ describe('api/v1/flights', () => {
         });
 
         it('does the right thing when garbage ids are provided', async () => {
+            expect.hasAssertions();
+
             const genUrl = function*() {
                 yield '/?ids=${}';
                 yield '/?ids=(.*)';
@@ -439,7 +468,7 @@ describe('api/v1/flights', () => {
 
             await testApiEndpoint({
                 requestPatcher: req => { req.url = genUrl.next().value || undefined },
-                next: v1WithIds,
+                handler: v1WithIds,
                 test: async ({ fetch }) => {
                     const responses = await Promise.all([...Array(5)].map(_ => {
                         return fetch({ headers: { KEY } }).then(r => r.ok ? r.json() : null);

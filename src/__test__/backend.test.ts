@@ -18,8 +18,6 @@ import {
 
 import type{ NextApiRequest, NextApiResponse } from 'next'
 
-jest.setTimeout(10**6);
-
 populateEnv();
 
 const { getHydratedData, getDb } = setupJest();
@@ -49,6 +47,7 @@ const key = Backend.DUMMY_KEY;
 describe('universe/backend', () => {
     describe('::getNoFlyList', () => {
         it('returns the No Fly List data as expected', async () => {
+            expect.hasAssertions();
             expect(await Backend.getNoFlyList()).toStrictEqual(unhydratedDummyDbData.noFlyList.map(nfl => {
                 // @ts-expect-error: checking for existence of _id
                 const { _id, ...publicNFL } = nfl;
@@ -59,6 +58,7 @@ describe('universe/backend', () => {
 
     describe('::getAirports', () => {
         it('returns the airport adhering to the PublicAirport type', async () => {
+            expect.hasAssertions();
             expect(await Backend.getAirports()).toStrictEqual(unhydratedDummyDbData.airports.map(airport => {
                 // @ts-expect-error: checking for existence of _id
                 const { _id, chapterKey, ...publicAirport } = airport;
@@ -69,6 +69,7 @@ describe('universe/backend', () => {
 
     describe('::getAirlines', () => {
         it('returns the airline data as expected', async () => {
+            expect.hasAssertions();
             expect(await Backend.getAirlines()).toStrictEqual(unhydratedDummyDbData.airlines.map(airline => {
                 // @ts-expect-error: checking for existence of _id
                 const { _id, ...publicAirline } = airline;
@@ -78,45 +79,50 @@ describe('universe/backend', () => {
     });
 
     describe('::getFlightsById', () => {
-        it('throws if bad arguments', () => {
+        it('throws if bad arguments', async () => {
+            expect.hasAssertions();
+
             // @ts-expect-error: testing bad arguments
-            expect(Backend.getFlightsById()).toReject();
+            await expect(Backend.getFlightsById()).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(Backend.getFlightsById({})).toReject();
+            await expect(Backend.getFlightsById({})).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(Backend.getFlightsById(getHydratedData().flights[0]._id)).toReject();
+            await expect(Backend.getFlightsById(getHydratedData().flights[0]._id)).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(Backend.getFlightsById(null)).toReject();
+            await expect(Backend.getFlightsById(null)).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(Backend.getFlightsById(undefined)).toReject();
+            await expect(Backend.getFlightsById(undefined)).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(Backend.getFlightsById(5)).toReject();
+            await expect(Backend.getFlightsById(5)).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(Backend.getFlightsById({ ids: 5, key })).toReject();
+            await expect(Backend.getFlightsById({ ids: 5, key })).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(Backend.getFlightsById({ ids: {}, key })).toReject();
+            await expect(Backend.getFlightsById({ ids: {}, key })).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(Backend.getFlightsById({ ids: null, key })).toReject();
+            await expect(Backend.getFlightsById({ ids: null, key })).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(Backend.getFlightsById({ ids: [null], key })).toReject();
+            await expect(Backend.getFlightsById({ ids: [null], key })).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(Backend.getFlightsById({ ids: [undefined], key })).toReject();
+            await expect(Backend.getFlightsById({ ids: [undefined], key })).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(Backend.getFlightsById({ ids: [''], key })).toReject();
+            await expect(Backend.getFlightsById({ ids: [''], key })).toReject();
         });
 
-        it('throws if too many ids', () => {
-            expect(Backend.getFlightsById({
+        it('throws if too many ids', async () => {
+            expect.hasAssertions();
+            await expect(Backend.getFlightsById({
                 ids: [...Array(getEnv().RESULTS_PER_PAGE + 1)].map(() => new ObjectId()),
                 key
             })).toReject();
         });
 
         it('returns nothing when no ids are passed', async () => {
+            expect.hasAssertions();
             expect(await Backend.getFlightsById({ ids: [], key })).toStrictEqual([]);
         });
 
         it('returns nothing when incorrect or bad ids are passed', async () => {
+            expect.hasAssertions();
             expect(await Backend.getFlightsById({ ids: [new ObjectId()], key })).toStrictEqual([]);
             expect(await Backend.getFlightsById({
                 ids: [new ObjectId(), new ObjectId()],
@@ -125,6 +131,7 @@ describe('universe/backend', () => {
         });
 
         it('returns only public flight data when correct ids are passed', async () => {
+            expect.hasAssertions();
             const flight1 = getHydratedData().flights[0];
             const flight2 = getHydratedData().flights[1];
 
@@ -149,86 +156,88 @@ describe('universe/backend', () => {
     });
 
     describe('::searchFlights', () => {
-        it('throws if bad parameters', () => {
+        it('throws if bad parameters', async () => {
+            expect.hasAssertions();
             // @ts-expect-error: testing bad arguments
-            expect(Backend.searchFlights()).toReject();
+            await expect(Backend.searchFlights()).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(Backend.searchFlights({})).toReject();
+            await expect(Backend.searchFlights({})).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(Backend.searchFlights(getHydratedData().flights[0]._id)).toReject();
+            await expect(Backend.searchFlights(getHydratedData().flights[0]._id)).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(Backend.searchFlights(null)).toReject();
+            await expect(Backend.searchFlights(null)).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(Backend.searchFlights(undefined)).toReject();
+            await expect(Backend.searchFlights(undefined)).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(Backend.searchFlights(5)).toReject();
+            await expect(Backend.searchFlights(5)).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(Backend.searchFlights({ key, after: null, match: {}, regexMatch: {} })).toReject();
+            await expect(Backend.searchFlights({ key, after: null, match: {}, regexMatch: {} })).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(Backend.searchFlights({ key, after: null, sort: 'asc', match: {} })).toReject();
+            await expect(Backend.searchFlights({ key, after: null, sort: 'asc', match: {} })).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(Backend.searchFlights({ key, after: 'bad', sort: 'asc', match: {}, regexMatch: {} })).toReject();
+            await expect(Backend.searchFlights({ key, after: 'bad', sort: 'asc', match: {}, regexMatch: {} })).toReject();
             // @ts-expect-error: testing bad arguments
-            expect(Backend.searchFlights({ key, after: null, sort: 'bad', match: {}, regexMatch: {} })).toReject();
+            await expect(Backend.searchFlights({ key, after: null, sort: 'bad', match: {}, regexMatch: {} })).toReject();
 
-            expect(Backend.searchFlights({
+            await expect(Backend.searchFlights({
                 key, after: null, sort: 'asc', match: { bad: 'bad' }, regexMatch: {}
             })).toReject();
 
-            expect(Backend.searchFlights({
+            await expect(Backend.searchFlights({
                 // @ts-expect-error: testing bad arguments
                 key, after: null, sort: 'asc', match: {}, regexMatch: { bad: undefined }
             })).toReject();
 
             // @ts-expect-error: testing bad arguments
-            expect(Backend.searchFlights({
+            await expect(Backend.searchFlights({
                 after: null, sort: 'asc', match: {}, regexMatch: {}
             })).toReject();
 
-            expect(Backend.searchFlights({
+            await expect(Backend.searchFlights({
                 key, after: null, sort: 'asc', match: { _id: 'bad' }, regexMatch: {}
             })).toReject();
 
-            expect(Backend.searchFlights({
+            await expect(Backend.searchFlights({
                 key, after: null, sort: 'asc', match: {}, regexMatch: { _id: 'bad' }
             })).toReject();
 
-            expect(Backend.searchFlights({
+            await expect(Backend.searchFlights({
                 key, after: null, sort: 'asc', match: { stochasticStates: 'bad' }, regexMatch: {}
             })).toReject();
 
-            expect(Backend.searchFlights({
+            await expect(Backend.searchFlights({
                 key, after: null, sort: 'asc', match: {}, regexMatch: { stochasticStates: 'bad' }
             })).toReject();
 
-            expect(Backend.searchFlights({
+            await expect(Backend.searchFlights({
                 // @ts-expect-error: testing bad arguments
                 key, after: null, sort: 'asc', match: {}, regexMatch: { ffms: { $gt: 1000000 }}
             })).toReject();
 
-            expect(Backend.searchFlights({
+            await expect(Backend.searchFlights({
                 key, after: null, sort: 'asc', match: { $gt: 1000000 }, regexMatch: {}
             })).toReject();
 
-            expect(Backend.searchFlights({
+            await expect(Backend.searchFlights({
                 key, after: null, sort: 'asc', match: { type: {} }, regexMatch: {}
             })).toReject();
 
-            expect(Backend.searchFlights({
+            await expect(Backend.searchFlights({
                 // @ts-expect-error: testing bad arguments
                 key, after: null, sort: 'asc', match: { type: { $in: [] } }, regexMatch: {}
             })).toReject();
 
-            expect(Backend.searchFlights({
+            await expect(Backend.searchFlights({
                 key, after: null, sort: 'asc', match: { type: { $lte: undefined } }, regexMatch: {}
             })).toReject();
 
-            expect(Backend.searchFlights({
+            await expect(Backend.searchFlights({
                 key, after: null, sort: 'asc', match: { '$_id': 'that' }, regexMatch: {}
             })).toReject();
         });
 
         it('search returns expected paginated records with empty asc/desc queries', async () => {
+            expect.hasAssertions();
             const count = getEnv().RESULTS_PER_PAGE;
 
             const result1 = await Backend.searchFlights({
@@ -257,6 +266,7 @@ describe('universe/backend', () => {
         });
 
         it('search returns expected paginated records with various queries', async () => {
+            expect.hasAssertions();
             const count = getEnv().RESULTS_PER_PAGE;
             const totalRecords = count * EXPAND_RESULTS_BY_MULT;
             const expFlights = getHydratedData().flights;
@@ -269,7 +279,7 @@ describe('universe/backend', () => {
                 sort: 'desc',
             });
 
-            expect(result1.length).toBe(count);
+            expect(result1).toHaveLength(count);
             expect(result1.every(flight => flight.type == 'arrival')).toBeTrue();
             expect(result1).toStrictEqual(expFlights
                 .filter(flight => flight.type == 'arrival')
@@ -286,7 +296,7 @@ describe('universe/backend', () => {
                 sort: 'desc',
             });
 
-            expect(result2.length).toBe(totalRecords / 2 - count + 1);
+            expect(result2).toHaveLength(totalRecords / 2 - count + 1);
             expect(result2.every(flight => flight.type == 'arrival')).toBeTrue();
             expect(result2[0].flight_id).toStrictEqual(result1[result1.length - 1].flight_id);
             expect(result2.slice(-1)[0].flight_id).toStrictEqual(expFlights
@@ -304,7 +314,7 @@ describe('universe/backend', () => {
                 sort: 'asc',
             });
 
-            expect(result3.length).toBe(1);
+            expect(result3).toHaveLength(1);
             expect(result3.every(flight => flight.type == 'arrival')).toBeTrue();
             expect(result3[0].flight_id).toStrictEqual(expFlights
                 .filter(flight => flight.type == 'arrival')
@@ -320,7 +330,7 @@ describe('universe/backend', () => {
                 sort: 'desc',
             });
 
-            expect(result3desc.length).toBe(1);
+            expect(result3desc).toHaveLength(1);
             expect(result3desc[0].flight_id).toStrictEqual(expFlights
                 .filter(flight => flight.type == 'arrival')
                 .reverse()
@@ -336,7 +346,7 @@ describe('universe/backend', () => {
                 sort: 'desc',
             });
 
-            expect(result4.length).toBe(2);
+            expect(result4).toHaveLength(2);
 
             const result5 = await Backend.searchFlights({
                 key,
@@ -346,7 +356,7 @@ describe('universe/backend', () => {
                 sort: 'asc',
             });
 
-            expect(result5.length).toBe(2);
+            expect(result5).toHaveLength(2);
 
             const result6 = await Backend.searchFlights({
                 key,
@@ -356,7 +366,7 @@ describe('universe/backend', () => {
                 sort: 'desc',
             });
 
-            expect(result6.length).toBe(expFlights
+            expect(result6).toHaveLength(expFlights
                 .filter(flight => flight.type == 'arrival')
                 .slice(0, 2)
                 .length
@@ -370,7 +380,7 @@ describe('universe/backend', () => {
                 sort: 'desc',
             });
 
-            expect(result6X.length).toBe(count);
+            expect(result6X).toHaveLength(count);
 
             const result7 = await Backend.searchFlights({
                 key,
@@ -380,7 +390,7 @@ describe('universe/backend', () => {
                 sort: 'asc',
             });
 
-            expect(result7.length).toBe(0);
+            expect(result7).toHaveLength(0);
 
             const result8 = await Backend.searchFlights({
                 key,
@@ -390,7 +400,7 @@ describe('universe/backend', () => {
                 sort: 'desc',
             });
 
-            expect(result8.length).toBe(0);
+            expect(result8).toHaveLength(0);
 
             const result9 = await Backend.searchFlights({
                 key,
@@ -401,7 +411,7 @@ describe('universe/backend', () => {
             });
 
             // ? regexMatch keys override match keys!
-            expect(result9.length).toBe(count);
+            expect(result9).toHaveLength(count);
 
             const result9X = await Backend.searchFlights({
                 key,
@@ -411,7 +421,7 @@ describe('universe/backend', () => {
                 sort: 'desc',
             });
 
-            expect(result9X.length).toBe(0);
+            expect(result9X).toHaveLength(0);
 
             const result10 = await Backend.searchFlights({
                 key,
@@ -421,7 +431,7 @@ describe('universe/backend', () => {
                 sort: 'desc',
             });
 
-            expect(result10).toEqual(result1);
+            expect(result10).toStrictEqual(result1);
 
             const result11 = await Backend.searchFlights({
                 key,
@@ -431,7 +441,7 @@ describe('universe/backend', () => {
                 sort: 'desc',
             });
 
-            expect(result11).toEqual(result1);
+            expect(result11).toStrictEqual(result1);
 
             const result12 = await Backend.searchFlights({
                 key,
@@ -441,7 +451,7 @@ describe('universe/backend', () => {
                 sort: 'desc',
             });
 
-            expect(result12.length).toBe(count);
+            expect(result12).toHaveLength(count);
             expect(result12.every(flight => flight.type == 'departure')).toBeTrue();
 
             const result13 = await Backend.searchFlights({
@@ -452,7 +462,7 @@ describe('universe/backend', () => {
                 sort: 'desc',
             });
 
-            expect(result13.length).toBe(1);
+            expect(result13).toHaveLength(1);
 
             const result14 = await Backend.searchFlights({
                 key,
@@ -462,7 +472,7 @@ describe('universe/backend', () => {
                 sort: 'desc',
             });
 
-            expect(result14.length).toBe(count);
+            expect(result14).toHaveLength(count);
 
             const result15 = await Backend.searchFlights({
                 key,
@@ -472,7 +482,7 @@ describe('universe/backend', () => {
                 sort: 'desc',
             });
 
-            expect(result15.length).toBe(1);
+            expect(result15).toHaveLength(1);
 
             const result16 = await Backend.searchFlights({
                 key,
@@ -482,7 +492,7 @@ describe('universe/backend', () => {
                 sort: 'desc',
             });
 
-            expect(result16.length).toBe(1);
+            expect(result16).toHaveLength(1);
 
             const result17 = await Backend.searchFlights({
                 key,
@@ -492,7 +502,7 @@ describe('universe/backend', () => {
                 sort: 'desc',
             });
 
-            expect(result17.length).toBe(1);
+            expect(result17).toHaveLength(1);
 
             const result18 = await Backend.searchFlights({
                 key,
@@ -502,7 +512,7 @@ describe('universe/backend', () => {
                 sort: 'desc',
             });
 
-            expect(result18.length).toBe(0);
+            expect(result18).toHaveLength(0);
 
             const result19 = await Backend.searchFlights({
                 key,
@@ -516,6 +526,7 @@ describe('universe/backend', () => {
         });
 
         it('search returns expected paginated records with secondary matchers', async () => {
+            expect.hasAssertions();
             const count = getEnv().RESULTS_PER_PAGE;
 
             const result1 = await Backend.searchFlights({
@@ -571,9 +582,10 @@ describe('universe/backend', () => {
         });
 
         it('does not throw when there are no flights in the system', async () => {
+            expect.hasAssertions();
             await (await getDb()).collection('flights').deleteMany({});
 
-            expect(Backend.searchFlights({
+            await expect(Backend.searchFlights({
                 key,
                 after: null,
                 match: {},
@@ -583,6 +595,7 @@ describe('universe/backend', () => {
         });
 
         it('searches by flight_id via match and regexMatch work as expected', async () => {
+            expect.hasAssertions();
             const expectedFlights = getHydratedData().flights.slice(2, 4).map(convertIFlightToPFlight);
 
             expect(await Backend.searchFlights({
@@ -605,34 +618,38 @@ describe('universe/backend', () => {
 
     describe('::generateFlights', () => {
         it('rejects if there are no airports', async () => {
+            expect.hasAssertions();
             process.env.FLIGHTS_GENERATE_DAYS = '1';
             await (await getDb()).collection('airports').deleteMany({});
-            expect(Backend.generateFlights()).toReject();
+            await expect(Backend.generateFlights(/*silent=*/true)).toReject();
         });
 
         it('rejects if there are no airlines', async () => {
+            expect.hasAssertions();
             process.env.FLIGHTS_GENERATE_DAYS = '1';
             await (await getDb()).collection('airlines').deleteMany({});
-            expect(Backend.generateFlights()).toReject();
+            await expect(Backend.generateFlights(/*silent=*/true)).toReject();
         });
 
         it('does something if airports/airlines exist', async () => {
+            expect.hasAssertions();
             process.env.FLIGHTS_GENERATE_DAYS = '1';
             const flightsDb = (await getDb()).collection<WithId<InternalFlight>>('flights');
             await flightsDb.deleteMany({});
 
             const lastFlightId1 = (await flightsDb.find().sort({ _id: -1 }).limit(1).next())?._id;
-            expect(lastFlightId1).not.toBeTruthy();
+            expect(lastFlightId1).toBeUndefined();
 
-            expect(await Backend.generateFlights()).not.toBe(0);
+            expect(await Backend.generateFlights(/*silent=*/true)).not.toBe(0);
 
             const lastFlightId2 = (await flightsDb.find().sort({ _id: -1 }).limit(1).next())?._id;
-            expect(lastFlightId2).toBeTruthy();
+            expect(lastFlightId2).not.toBeUndefined();
         });
     });
 
     describe('::addToRequestLog', () => {
         it('adds request to log as expected', async () => {
+            expect.hasAssertions();
             const req1 = {
                 headers: { 'x-forwarded-for': '9.9.9.9' },
                 method: 'POST',
@@ -658,6 +675,7 @@ describe('universe/backend', () => {
             await Backend.addToRequestLog({ req: req1, res: res1 });
             await Backend.addToRequestLog({ req: req2, res: res2 });
 
+            // eslint-disable-next-line require-atomic-updates
             Date.now = _now;
 
             const reqlog = (await getDb()).collection<WithId<RequestLogEntry>>('request-log');
@@ -665,7 +683,7 @@ describe('universe/backend', () => {
             const { _id: ignored1, ...log1 } = await reqlog.findOne({ resStatusCode: 1111 }) || {};
             const { _id: ignored2, ...log2 } = await reqlog.findOne({ resStatusCode: 2222 }) || {};
 
-            expect(log1).toEqual({
+            expect(log1).toStrictEqual({
                 ip: '9.9.9.9',
                 key: null,
                 route: 'route/path1',
@@ -674,7 +692,7 @@ describe('universe/backend', () => {
                 resStatusCode: 1111,
             });
 
-            expect(log2).toEqual({
+            expect(log2).toStrictEqual({
                 ip: '8.8.8.8',
                 key: Backend.NULL_KEY,
                 route: 'route/path2',
@@ -687,6 +705,7 @@ describe('universe/backend', () => {
 
     describe('::isRateLimited', () => {
         it('returns true if ip or key are rate limited', async () => {
+            expect.hasAssertions();
             const _now = Date.now;
             const now = Date.now();
             Date.now = () => now;
@@ -745,10 +764,12 @@ describe('universe/backend', () => {
             // ? Should return greater of the two ban times (key time > ip time)
             expect(req5.retryAfter).toBeWithin(1000 * 60 * 60 - 1000, 1000 * 60 * 60 + 1000);
 
+            // eslint-disable-next-line require-atomic-updates
             Date.now = _now;
         });
 
         it('returns false iff both ip and key (if provided) are not rate limited', async () => {
+            expect.hasAssertions();
             const req1 = {
                 headers: { 'x-forwarded-for': '1.2.3.5' },
                 method: 'POST',
@@ -764,11 +785,12 @@ describe('universe/backend', () => {
                 url: '/api/route/path2'
             } as unknown as NextApiRequest;
 
-            expect(await Backend.isRateLimited(req1)).toEqual({ limited: false, retryAfter: 0 });
-            expect(await Backend.isRateLimited(req2)).toEqual({ limited: false, retryAfter: 0 });
+            expect(await Backend.isRateLimited(req1)).toStrictEqual({ limited: false, retryAfter: 0 });
+            expect(await Backend.isRateLimited(req2)).toStrictEqual({ limited: false, retryAfter: 0 });
         });
 
         it('returns false if "until" time has passed', async () => {
+            expect.hasAssertions();
             const req = {
                 headers: { 'x-forwarded-for': '1.2.3.4' },
                 method: 'POST',
@@ -782,15 +804,16 @@ describe('universe/backend', () => {
                 { $set: { until: Date.now() - 10**5 }}
             );
 
-            expect(await Backend.isRateLimited(req)).toEqual({ limited: false, retryAfter: 0 });
+            expect(await Backend.isRateLimited(req)).toStrictEqual({ limited: false, retryAfter: 0 });
         });
     });
 
     describe('::isDueForContrivedError', () => {
         it('returns true after REQUESTS_PER_CONTRIVED_ERROR invocations', async () => {
+            expect.hasAssertions();
             const rate = getEnv().REQUESTS_PER_CONTRIVED_ERROR;
 
-            expect([...Array(rate * 2)].map(() => Backend.isDueForContrivedError())).toEqual([
+            expect([...Array(rate * 2)].map(() => Backend.isDueForContrivedError())).toStrictEqual([
                 ...[...Array(rate - 1)].map(() => false),
                 true,
                 ...[...Array(rate - 1)].map(() => false),

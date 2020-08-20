@@ -64,7 +64,7 @@ export async function handleEndpoint(fn: AsyncHanCallback, { req, res, methods, 
     resp.$send = resp.send;
     resp.send = (...args): void => {
         sent = true;
-        addToRequestLog({ req, res });
+        void addToRequestLog({ req, res });
         resp.$send(...args);
     };
 
@@ -72,6 +72,8 @@ export async function handleEndpoint(fn: AsyncHanCallback, { req, res, methods, 
         // ? We need to pretend that the API doesn't exist if it's disabled, so
         // ? not even CORS responses are allowed here!
         if(apiVersion !== undefined && getEnv().DISABLED_API_VERSIONS.includes(apiVersion.toString()))
+            // TODO: ensure this response is indistinguishable from normal
+            // TODO: vercel 404
             sendHttpNotFound(resp);
 
         else {

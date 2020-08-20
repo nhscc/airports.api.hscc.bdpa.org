@@ -8,6 +8,7 @@ let db: Db | null = null;
  * the app runs.
  */
 export async function getDb() {
+    // eslint-disable-next-line require-atomic-updates
     db = db || (await MongoClient.connect(getEnv().MONGODB_URI, { useUnifiedTopology: true })).db();
     return db;
 }

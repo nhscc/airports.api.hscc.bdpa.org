@@ -1,4 +1,4 @@
-import { MongoClient, Db, WithId } from 'mongodb'
+import { MongoClient } from 'mongodb'
 import { NULL_KEY, DUMMY_KEY } from 'universe/backend'
 import { getDb, setDb, destroyDb, initializeDb } from 'universe/backend/db'
 import { MongoMemoryServer } from 'mongodb-memory-server'
@@ -6,6 +6,8 @@ import { populateEnv } from 'universe/dev-utils'
 import cloneDeep from 'clone-deep'
 import * as Time from 'multiverse/relative-random-time'
 import { getEnv } from 'universe/backend/env'
+
+import type { Db, WithId } from 'mongodb'
 
 import type {
     ApiKey,
@@ -346,45 +348,28 @@ unhydratedDummyDbData.flights = [...Array(Math.floor(count))].map((_, ndx) => {
 export async function hydrateDb(db: Db, data: DummyDbData): Promise<HydratedDummyDbData> {
     const newData = cloneDeep(data);
 
-    // Insert keys
-    if(newData.keys.length)
-        await db.collection<WithId<ApiKey>>('keys').insertMany(newData.keys);
+    await Promise.all([
+        ...[newData.keys.length ? db.collection('keys').insertMany(newData.keys) : null],
+        ...[newData.airports.length ? db.collection('airports').insertMany(newData.airports) : null],
+        ...[newData.airlines.length ? db.collection('airlines').insertMany(newData.airlines) : null],
+        ...[newData.noFlyList.length ? db.collection('no-fly-list').insertMany(newData.noFlyList) : null],
+        ...[newData.flights.length ? db.collection('flights').insertMany(newData.flights) : null],
+        ...[newData.info ? db.collection('info').insertMany([newData.info]) : null],
 
-    // Insert airports
-    if(newData.airports.length)
-        db.collection<WithId<InternalAirport>>('airports').insertMany(newData.airports);
+        db.collection<WithId<RequestLogEntry>>('request-log').insertMany([...Array(22)].map((_, ndx) => ({
+            ip: '1.2.3.4',
+            key: ndx % 2 ? null : NULL_KEY,
+            method: ndx % 3 ? 'GET' : 'POST',
+            route: 'fake/route',
+            time: Date.now() + 10**6,
+            resStatusCode: 200,
+        }))),
 
-    // Insert airlines
-    if(newData.airlines.length)
-        db.collection<WithId<InternalAirline>>('airlines').insertMany(newData.airlines);
-
-    // Insert no fly list
-    if(newData.noFlyList.length)
-        db.collection<WithId<NoFlyListEntry>>('no-fly-list').insertMany(newData.noFlyList);
-
-    // Insert flight data
-    if(newData.flights.length)
-        db.collection<WithId<InternalFlight>>('flights').insertMany(newData.flights);
-
-    // Insert auxiliary information
-    if(newData.info)
-        db.collection('info').insertOne(newData.info);
-
-    // Push new requests to the log and update limited-log-mview accordingly
-
-    await db.collection<WithId<RequestLogEntry>>('request-log').insertMany([...Array(22)].map((_, ndx) => ({
-        ip: '1.2.3.4',
-        key: ndx % 2 ? null : NULL_KEY,
-        method: ndx % 3 ? 'GET' : 'POST',
-        route: 'fake/route',
-        time: Date.now() + 10**6,
-        resStatusCode: 200,
-     })));
-
-    await db.collection<WithId<LimitedLogEntry>>('limited-log-mview').insertMany([
-        { ip: '1.2.3.4', until: Date.now() + 1000 * 60 * 15 } as LimitedLogEntry,
-        { ip: '5.6.7.8', until: Date.now() + 1000 * 60 * 15 } as LimitedLogEntry,
-        { key: NULL_KEY, until: Date.now() + 1000 * 60 * 60 } as LimitedLogEntry
+        db.collection<WithId<LimitedLogEntry>>('limited-log-mview').insertMany([
+            { ip: '1.2.3.4', until: Date.now() + 1000 * 60 * 15 } as LimitedLogEntry,
+            { ip: '5.6.7.8', until: Date.now() + 1000 * 60 * 15 } as LimitedLogEntry,
+            { key: NULL_KEY, until: Date.now() + 1000 * 60 * 60 } as LimitedLogEntry
+        ])
     ]);
 
     return newData as HydratedDummyDbData;
@@ -392,7 +377,15 @@ export async function hydrateDb(db: Db, data: DummyDbData): Promise<HydratedDumm
 
 export function setupJest() {
     const port = getEnv().DEBUG_MODE ? getEnv().MONGODB_MS_PORT : undefined;
-    const server = new MongoMemoryServer({ instance: { port }});
+
+    const server = new MongoMemoryServer({
+        instance: {
+            port,
+            // ? Latest mongo versions error without this line
+            args: ['--enableMajorityReadConcern=0']
+        }
+    });
+
     let connection: MongoClient;
     let hydratedData: HydratedDummyDbData;
     let oldEnv: typeof process.env;
@@ -421,7 +414,7 @@ export function setupJest() {
     })
 
     afterAll(async () => {
-        connection.isConnected() && await connection.close();
+        connection?.isConnected() && await connection.close();
         await server.stop();
     });
 

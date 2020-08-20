@@ -21,13 +21,13 @@ const nextApiHandler = (p: (req: NextApiRequest, res: NextApiResponse) => Promis
     return api;
 };
 
-jest.setTimeout(10**6);
-
 describe('universe/backend/middleware', () => {
     describe('::handleEndpoint', () => {
         it('rejects requests that are too big when exporting config', async () => {
+            expect.hasAssertions();
+
             await testApiEndpoint({
-                next: nextApiHandler((req, res) => Middleware.handleEndpoint(noop, { req, res, methods: ['POST'] })),
+                handler: nextApiHandler((req, res) => Middleware.handleEndpoint(noop, { req, res, methods: ['POST'] })),
                 test: async ({ fetch }) => {
                     const clientResponse = await fetch({
                         method: 'POST',
@@ -40,6 +40,8 @@ describe('universe/backend/middleware', () => {
         });
 
         it('injects contrived errors at the required rate', async () => {
+            expect.hasAssertions();
+
             process.env.REQUESTS_PER_CONTRIVED_ERROR = '10';
 
             const expectedReqPerError = parseInt(process.env.REQUESTS_PER_CONTRIVED_ERROR);
@@ -48,7 +50,7 @@ describe('universe/backend/middleware', () => {
 
             await testApiEndpoint({
                 requestPatcher: req => req.headers.key = DUMMY_KEY,
-                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     req, res,
                     methods: ['GET', 'POST', 'PUT', 'DELETE']
                 }),
@@ -73,7 +75,7 @@ describe('universe/backend/middleware', () => {
                         555
                     ]);
 
-                    expect(results2).toEqual([
+                    expect(results2).toStrictEqual([
                         ...[...Array(expectedReqPerError)].map(_ => 200),
                     ]);
                 }
@@ -81,9 +83,11 @@ describe('universe/backend/middleware', () => {
         });
 
         it('responds with 501 not implemented when required', async () => {
+            expect.hasAssertions();
+
             await testApiEndpoint({
                 requestPatcher: req => req.headers.key = DUMMY_KEY,
-                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(async () => undefined, {
+                handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(async () => undefined, {
                     req, res,
                     methods: ['GET']
                 }),
@@ -92,6 +96,8 @@ describe('universe/backend/middleware', () => {
         });
 
         it('logs requests properly', async () => {
+            expect.hasAssertions();
+
             const genStatus = function*() {
                 yield 502;
                 yield 404;
@@ -109,7 +115,7 @@ describe('universe/backend/middleware', () => {
 
                     req.url = '/api/v1/handlerX';
                 },
-                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(async ({ res }) => {
+                handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(async ({ res }) => {
                     res.status(genStatus.next().value || 0).send({});
                 }, { req, res,  methods: ['GET', 'POST', 'PUT', 'DELETE'] }),
                 test: async ({ fetch }) => {
@@ -163,9 +169,11 @@ describe('universe/backend/middleware', () => {
         });
 
         it('sends 405 when encountering unlisted methods', async () => {
+            expect.hasAssertions();
+
             await testApiEndpoint({
                 requestPatcher: req => req.headers.key = DUMMY_KEY,
-                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     req, res,
                     methods: ['POST', 'PUT']
                 }),
@@ -179,11 +187,13 @@ describe('universe/backend/middleware', () => {
         });
 
         it('sends 405 when encountering globally disallowed methods', async () => {
+            expect.hasAssertions();
+
             process.env.DISALLOWED_METHODS = 'POST,PUT,DELETE';
 
             await testApiEndpoint({
                 requestPatcher: req => req.headers.key = DUMMY_KEY,
-                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     req, res,
                     methods: ['POST', 'PUT', 'GET', 'DELETE']
                 }),
@@ -197,6 +207,8 @@ describe('universe/backend/middleware', () => {
         });
 
         it('sends correct HTTP error codes when certain errors occur', async () => {
+            expect.hasAssertions();
+
             const genError = function*() {
                 yield new BackendError.IdTypeError();
                 yield new BackendError.ApiKeyTypeError();
@@ -221,13 +233,14 @@ describe('universe/backend/middleware', () => {
 
             await testApiEndpoint({
                 requestPatcher: req => req.headers.key = DUMMY_KEY,
-                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(async () => {
+                handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(async () => {
                     throw genError.next().value;
                 }, { req, res, methods: ['GET'] }),
                 test: async ({ fetch }) => {
                     let next = null;
 
                     while(!(next = genErrorStatus.next()).done) {
+                        // eslint-disable-next-line no-await-in-loop
                         expect((await fetch()).status).toBe(next.value);
                     }
                 }
@@ -235,8 +248,10 @@ describe('universe/backend/middleware', () => {
         });
 
         it('responds properly to unauthenticatable requests', async () => {
+            expect.hasAssertions();
+
             await testApiEndpoint({
-                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(async () => undefined, {
+                handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(async () => undefined, {
                     req, res,
                     methods: ['GET']
                 }),
@@ -244,7 +259,7 @@ describe('universe/backend/middleware', () => {
             });
 
             await testApiEndpoint({
-                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     req, res,
                     methods: ['GET']
                 }),
@@ -253,8 +268,10 @@ describe('universe/backend/middleware', () => {
         });
 
         it('treats authenticatable requests as unauthenticatable when locking out all keys', async () => {
+            expect.hasAssertions();
+
             await testApiEndpoint({
-                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     req, res,
                     methods: ['GET']
                 }),
@@ -271,8 +288,10 @@ describe('universe/backend/middleware', () => {
         });
 
         it('confirm headers are automatically lowercased', async () => {
+            expect.hasAssertions();
+
             await testApiEndpoint({
-                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     req, res,
                     methods: ['GET']
                 }),
@@ -283,13 +302,15 @@ describe('universe/backend/middleware', () => {
         });
 
         it('requests are limited in accordance with the database except when ignoring rate limits', async () => {
+            expect.hasAssertions();
+
             const ip = '7.7.7.7';
             const key = DUMMY_KEY;
             const limitedLog = (await getDb()).collection<LimitedLogEntry>('limited-log-mview');
 
             await testApiEndpoint({
                 requestPatcher: req => req.headers['x-forwarded-for'] = ip,
-                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     req, res,
                     methods: ['GET']
                 }),
@@ -323,15 +344,18 @@ describe('universe/backend/middleware', () => {
                     await limitedLog.deleteOne({ _id: entry.insertedId });
                     expect((await fetch({ headers: { key } })).status).toBe(200);
 
+                    // eslint-disable-next-line require-atomic-updates
                     Date.now = _now;
                 }
             });
         });
 
-        it('API does not respond if its corresponding version is disabled', async () => {
+        it('does not respond if its corresponding version is disabled', async () => {
+            expect.hasAssertions();
+
             await testApiEndpoint({
                 requestPatcher: req => req.headers.key = DUMMY_KEY,
-                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     apiVersion: 1,
                     req, res,
                     methods: ['GET']
@@ -355,7 +379,7 @@ describe('universe/backend/middleware', () => {
 
             await testApiEndpoint({
                 requestPatcher: req => req.headers.key = DUMMY_KEY,
-                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     apiVersion: 1, req, res, methods: ['GET']
                 }),
                 test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(200)
@@ -363,7 +387,7 @@ describe('universe/backend/middleware', () => {
 
             await testApiEndpoint({
                 requestPatcher: req => req.headers.key = DUMMY_KEY,
-                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     apiVersion: 2, req, res, methods: ['GET']
                 }),
                 test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(404)
@@ -371,7 +395,7 @@ describe('universe/backend/middleware', () => {
 
             await testApiEndpoint({
                 requestPatcher: req => req.headers.key = DUMMY_KEY,
-                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     apiVersion: 3, req, res, methods: ['GET']
                 }),
                 test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(404)
@@ -379,7 +403,7 @@ describe('universe/backend/middleware', () => {
 
             await testApiEndpoint({
                 requestPatcher: req => req.headers.key = DUMMY_KEY,
-                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     apiVersion: 4, req, res, methods: ['GET']
                 }),
                 test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(404)
@@ -387,7 +411,7 @@ describe('universe/backend/middleware', () => {
 
             await testApiEndpoint({
                 requestPatcher: req => req.headers.key = DUMMY_KEY,
-                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(async () => undefined, {
+                handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(async () => undefined, {
                     apiVersion: 4, req, res, methods: ['GET']
                 }),
                 test: async ({ fetch }) => expect((await fetch()).status).toBe(404)
@@ -395,7 +419,7 @@ describe('universe/backend/middleware', () => {
 
             await testApiEndpoint({
                 requestPatcher: req => req.headers.key = DUMMY_KEY,
-                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     req, res, methods: ['GET']
                 }),
                 test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(200)
@@ -405,7 +429,7 @@ describe('universe/backend/middleware', () => {
 
             await testApiEndpoint({
                 requestPatcher: req => req.headers.key = DUMMY_KEY,
-                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     apiVersion: 1, req, res, methods: ['GET']
                 }),
                 test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(200)
@@ -413,7 +437,7 @@ describe('universe/backend/middleware', () => {
 
             await testApiEndpoint({
                 requestPatcher: req => req.headers.key = DUMMY_KEY,
-                next: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
+                handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     req, res, methods: ['GET']
                 }),
                 test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(200)

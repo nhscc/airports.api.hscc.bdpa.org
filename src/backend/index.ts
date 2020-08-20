@@ -190,7 +190,7 @@ export async function getFlightsById(params: GetFliByIdParams) {
     if(!ids.length)
         return [];
 
-    return await (await getDb()).collection<WithId<InternalFlight>>('flights').aggregate<PublicFlight>([
+    return (await getDb()).collection<WithId<InternalFlight>>('flights').aggregate<PublicFlight>([
         { $match: { _id: { $in: ids }}},
         ...pipelines.resolveFlightState(key, /*removeId=*/true)
     ]).toArray();
@@ -310,11 +310,10 @@ export async function searchFlights(params: SeaFliParams) {
     // TODO: states out of their flight documents and placing them in their own
     // TODO: collection, where we can put an index on them. But unless the slow
     // TODO: queries become a problem, this will do for now.
-
-    return await (await getDb()).collection<InternalFlight>('flights').aggregate<PublicFlight>(pipeline).toArray();
+    return (await getDb()).collection<InternalFlight>('flights').aggregate<PublicFlight>(pipeline).toArray();
 }
 
-export async function generateFlights() {
+export async function generateFlights(silent = false) {
     const db = await getDb();
     const airports = await db.collection<WithId<InternalAirport>>('airports').find().toArray();
     const airlines = await db.collection<WithId<InternalAirline>>('airlines').find().toArray();
@@ -362,7 +361,7 @@ export async function generateFlights() {
     });
 
     // eslint-disable-next-line no-console
-    console.info(`api   - Deleted ${deleteResult.deletedCount} flights older than 7 days`);
+    !silent && console.info(`api   - Deleted ${deleteResult.deletedCount} flights older than 7 days`);
 
     // ? Determine how many hours (if any) need flights generated for them
     const lastFlightId = (await flightDb.find().sort({ _id: -1 }).limit(1).next())?._id ?? new ObjectId();
@@ -370,7 +369,7 @@ export async function generateFlights() {
     const totalHoursToGenerate = (hourLevelMsDilation(Date.now() + targetDaysInMs) - lastFlightHourMs) / oneHourInMs;
 
     // eslint-disable-next-line no-console
-    console.info(`api   - Generating ${totalHoursToGenerate} hours worth of flights...`);
+    !silent && console.info(`api   - Generating ${totalHoursToGenerate} hours worth of flights...`);
 
     if(!totalHoursToGenerate)
         return 0;
@@ -405,7 +404,7 @@ export async function generateFlights() {
         }, {});
 
         // eslint-disable-next-line no-console
-        console.info(`api   ↳ Generating flights for hour ${currentHour} (${i+1}/${totalHoursToGenerate})`);
+        !silent && console.info(`api   ↳ Generating flights for hour ${currentHour} (${i+1}/${totalHoursToGenerate})`);
 
         // ? Arrivals land at firstAirport and came from secondAirport
         // ? Departures land at firstAirport and depart to secondAirport; which
@@ -780,7 +779,7 @@ export async function generateFlights() {
             return 0;
 
         // eslint-disable-next-line no-console
-        console.info(`api   - Committing ${flights.length} flights into database...`);
+        !silent && console.info(`api   - Committing ${flights.length} flights into database...`);
 
         // ? All the main repository of flight data to the database in one shot!
         const operation = await flightDb.insertMany(flights);
@@ -792,7 +791,7 @@ export async function generateFlights() {
             throw new GuruMeditationError('assert failed: operation.insertedCount != totalHoursToGenerate');
 
         // eslint-disable-next-line no-console
-        console.info(`api   - Operation completed successfully!`);
+        !silent && console.info(`api   - Operation completed successfully!`);
 
         return operation.insertedCount;
     }

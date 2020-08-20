@@ -34,6 +34,7 @@ export async function getServerSideProps() {
         await initializeDb(db);
         await hydrateDb(db, unhydratedDummyDbData);
         await generateFlights();
+        // eslint-disable-next-line require-atomic-updates
         previouslyHydratedDb = true;
     }
 

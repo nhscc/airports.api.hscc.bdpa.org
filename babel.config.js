@@ -86,6 +86,3 @@ module.exports = {
         }
     }
 };
-
-// ? The "debug" environment copies the "development" environment
-module.exports.env.debug = Object.assign({}, module.exports.env.development);

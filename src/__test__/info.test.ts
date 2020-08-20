@@ -43,6 +43,8 @@ process.env.REQUESTS_PER_CONTRIVED_ERROR = '0';
 describe('api/v1/info', () => {
     describe('/airlines', () => {
         it('returns data as expected', async () => {
+            expect.hasAssertions();
+
             const airlines = getHydratedData().airlines.map(a => {
                 const { name, codePrefix } = a;
 
@@ -53,7 +55,7 @@ describe('api/v1/info', () => {
             });
 
             await testApiEndpoint({
-                next: v1Airlines,
+                handler: v1Airlines,
                 test: async ({ fetch }) => {
                     const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
 
@@ -66,6 +68,8 @@ describe('api/v1/info', () => {
 
     describe('/airports', () => {
         it('returns data as expected', async () => {
+            expect.hasAssertions();
+
             const airports = getHydratedData().airports.map(a => {
                 const { city, country, state, name, shortName } = a;
 
@@ -79,7 +83,7 @@ describe('api/v1/info', () => {
             });
 
             await testApiEndpoint({
-                next: v1Airports,
+                handler: v1Airports,
                 test: async ({ fetch }) => {
                     const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
 
@@ -92,13 +96,15 @@ describe('api/v1/info', () => {
 
     describe('/no-fly-list', () => {
         it('returns data as expected', async () => {
+            expect.hasAssertions();
+
             const noFlyList = getHydratedData().noFlyList.map(item => {
                 const { _id, ...noFly } = item;
                 return noFly;
             });
 
             await testApiEndpoint({
-                next: v1NoFlyList,
+                handler: v1NoFlyList,
                 test: async ({ fetch }) => {
                     const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
 

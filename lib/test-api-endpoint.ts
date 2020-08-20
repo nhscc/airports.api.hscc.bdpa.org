@@ -1,6 +1,6 @@
 import { createServer, IncomingMessage, ServerResponse } from 'http'
 import listen from 'test-listen'
-import { apiResolver } from 'next/dist/next-server/server/api-utils'
+import { apiResolver, getQueryParser } from 'next/dist/next-server/server/api-utils'
 import fetch from 'isomorphic-unfetch'
 
 export type TestParams = { fetch: (init?: RequestInit) => ReturnType<typeof fetch> };
@@ -11,7 +11,7 @@ export type TesApiEndParams = {
     requestPatcher?: (req: IncomingMessage) => void;
     responsePatcher?: (res: ServerResponse) => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    next: any;
+    handler: any;
 };
 
 /**
@@ -29,20 +29,25 @@ export type TesApiEndParams = {
  * to edit the request and response before they're injected into the api
  * handler.
  *
- * `next` is the actual api handler under test. It should be an async function
- * that accepts a NextApiRequest and NextApiResult as its two parameters.
+ * `handler` is the actual api handler under test. It should be an async
+ * function that accepts a NextApiRequest and NextApiResult as its two
+ * parameters.
  */
-export async function testApiEndpoint({ test, params, requestPatcher, responsePatcher, next }: TesApiEndParams) {
+export async function testApiEndpoint({ test, params, requestPatcher, responsePatcher, handler }: TesApiEndParams) {
     let server = null;
 
-    const url = await listen(server = createServer((req, res) => {
-        requestPatcher && requestPatcher(req);
-        responsePatcher && responsePatcher(res);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return apiResolver(req, res, params, next, undefined as any);
-    }));
+    try {
+        const url = await listen(server = createServer((req, res) => {
+            requestPatcher && requestPatcher(req);
+            responsePatcher && responsePatcher(res);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            return apiResolver(req, res, { ...getQueryParser(req)(), ...params }, handler, undefined as any, true);
+        }));
 
-    await test({ fetch: (init?: RequestInit) => fetch(url, init) });
+        await test({ fetch: (init?: RequestInit) => fetch(url, init) });
+    }
 
-    server.close();
+    finally {
+        server?.close();
+    }
 }
