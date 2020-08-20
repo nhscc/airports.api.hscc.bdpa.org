@@ -497,7 +497,7 @@ var myURL = "https://airports.api.hscc.bdpa.org/v2/flights?match=" + myNormalQue
 sendRequestToAPI(myURL)
 ```
 
-> Note: you can search by `flight_id` using `regexMatch` and the `|` operator, achieving similar functionality to the old `/flights/with-ids` endpoint; i.e. `{ "flight_id": "5f04f0607a927fab9cfbddfd|5f04f0607a927fab9cfbddfe" }` Note that no regex operators other than `|` will work when searching by `flight_id`!
+> Note: you can search by `flight_id` using `regexMatch` and the `|` operator, achieving similar functionality to the old `/flights/with-ids` endpoint; i.e. `{ "flight_id": "5f04f0607a927fab9cfbddfd|5f04f0607a927fab9cfbddfe" }`. Note that no regex operators other than `|` will work when searching by `flight_id`!
 
 > Notice: when testing using this Apiary documentation, they are nice enough to handle the URI encode and JSON stringify steps for you! All you have to do is type in a proper JSON object for the request to succeed. You can even copy and paste the `myXQueryObject`s from the examples above directly into the Try Console! Try it out by clicking "See an example" and then "Try console".
 
