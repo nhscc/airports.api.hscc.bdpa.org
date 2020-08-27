@@ -172,6 +172,14 @@ export async function getAirlines() {
     }).toArray();
 }
 
+export async function getExtras() {
+    return (await (await getDb()).collection<WithId<InternalInfo>>('info').findOne({}))?.allExtras;
+}
+
+export async function getSeats() {
+    return (await (await getDb()).collection<WithId<InternalInfo>>('info').findOne({}))?.seatClasses;
+}
+
 export async function getFlightsById(params: GetFliByIdParams) {
     const { ids, key } = params;
 

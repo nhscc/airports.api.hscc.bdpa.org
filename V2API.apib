@@ -36,12 +36,12 @@ The old `/flights/*` endpoints have been replaced with the new unified
 `/flights` endpoint. Any API calls using the deprecated endpoints need to be
 updated to use the new endpoint.
 
-All of the functionality of the old endpints is available using the new unified
-endpoint. The deprecated `/flights/all` can be emulated using `/flights` without
-query parameters. The deprecated `/flights/search` can be emulated using
-`/flights` directly with `match`, `regexMatch`, and `sort` query parameters. The
-deprecated `/flights/with-ids` endpoint can be emulated using `match` or
-`regexMatch` query parameters. [See
+All of the functionality of the old `/flights/*` endpoints is available using
+the new unified endpoint. The deprecated `/flights/all` can be emulated using
+`/flights` without query parameters. The deprecated `/flights/search` can be
+emulated using `/flights` directly with `match`, `regexMatch`, and `sort` query
+parameters. The deprecated `/flights/with-ids` endpoint can be emulated using
+`match` or `regexMatch` query parameters. [See
 examples](#/reference/0/flights-endpoint/flights-endpoint).
 
 Flight data has changed somewhat as well. The V2 API's flight objects do not
@@ -468,7 +468,7 @@ var myQuery = encodeURIComponent(JSON.stringify(myQueryObject))
 3. Add the stringified JSON to your request URL and send it
 
 ```JavaScript
-var myURL = "https://airports.api.hscc.bdpa.org/v2/flights/search?match=" + myQuery
+var myURL = "https://airports.api.hscc.bdpa.org/v2/flights?match=" + myQuery
 
 sendRequestToAPI(myURL)
 ```
@@ -492,12 +492,12 @@ var myRegexQueryObject = { "gate": "^A", "status": "landed|arrived|boarding" }
 var myNormalQuery = encodeURIComponent(JSON.stringify(myNormalQueryObject))
 var myRegexQuery = encodeURIComponent(JSON.stringify(myRegexQueryObject))
 
-var myURL = "https://airports.api.hscc.bdpa.org/v2/flights/search?match=" + myNormalQuery + "&regexMatch=" + myRegexQuery + "sort=desc"
+var myURL = "https://airports.api.hscc.bdpa.org/v2/flights?match=" + myNormalQuery + "&regexMatch=" + myRegexQuery + "sort=desc"
 
 sendRequestToAPI(myURL)
 ```
 
-> Note: you can search by `flight_id` using `regexMatch` and the `|` operator, achieving similar functionality to the old `/flights/with-ids` endpoint; i.e. `{ "flight_id": "5f04f0607a927fab9cfbddfd|5f04f0607a927fab9cfbddfe" }` Note that no regex operators other than `|` will work when searching by `flight_id`!
+> Note: you can search by `flight_id` using `regexMatch` and the `|` operator, achieving similar functionality to the old `/flights/with-ids` endpoint; i.e. `{ "flight_id": "5f04f0607a927fab9cfbddfd|5f04f0607a927fab9cfbddfe" }`. Note that no regex operators other than `|` will work when searching by `flight_id`!
 
 > Notice: when testing using this Apiary documentation, they are nice enough to handle the URI encode and JSON stringify steps for you! All you have to do is type in a proper JSON object for the request to succeed. You can even copy and paste the `myXQueryObject`s from the examples above directly into the Try Console! Try it out by clicking "See an example" and then "Try console".
 
@@ -706,10 +706,10 @@ See an example
 + status (string) - The current status of this flight. Possible values are: `"past"`, `"scheduled"`, `"cancelled"`, `"delayed"`, `"on time"`, `"landed"`, `"arrived"`, `"boarding"`, and `"departed"`.
 + gate (string) - A string representing the gate this plane is currently docked at or `null` if there is no gate determination. Example: `"C17"`.
 + bookable (boolean) - `true` if this flight is landing at your team's airport (and so you should allow people to book tickets for it), otherwise `false`.
-+ baggage (object) - An object where the keys are the name of the bag type and the values are [BaggageType](#/data-structures/0/baggage-type) objects containing the maximum number of bags that can be brought by a single passenger and how much it costs to bring X bags.
++ baggage (object) - An object where the keys are the names of the bag type and the values are [BaggageType](#/data-structures/0/baggage-type) objects containing the maximum number of bags that can be brought by a single passenger and how much it costs to bring X bags.
 + ffms (number) - The number of Frequent Flier Miles that are awarded to a user when they book a ticket on this flight. Example: `4456`.
-+ seats (object) - An object where the keys are the name of the seat type and the values are [SeatType](#/data-structures/0/seat-type) objects containing how many seats of that type are available and how much each costs both in dollars and frequent flier miles.
-+ extras (object) - An object where the keys are the name of the item and the values are [ExtraItem](#/data-structures/0/extra-item) objects containing how much each item costs both in dollars and frequent flier miles.
++ seats (object) - An object where the keys are the names of the seat type and the values are [SeatType](#/data-structures/0/seat-type) objects containing how many seats of that type are available and how much each costs both in dollars and frequent flier miles.
++ extras (object) - An object where the keys are the names of the item and the values are [ExtraItem](#/data-structures/0/extra-item) objects containing how much each item costs both in dollars and frequent flier miles.
 
 ### Airport (object)
 
@@ -733,7 +733,7 @@ See an example
 ### BaggageType (object)
 
 + max (number) - The maximum number of this type of bag that can be brought by a single passenger. Example: `8`.
-+ prices (array[number]) - A list representing the price of bringing X of this type of bag where X is `the number of bags - 1`. For example: if someone wants to bring 5 bags, the price is the 5th item (index 4) in the `prices` list.
++ prices (array[number]) - A list representing the price of bringing X bags on the flight. For example: if someone wants to bring 5 bags, the price is the sum of the 1st through 5th elements (indices 0 through 4) in the `prices` array. Example: `[ 52, 61, 113, 214, 386, 693, 1088, 1841 ]` (and `max = 8` in this example), so bringing 2 bags costs `52 + 61 = $113`
 
 ### SeatType (object)
 

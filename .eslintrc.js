@@ -73,6 +73,8 @@ module.exports = {
         rules: {
             'jest/lowercase': 'off',
             'jest/consistent-test-it': 'off',
+            'jest/require-top-level-describe': 'off',
+            'jest/valid-describe': 'off',
         }
     }],
     settings: {

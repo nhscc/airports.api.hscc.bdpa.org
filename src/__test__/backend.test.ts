@@ -78,6 +78,20 @@ describe('universe/backend', () => {
         });
     });
 
+    describe('::getExtras', () => {
+        it('returns the extras data as expected', async () => {
+            expect.hasAssertions();
+            expect(await Backend.getExtras()).toStrictEqual(unhydratedDummyDbData.info.allExtras);
+        });
+    });
+
+    describe('::getSeats', () => {
+        it('returns the seats data as expected', async () => {
+            expect.hasAssertions();
+            expect(await Backend.getSeats()).toStrictEqual(unhydratedDummyDbData.info.seatClasses);
+        });
+    });
+
     describe('::getFlightsById', () => {
         it('throws if bad arguments', async () => {
             expect.hasAssertions();
