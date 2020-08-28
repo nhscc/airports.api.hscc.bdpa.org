@@ -1,0 +1,15 @@
+{
+    "extends": "./tsconfig.json",
+    "include": [
+        "next-env.d.ts",
+        "config/**/*.ts",
+        "external-scripts/*.ts",
+        "lib/**/*.ts",
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "types/**/*.ts",
+        ".eslintrc.js",
+        "babel.config.js",
+        "webpack.config.js",
+    ]
+}

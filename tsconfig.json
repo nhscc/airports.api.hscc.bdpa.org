@@ -39,13 +39,14 @@
         "inlineSourceMap": true
     },
     "exclude": [
-        "node_modules"
+        "node_modules",
+        "__test__"
     ],
     "include": [
         "next-env.d.ts",
-        "**/*.ts",
-        "**/*.tsx",
-        ".eslintrc.js",
-        "babel.config.js"
+        "lib/**/*.ts",
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "types/**/*.ts",
     ]
 }

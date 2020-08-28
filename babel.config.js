@@ -46,11 +46,7 @@ module.exports = {
         '@babel/plugin-proposal-optional-chaining',
         '@babel/plugin-transform-typescript',
     ],
-    presets: [
-        ['@babel/typescript', {
-            allowDeclareFields: true
-        }]
-    ],
+    presets: [['@babel/typescript', { allowDeclareFields: true }]],
     // ? Sub-keys under the "env" config key will augment the above
     // ? configuration depending on the value of NODE_ENV and friends. Default
     // ? is: development
@@ -68,21 +64,17 @@ module.exports = {
         // * Used by Jest
         test: {
             sourceMaps: 'both',
-            presets: [
-                ['@babel/preset-env', { targets: targets }]
-            ]
+            presets: [['@babel/preset-env', { targets: targets }]]
         },
         // * Used by `npm run generate` and `npm run regenerate`
         generator: {
             sourceMaps: 'inline',
             comments: false,
-            presets: [
-                ['@babel/preset-env', {
-                    targets: {
-                        node: true
-                    }
-                }]
-            ]
+            presets: [['@babel/preset-env', { targets: { node: true }}]]
+        },
+        // * Used by `npm run build-externals`
+        external: {
+            presets: [['@babel/preset-env', { targets: { node: true }}]]
         }
     }
 };

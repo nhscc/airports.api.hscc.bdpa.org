@@ -7,12 +7,6 @@ import type { Configuration } from 'webpack'
 // eslint-disable-next-line import/no-unresolved, @typescript-eslint/no-var-requires
 require('./src/dev-utils').populateEnv();
 
-const paths = {
-    universe: `${__dirname}/src/`,
-    multiverse: `${__dirname}/lib/`,
-    // types/ is purposely excluded
-};
-
 module.exports = () => {
     return withBundleAnalyzer({
         enabled: process.env.ANALYZE === 'true'
@@ -29,8 +23,8 @@ module.exports = () => {
             // ! Note that you must also change these same aliases in package.json (jest)
             config.resolve && (config.resolve.alias = {
                 ...config.resolve.alias,
-                universe: paths.universe,
-                multiverse: paths.multiverse,
+                universe: `${__dirname}/src/`,
+                multiverse: `${__dirname}/lib/`,
                 // types/ is purposely excluded
             });
 
