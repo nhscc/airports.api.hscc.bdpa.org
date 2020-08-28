@@ -114,6 +114,7 @@ This API uses the following technologies:
 - [MongoDB](https://www.mongodb.com/) [Node
   driver](https://mongodb.github.io/node-mongodb-native) for database access
 - [Jest](https://jestjs.io/) for unit and integration testing
+- [API Blueprint](https://apiblueprint.org/) (APIB) for describing the API
 
 ### Files and directories
 
@@ -149,6 +150,10 @@ folder serves a similar purpose.
 `babel.config.js` returns a JSON object used to configure Babel.
 `webpack.config.js` returns a JSON object used to configure WebPack (*this
 configuration is only used when building external scripts*).
+
+`V1API.apib` and `V2API.apib` are [APIB](https://apiblueprint.org) files used to
+build the [Apiary](https://apiary.io) APIv1 and APIv2 documentation
+respectively.
 
 `lib/` contains TypeScript modules shared between projects. These are candidates
 for becoming new NPM packages.
