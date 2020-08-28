@@ -8,8 +8,9 @@ Atlas](https://www.mongodb.com/cloud/atlas). The code is highly documented. You
 can clone this repo and run a fully functional version of this API locally
 following the instructions below.
 
-If you run into any issues or find any bugs, please [report
-them](https://github.com/nhscc/airports.api.hscc.bdpa.org/issues/new)!
+> This project has been tested on Linux (Kubuntu) and Windows 10 Pro. If you
+> encounter any issues (especially Windows-specific issues), please [report
+> them](https://github.com/nhscc/airports.api.hscc.bdpa.org/issues/new).
 
 ## Accessing the API
 
@@ -31,10 +32,6 @@ application. However, for development purposes, you can also run a local version
 of the API to make requests against. This API is self-contained aside from
 MongoDB; everything you need to run it locally is in this repo (except a running
 MongoDB instance).
-
-> This project has been tested on Linux (Kubuntu) and Windows 10 Pro. If you
-> encounter any issues (especially Windows-specific issues), please [report
-> them](https://github.com/nhscc/airports.api.hscc.bdpa.org/issues/new).
 
 To run a local instance of the API:
 
@@ -69,11 +66,6 @@ To run a local instance of the API:
    (details below) using your browser to finish setting up the database
    * If you're using MongoDB Compass, you'll be able to visually explore the
      dummy database's data
-   > Note: to generate stochastic flight states, you must hydrate the database.
-   > Stochastic flight states are generated automatically only when the API is
-   > run in development mode. In production, the functionality is provided by
-   > the `generate-flights` script found at
-   > `external-scripts/bin/generate-flights.js`.
 8. You can now interact with the API using your browser,
    [Postman](https://www.postman.com/), or otherwise
    * You should see a line on the console that looks like `ready - started
@@ -87,6 +79,12 @@ To run a local instance of the API:
 > in the database (in the `info` collection, `seatClasses` array) or there will
 > be undefined behavior when matching using `seatPrice` for `/flights/search`
 > queries.
+
+> Note: to generate stochastic flight states, you must hydrate the database.
+> Stochastic flight states are generated automatically only when the API is
+> run in development mode. In production, the functionality is provided by
+> the `generate-flights` script found at
+> `external-scripts/bin/generate-flights.js`.
 
 ## Available commands
 
@@ -187,6 +185,8 @@ All executables under `external-scripts/bin` can be run like so:
 node external-scripts/bin/script-name.js
 ```
 
-### Stochastic flight generation
+### Stochastic flight states
 
-(explain how it works) (include drawn image)
+Or: *how are flights' gates and statuses changing automatically in the db?*
+
+(explain how it works) (include drawn image/graphic)
