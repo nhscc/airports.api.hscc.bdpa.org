@@ -187,6 +187,94 @@ node external-scripts/bin/script-name.js
 
 ### Stochastic flight states
 
-Or: *how are flights' gates and statuses changing automatically in the db?*
+Or: *how are flight gates and statuses changing automatically in the db?*
 
-(explain how it works) (include drawn image/graphic)
+Flights are generated between 1 and 30 days in advance of their arrival time
+(i.e. `arriveAtReceiver`). When a flight is generated, every single state it
+will enter into, from being cancelled to being delayed to arriving to boarding,
+is also generated using a [Markov
+process](https://en.wikipedia.org/wiki/Markov_chain) depending on its `type`.
+Afterwards, using an aggregation pipeline, one of these states is selected
+everytime an API request is made. The state that gets selected depends on the
+time the request is received. This means flight data isn't actually "changing"
+"randomly" (i.e. stochastically) in the database, it only looks that way.
+
+These states, made up of `arriveAtReceiver`, `gate`, `status`, and
+`departFromReceiver`, are generated and stored according to the following rules:
+
+All flights start off with status <span style="color: rgb(31, 119,
+180)">*scheduled* (**A**)</span>, meaning they are scheduled to arrive at their
+`landingAt` airport (at `arriveAtReceiver` time) coming in from their
+`comingFrom` airport (at `departFromSender` time). Once `departFromSender` time
+elapses, there's an 80% chance the flight status becomes <span style="color:
+rgb(255, 127, 14)">*on time* (**B**)</span> and a 20% chance the flight status
+becomes <span style="color: rgb(44, 160, 44)">*cancelled* (**C**)</span>. Once a
+flight is cancelled, it no longer changes states in the system.
+
+At some point before `arriveAtReceiver` but after `departFromSender`, there is a
+20% chance the flight status becomes <span style="color: rgb(214, 39,
+40)">*delayed* (**D**)</span>, pushing `arriveAtReceiver` back by 15 minutes.
+Between 15 minutes and 2 hours before `arriveAtReceiver` elapses (but after the
+flight is or isn't delayed), the flight's arrival gate is chosen and visible in
+the API <span style="color: rgb(148, 103, 189)">(**E**)</span>.
+
+After the flight's arrival gate is chosen, between 5 and 30 minutes before
+`arriveAtReceiver`, the flight's status becomes <span style="color: rgb(140, 86,
+75)">*landed* (**F**)</span>. Immediately, there's a 50% chance <span
+style="color: rgb(227, 119, 194)">*the gate changes* (**G**)</span>.
+
+Once `arriveAtReceiver` elapses, the flight's status becomes <span style="color:
+rgb(127, 127, 127)">*arrived* (**H**)</span>. Immediately, there is a 15% chance
+<span style="color: rgb(188, 189, 34)">*the gate changes* (**I**)</span>.
+
+***
+
+If the flight is an **arrival** (`type` is `arrival`), upon the next hour, the
+flight's status becomes <span style="color: rgb(23, 190, 207)">*past*
+(**J**)</span> and no longer changes states in the system.
+
+![The Markov model describing how flight states update](markov-arrivals.png
+"Stochastic state flight update markov chain for arrivals")
+
+***
+
+If, on the other hand, the flight is a **departure** (`type` is `departure`),
+between 3 and 10 minutes after the flight's status becomes `arrived`, the
+flight's status becomes <span style="color: rgb(23, 190, 207)">*boarding*
+(**J**)</span>.
+
+Once `departFromReceiver` elapses, the flight's status becomes <span
+style="color: rgb(31, 119, 180)">*boarding* (**K**)</span>. 2 to 5 hours after
+that, the flight's status becomes <span style="color: rgb(255, 127, 14)">*past*
+(**L**)</span> and no longer changes states in the system.
+
+![The Markov model describing how flight states update](markov-departures.png
+"Stochastic state flight update markov chain for departures")
+
+#### Are gates and flight numbers unique?
+
+Gates and flight numbers are unique **but only per airport per hour**. Hence,
+two or more flights in the same several-hour span might have the same flight
+number or land at the same gate at the same airport, but never within the same
+hour.
+
+#### Why does the API respond so slowly?
+
+The API responds slowly for certain queries due to how each flight's stochastic
+states are stored. Since they're nested within the rest of the flight data
+(under the `stochasticStates` field) and the correct state is selected through
+an [aggregation
+pipeline](https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline),
+[the current state of the flight is not
+indexable](https://docs.mongodb.com/manual/core/aggregation-pipeline/#pipeline-operators-and-indexes).
+Not being able to generate indices on the stochastic state fields slows down
+searches involving those fields (like `arriveAtReceiver`, `status`, and `gate`)
+by an order of magnitude.
+
+The obvious solution is to break the stochastic states out into their own
+collection and index them there; however, we decided to leave the stochastic
+states nested within each flight document since it made it easy for the judges
+to see [how apps behave while waiting several seconds for a
+response](https://reactjs.org/docs/concurrent-mode-suspense.html).
+
+tl;dr "It's a feature, not a bug!"

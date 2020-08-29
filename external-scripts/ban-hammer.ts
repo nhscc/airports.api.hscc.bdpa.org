@@ -1,3 +1,5 @@
+import { getEnv } from 'universe/backend/env'
+
 const oneSecond = 1000;
 
 const scheduledToRepeatEvery    = oneSecond * 60;       // * seconds
@@ -166,11 +168,12 @@ const pipeline = [
 ];
 
 exports = function() {
-    return context.services.get('neptune-1')
-        .db('hscc-api-airports')
-        .collection('request-log')
-        .aggregate(pipeline)
-        .next()
-        // eslint-disable-next-line no-console
-        .catch(e => console.error('Error: ', e));
+    getEnv();
+    // return context.services.get('neptune-1')
+    //     .db('hscc-api-airports')
+    //     .collection('request-log')
+    //     .aggregate(pipeline)
+    //     .next()
+    //     // eslint-disable-next-line no-console
+    //     .catch(e => console.error('Error: ', e));
 };

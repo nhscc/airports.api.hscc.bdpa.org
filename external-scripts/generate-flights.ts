@@ -1,4 +1,5 @@
+import { getEnv } from 'universe/backend/env'
 import { generateFlights } from 'universe/backend'
 
-// eslint-disable-next-line no-console
 console.log(generateFlights);
+console.log(getEnv);
