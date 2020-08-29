@@ -26,10 +26,10 @@ export default (async function() {
 
         if(thresholdEntry) {
             const result = await requestLog.deleteMany({ _id: { $lte: thresholdEntry._id }})
-            beVerbose && console.log(`[ pruned ${result.deletedCount} request-log entries ]`);
+            console.log(`[ pruned ${result.deletedCount} request-log entries ]`);
         }
 
-        else beVerbose && console.log('[ found no entries to prune ]');
+        else console.log('[ found no entries to prune ]');
 
         console.log('[ closing connection ]');
 
