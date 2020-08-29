@@ -4,4 +4,4 @@ coverage/
 .next
 .env
 *.pem
-src/pages/old-api
+external-scripts/bin

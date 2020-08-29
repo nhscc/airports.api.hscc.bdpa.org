@@ -172,12 +172,18 @@ standalone executables meant to be invoked manually by processes external to the
 app itself (like cron jobs). Specifically: you can copy and paste these
 elsewhere outside the repo and they'll still work.
 
+These scripts can be configured using the appropriate `.env` variables. See
+`dist.env` for details.
+
 You can use the handy NPM run script to build any external scripts with the
 resulting bundles placed in `external-scripts/bin`:
 
 ```
 npm run build-externals
 ```
+
+> Warning: when you change `.env` you must (re)build the external scripts using
+> the above command.
 
 All executables under `external-scripts/bin` can be run like so:
 
