@@ -689,7 +689,6 @@ describe('universe/backend', () => {
             await Backend.addToRequestLog({ req: req1, res: res1 });
             await Backend.addToRequestLog({ req: req2, res: res2 });
 
-            // eslint-disable-next-line require-atomic-updates
             Date.now = _now;
 
             const reqlog = (await getDb()).collection<WithId<RequestLogEntry>>('request-log');
@@ -778,7 +777,6 @@ describe('universe/backend', () => {
             // ? Should return greater of the two ban times (key time > ip time)
             expect(req5.retryAfter).toBeWithin(1000 * 60 * 60 - 1000, 1000 * 60 * 60 + 1000);
 
-            // eslint-disable-next-line require-atomic-updates
             Date.now = _now;
         });
 

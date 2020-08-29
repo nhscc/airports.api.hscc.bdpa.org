@@ -37,7 +37,6 @@ module.exports = {
         'no-console': 'warn',
         'no-return-await': 'warn',
         'no-await-in-loop': 'warn',
-        'require-atomic-updates': 'warn',
         'import/no-unresolved': ['error', { commonjs: true }],
         'no-restricted-globals': ['warn'].concat(restrictedGlobals),
         'no-extra-boolean-cast': 'off',

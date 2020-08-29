@@ -1,4 +1,4 @@
-import { isNumber, isUndefined as isU } from 'util'
+import { isNumber } from 'util'
 import { parse as parseAsBytes } from 'bytes'
 import isServer from 'multiverse/is-server-side'
 import { MIN_RESULT_PER_PAGE } from 'universe/backend'
@@ -8,20 +8,39 @@ export function getEnv(loud=false) {
     const env = {
         NODE_ENV: process.env.NODE_ENV || process.env.BABEL_ENV || process.env.APP_ENV || 'unknown',
         MONGODB_URI: (process.env.MONGODB_URI || '').toString(),
-        MONGODB_MS_PORT: !!process.env.MONGODB_MS_PORT ? parseInt(process.env.MONGODB_MS_PORT ?? '-Infinity') : null,
+        MONGODB_MS_PORT: !!process.env.MONGODB_MS_PORT ? Number(process.env.MONGODB_MS_PORT) : null,
         DISABLED_API_VERSIONS: !!process.env.DISABLED_API_VERSIONS ? process.env.DISABLED_API_VERSIONS.split(',') : [],
-        FLIGHTS_GENERATE_DAYS: parseInt(process.env.FLIGHTS_GENERATE_DAYS ?? '-Infinity'),
-        AIRPORT_NUM_OF_GATE_LETTERS: parseInt(process.env.AIRPORT_NUM_OF_GATE_LETTERS ?? '-Infinity'),
-        AIRPORT_GATE_NUMBERS_PER_LETTER: parseInt(process.env.AIRPORT_GATE_NUMBERS_PER_LETTER ?? '-Infinity'),
-        AIRPORT_PAIR_USED_PERCENT: parseInt(process.env.AIRPORT_PAIR_USED_PERCENT ?? '-Infinity'),
-        FLIGHT_HOUR_HAS_FLIGHTS_PERCENT: parseInt(process.env.FLIGHT_HOUR_HAS_FLIGHTS_PERCENT ?? '-Infinity'),
-        RESULTS_PER_PAGE: parseInt(process.env.RESULTS_PER_PAGE ?? '-Infinity'),
+        FLIGHTS_GENERATE_DAYS: Number(process.env.FLIGHTS_GENERATE_DAYS),
+        AIRPORT_NUM_OF_GATE_LETTERS: Number(process.env.AIRPORT_NUM_OF_GATE_LETTERS),
+        AIRPORT_GATE_NUMBERS_PER_LETTER: Number(process.env.AIRPORT_GATE_NUMBERS_PER_LETTER),
+        AIRPORT_PAIR_USED_PERCENT: Number(process.env.AIRPORT_PAIR_USED_PERCENT),
+        FLIGHT_HOUR_HAS_FLIGHTS_PERCENT: Number(process.env.FLIGHT_HOUR_HAS_FLIGHTS_PERCENT),
+        RESULTS_PER_PAGE: Number(process.env.RESULTS_PER_PAGE),
         IGNORE_RATE_LIMITS: !!process.env.IGNORE_RATE_LIMITS && process.env.IGNORE_RATE_LIMITS !== 'false',
         LOCKOUT_ALL_KEYS: !!process.env.LOCKOUT_ALL_KEYS && process.env.LOCKOUT_ALL_KEYS !== 'false',
         DISALLOWED_METHODS: !!process.env.DISALLOWED_METHODS ? process.env.DISALLOWED_METHODS.split(',') : [],
-        REQUESTS_PER_CONTRIVED_ERROR: parseInt(process.env.REQUESTS_PER_CONTRIVED_ERROR ?? '-Infinity'),
-        MAX_CONTENT_LENGTH_BYTES: parseAsBytes(process.env.MAX_CONTENT_LENGTH_BYTES || '-Infinity'),
-        HYDRATE_DB_ON_STARTUP: !isU(process.env.HYDRATE_DB_ON_STARTUP) && process.env.HYDRATE_DB_ON_STARTUP !== 'false',
+        REQUESTS_PER_CONTRIVED_ERROR: Number(process.env.REQUESTS_PER_CONTRIVED_ERROR),
+        MAX_CONTENT_LENGTH_BYTES: parseAsBytes(process.env.MAX_CONTENT_LENGTH_BYTES ?? '-Infinity'),
+        EXTERNAL_SCRIPTS_MONGODB_URI: (process.env.EXTERNAL_SCRIPTS_MONGODB_URI || process.env.MONGODB_URI || '').toString(),
+        EXTERNAL_SCRIPTS_BE_VERBOSE: !!process.env.EXTERNAL_SCRIPTS_BE_VERBOSE && process.env.EXTERNAL_SCRIPTS_BE_VERBOSE !== 'false',
+        BAN_HAMMER_WILL_BE_CALLED_EVERY_SECONDS: !!process.env.BAN_HAMMER_WILL_BE_CALLED_EVERY_SECONDS
+            ? Number(process.env.BAN_HAMMER_WILL_BE_CALLED_EVERY_SECONDS)
+            : null,
+        BAN_HAMMER_MAX_REQUESTS_PER_WINDOW: !!process.env.BAN_HAMMER_MAX_REQUESTS_PER_WINDOW
+            ? Number(process.env.BAN_HAMMER_MAX_REQUESTS_PER_WINDOW)
+            : null,
+        BAN_HAMMER_RESOLUTION_WINDOW_SECONDS: !!process.env.BAN_HAMMER_RESOLUTION_WINDOW_SECONDS
+            ? Number(process.env.BAN_HAMMER_RESOLUTION_WINDOW_SECONDS)
+            : null,
+        BAN_HAMMER_DEFAULT_BAN_TIME_MINUTES: !!process.env.BAN_HAMMER_DEFAULT_BAN_TIME_MINUTES
+            ? Number(process.env.BAN_HAMMER_DEFAULT_BAN_TIME_MINUTES)
+            : null,
+        BAN_HAMMER_RECIDIVISM_PUNISH_MULTIPLIER: !!process.env.BAN_HAMMER_RECIDIVISM_PUNISH_MULTIPLIER
+            ? Number(process.env.BAN_HAMMER_RECIDIVISM_PUNISH_MULTIPLIER)
+            : null,
+        PRUNE_LOGS_MAX_LOGS: !!process.env.PRUNE_LOGS_MAX_LOGS ? Number(process.env.PRUNE_LOGS_MAX_LOGS) : null,
+        HYDRATE_DB_ON_STARTUP: !!process.env.HYDRATE_DB_ON_STARTUP && process.env.HYDRATE_DB_ON_STARTUP !== 'false',
+        API_ROOT_URI: (process.env.API_ROOT_URI || '').toString(),
         DEBUG_MODE: /--debug|--inspect/.test(process.execArgv.join(' '))
     };
 
@@ -47,7 +66,7 @@ export function getEnv(loud=false) {
     const NODE_X: string = env.NODE_ENV;
 
     if(NODE_X == 'unknown' || (isServer() && env.MONGODB_URI === '') ||
-       _mustBeGtZero.some(v => !isNumber(v) || v < 0)) {
+       _mustBeGtZero.some(v => !isNumber(v) || isNaN(v) || v < 0)) {
         throw new AppError('illegal environment detected, check environment variables');
     }
 

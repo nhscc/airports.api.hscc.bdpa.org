@@ -1,15 +1,30 @@
 import { MongoClient, Db } from 'mongodb'
 import { getEnv } from 'universe/backend/env'
 
-let db: Db | null = null;
+export type DbWithClient = (Db & { client?: MongoClient });
+
+let db: DbWithClient | null = null;
 
 /**
  * Used to lazily create the database once on-demand instead of immediately when
  * the app runs.
  */
-export async function getDb() {
-    // eslint-disable-next-line require-atomic-updates
-    db = db || (await MongoClient.connect(getEnv().MONGODB_URI, { useUnifiedTopology: true })).db();
+export async function getDb(params?: { external: true }) {
+    let uri = getEnv().MONGODB_URI;
+
+    if(params?.external) {
+        uri = getEnv().EXTERNAL_SCRIPTS_MONGODB_URI;
+        // eslint-disable-next-line no-console
+        getEnv().EXTERNAL_SCRIPTS_BE_VERBOSE && console.log(`[ connecting to mongo database at ${uri} ]`);
+    }
+
+    if(!db) {
+        const client = await MongoClient.connect(uri, { useUnifiedTopology: true });
+
+        db = client.db();
+        db.client = client;
+    }
+
     return db;
 }
 

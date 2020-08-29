@@ -369,7 +369,7 @@ export async function generateFlights(silent = false) {
     });
 
     // eslint-disable-next-line no-console
-    !silent && console.info(`api   - Deleted ${deleteResult.deletedCount} flights older than 7 days`);
+    !silent && console.info(`api   - deleted ${deleteResult.deletedCount} flights older than 7 days`);
 
     // ? Determine how many hours (if any) need flights generated for them
     const lastFlightId = (await flightDb.find().sort({ _id: -1 }).limit(1).next())?._id ?? new ObjectId();
@@ -377,7 +377,7 @@ export async function generateFlights(silent = false) {
     const totalHoursToGenerate = (hourLevelMsDilation(Date.now() + targetDaysInMs) - lastFlightHourMs) / oneHourInMs;
 
     // eslint-disable-next-line no-console
-    !silent && console.info(`api   - Generating ${totalHoursToGenerate} hours worth of flights...`);
+    !silent && console.info(`api   - generating ${totalHoursToGenerate} hours worth of flights...`);
 
     if(!totalHoursToGenerate)
         return 0;
@@ -412,7 +412,7 @@ export async function generateFlights(silent = false) {
         }, {});
 
         // eslint-disable-next-line no-console
-        !silent && console.info(`api   ↳ Generating flights for hour ${currentHour} (${i+1}/${totalHoursToGenerate})`);
+        !silent && console.info(`api   ↳ generating flights for hour ${currentHour} (${i+1}/${totalHoursToGenerate})`);
 
         // ? Arrivals land at firstAirport and came from secondAirport
         // ? Departures land at firstAirport and depart to secondAirport; which
@@ -787,7 +787,7 @@ export async function generateFlights(silent = false) {
             return 0;
 
         // eslint-disable-next-line no-console
-        !silent && console.info(`api   - Committing ${flights.length} flights into database...`);
+        !silent && console.info(`api   - committing ${flights.length} flights into database...`);
 
         // ? All the main repository of flight data to the database in one shot!
         const operation = await flightDb.insertMany(flights);
@@ -799,7 +799,7 @@ export async function generateFlights(silent = false) {
             throw new GuruMeditationError('assert failed: operation.insertedCount != totalHoursToGenerate');
 
         // eslint-disable-next-line no-console
-        !silent && console.info(`api   - Operation completed successfully!`);
+        !silent && console.info(`api   - operation completed successfully!`);
 
         return operation.insertedCount;
     }

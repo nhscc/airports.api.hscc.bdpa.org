@@ -344,7 +344,6 @@ describe('universe/backend/middleware', () => {
                     await limitedLog.deleteOne({ _id: entry.insertedId });
                     expect((await fetch({ headers: { key } })).status).toBe(200);
 
-                    // eslint-disable-next-line require-atomic-updates
                     Date.now = _now;
                 }
             });
