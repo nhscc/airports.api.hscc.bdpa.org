@@ -61,10 +61,10 @@ To run a local instance of the API:
      specified in the connect URI automatically configured and hydrated.
 5. At this point you should test that the API will work on your system. To do
    this, run the command `npm test` in your terminal. If you're on Windows
-   PowerShell, that's `npm test-windows`.
+   PowerShell/CMD, that's `npm test-windows`.
 6. If all tests passed, you can start up the API in development mode by running
-   the `npm run dev` command. If you're on Windows PowerShell, that's `npm run
-   dev-windows`.
+   the `npm run dev` command. If you're on Windows PowerShell/CMD, that's `npm
+   run dev-windows`.
 7. If you set `HYDRATE_DB_ON_STARTUP=true` previously, navigate to the API's URI
    (details below) using your browser to finish setting up the database.
    * If you're using MongoDB Compass, you'll be able to visually explore the
