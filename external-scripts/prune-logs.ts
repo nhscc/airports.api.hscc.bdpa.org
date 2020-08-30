@@ -1,14 +1,14 @@
 /* eslint-disable no-console */
 import { getEnv } from 'universe/backend/env'
 import { AppError } from 'universe/backend/error'
-import { getDb } from 'universe/backend/db'
+import { getDb, closeDb } from 'universe/backend/db'
 import { WithId } from 'mongodb';
 import { RequestLogEntry } from 'types/global';
 
-console.log('[ initializing ]');
-
-export default (async function() {
+export default async function main(isCLI = false) {
     try {
+        isCLI && console.log('[ initializing ]');
+
         const {
             PRUNE_LOGS_MAX_LOGS,
         } = getEnv();
@@ -16,29 +16,37 @@ export default (async function() {
         if(!PRUNE_LOGS_MAX_LOGS || !(Number(PRUNE_LOGS_MAX_LOGS) > 0))
             throw new AppError('illegal environment detected, check environment variables');
 
-        console.log(`[ connecting to external database ]`);
+        isCLI && console.log(`[ connecting to external database ]`);
 
         const db = await getDb({ external: true });
 
         const requestLog = db.collection<WithId<RequestLogEntry>>('request-log');
-        const thresholdEntry = await requestLog.find().sort({ _id: -1 }).skip(PRUNE_LOGS_MAX_LOGS).limit(1).next();
+        const cursor = requestLog.find().sort({ _id: -1 }).skip(PRUNE_LOGS_MAX_LOGS).limit(1);
+        const thresholdEntry = await cursor.next();
 
         if(thresholdEntry) {
             const result = await requestLog.deleteMany({ _id: { $lte: thresholdEntry._id }})
-            console.log(`[ pruned ${result.deletedCount} request-log entries ]`);
+            isCLI && console.log(`[ pruned ${result.deletedCount} request-log entries ]`);
         }
 
-        else console.log('[ found no entries to prune ]');
+        else isCLI && console.log('[ found no entries to prune ]');
 
-        console.log('[ closing connection ]');
+        isCLI && console.log('[ closing connection ]');
 
-        await db.client?.close();
+        await cursor.close();
+        await closeDb();
 
-        console.log('[ execution complete ]');
+        isCLI && console.log('[ execution complete ]');
     }
 
     catch(e) {
-        console.error('EXCEPTION:', e);
-        process.exit(1);
+        if(isCLI) {
+            console.error('EXCEPTION:', e);
+            process.exit(1);
+        }
+
+        else throw e;
     }
-})();
+}
+
+!module.parent && main(true);

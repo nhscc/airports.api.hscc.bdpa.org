@@ -69,3 +69,9 @@ export type UnionObjects<
     T extends AnyObject,
     U extends AnyObject
 > = Omit<T, keyof U> & { [P in keyof T & keyof U]: T[P] | U[P] } & Omit<U, keyof T>;
+
+// TODO:
+export type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
+// TODO: enable this instead of the above when typescript 4.1 is out
+//export type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T;
+// TODO:

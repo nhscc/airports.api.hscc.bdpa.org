@@ -1,14 +1,14 @@
 /* eslint-disable no-console */
 import { getEnv } from 'universe/backend/env'
-import { getDb } from 'universe/backend/db'
+import { getDb, closeDb } from 'universe/backend/db'
 import { AppError } from 'universe/backend/error'
 
 const oneSecondInMs = 1000;
 
-console.log('[ initializing ]');
-
-export default (async function() {
+export default async function main(isCLI = false) {
     try {
+        isCLI && console.log('[ initializing ]');
+
         const {
             BAN_HAMMER_WILL_BE_CALLED_EVERY_SECONDS: calledEverySeconds,
             BAN_HAMMER_MAX_REQUESTS_PER_WINDOW: maxRequestsPerWindow,
@@ -30,11 +30,11 @@ export default (async function() {
         const defaultBanTimeMs = oneSecondInMs * 60 * defaultBanTimeMinutes;
         const resolutionWindowMs = oneSecondInMs * resolutionWindowSeconds;
 
-        console.log(`[ connecting to external database ]`);
+        isCLI && console.log(`[ connecting to external database ]`);
 
         const db = await getDb({ external: true });
 
-        console.log(`[ running aggregate pipeline on request-log ]`);
+        isCLI && console.log(`[ running aggregate pipeline on request-log ]`);
 
         const pipeline = [
             {
@@ -68,7 +68,7 @@ export default (async function() {
                         },
                         {
                             $match: {
-                                count: { $gt: resolutionWindowSeconds * maxRequestsPerWindow }
+                                count: { $gt: maxRequestsPerWindow }
                             }
                         },
                         {
@@ -107,7 +107,7 @@ export default (async function() {
                         },
                         {
                             $match: {
-                                count: { $gt: resolutionWindowSeconds * maxRequestsPerWindow }
+                                count: { $gt: maxRequestsPerWindow }
                             }
                         },
                         {
@@ -205,20 +205,26 @@ export default (async function() {
 
         const cursor = db.collection('request-log').aggregate(pipeline);
 
-        beVerbose && console.dir(pipeline, { depth: null });
+        isCLI && beVerbose && console.dir(pipeline, { depth: null });
 
         await cursor.next();
 
-        console.log('[ closing connection ]');
+        isCLI && console.log('[ closing connection ]');
 
         await cursor.close();
-        await db.client?.close();
+        await closeDb();
 
-        console.log('[ execution complete ]');
+        isCLI && console.log('[ execution complete ]');
     }
 
     catch(e) {
-        console.error('EXCEPTION:', e);
-        process.exit(1);
+        if(isCLI) {
+            console.error('EXCEPTION:', e);
+            process.exit(1);
+        }
+
+        else throw e;
     }
-})();
+}
+
+!module.parent && main(true);

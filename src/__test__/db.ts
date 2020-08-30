@@ -1,6 +1,6 @@
 import { MongoClient } from 'mongodb'
 import { NULL_KEY, DUMMY_KEY } from 'universe/backend'
-import { getDb, setDb, destroyDb, initializeDb } from 'universe/backend/db'
+import { getDb, setClientAndDb, destroyDb, initializeDb, getDbClient } from 'universe/backend/db'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import { populateEnv } from 'universe/dev-utils'
 import cloneDeep from 'clone-deep'
@@ -386,18 +386,27 @@ export function setupJest() {
         }
     });
 
-    let connection: MongoClient;
+    let uri: string;
     let hydratedData: HydratedDummyDbData;
     let oldEnv: typeof process.env;
 
-    beforeAll(async () => {
-        connection = await MongoClient.connect(await server.getUri(), { useUnifiedTopology: true });
-        const db = connection?.db();
+    /**
+     * Similar to getDb except it creates a new MongoClient connection before
+     * selecting and returning the database.
+     */
+    const getNewClientAndDb = async () => {
+        uri = uri ?? await server.getUri('test'); // ? Ensure singleton
+        const client = await MongoClient.connect(uri, { useUnifiedTopology: true });
+        const db = client.db();
 
         if(!db)
             throw new Error('unable to connect to database');
 
-        setDb(db);
+        return { client, db };
+    };
+
+    beforeAll(async () => {
+        setClientAndDb(await getNewClientAndDb());
     });
 
     beforeEach(async () => {
@@ -414,13 +423,15 @@ export function setupJest() {
     })
 
     afterAll(async () => {
-        connection?.isConnected() && await connection.close();
+        const client = await getDbClient();
+        client.isConnected() && await client.close();
         await server.stop();
     });
 
     return {
         getDb,
-        getConnection: () => connection,
-        getHydratedData: () => hydratedData
+        getDbClient,
+        getNewClientAndDb,
+        getHydratedData: () => hydratedData,
     };
 }

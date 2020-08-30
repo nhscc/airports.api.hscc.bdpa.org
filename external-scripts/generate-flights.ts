@@ -1,30 +1,33 @@
 /* eslint-disable no-console */
 import { generateFlights } from 'universe/backend'
-import { getDb } from 'universe/backend/db'
+import { getDbClient, closeDb } from 'universe/backend/db'
 
-console.log('[ initializing ]');
-
-export default (async function() {
+export default async function main(isCLI = false) {
     try {
-        console.log(`[ connecting to external database ]`);
+        isCLI && console.log(`[ connecting to external database ]`);
 
-        // ? We grab this ref to ensure the external database is selected
-        // ? elsewhere in the app source
-        const db = await getDb({ external: true });
+        // ? We call this here to ensure the external mongo connect URI is used
+        await getDbClient({ external: true });
 
-        console.log(`[ bootstrapping flight generation ]`);
+        isCLI && console.log(`[ bootstrapping flight generation ]`);
 
         await generateFlights();
 
-        console.log('[ closing connection ]');
+        isCLI && console.log('[ closing connection ]');
 
-        await db.client?.close();
+        await closeDb();
 
-        console.log('[ execution complete ]');
+        isCLI && console.log('[ execution complete ]');
     }
 
     catch(e) {
-        console.error('EXCEPTION:', e);
-        process.exit(1);
+        if(isCLI) {
+            console.error('EXCEPTION:', e);
+            process.exit(1);
+        }
+
+        else throw e;
     }
-})();
+}
+
+!module.parent && main(true);

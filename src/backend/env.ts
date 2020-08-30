@@ -41,7 +41,7 @@ export function getEnv(loud=false) {
         PRUNE_LOGS_MAX_LOGS: !!process.env.PRUNE_LOGS_MAX_LOGS ? Number(process.env.PRUNE_LOGS_MAX_LOGS) : null,
         HYDRATE_DB_ON_STARTUP: !!process.env.HYDRATE_DB_ON_STARTUP && process.env.HYDRATE_DB_ON_STARTUP !== 'false',
         API_ROOT_URI: (process.env.API_ROOT_URI || '').toString(),
-        DEBUG_MODE: /--debug|--inspect/.test(process.execArgv.join(' '))
+        DEBUG_MODE: process.env.TERM_PROGRAM == 'vscode' || /--debug|--inspect/.test(process.execArgv.join(' '))
     };
 
     const onlyIfServer = (envVar: unknown) => isServer() ? [envVar] : [];

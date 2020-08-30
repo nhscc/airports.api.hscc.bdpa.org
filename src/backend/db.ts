@@ -1,37 +1,61 @@
 import { MongoClient, Db } from 'mongodb'
 import { getEnv } from 'universe/backend/env'
 
-export type DbWithClient = (Db & { client?: MongoClient });
-
-let db: DbWithClient | null = null;
+type InternalMemory = { client: MongoClient; db: Db } | null;
+let memory: InternalMemory = null;
 
 /**
  * Used to lazily create the database once on-demand instead of immediately when
  * the app runs.
  */
 export async function getDb(params?: { external: true }) {
-    let uri = getEnv().MONGODB_URI;
+    if(!memory) {
+        memory = {} as NonNullable<InternalMemory>;
 
-    if(params?.external) {
-        uri = getEnv().EXTERNAL_SCRIPTS_MONGODB_URI;
-        // eslint-disable-next-line no-console
-        getEnv().EXTERNAL_SCRIPTS_BE_VERBOSE && console.log(`[ connecting to mongo database at ${uri} ]`);
+        let uri = getEnv().MONGODB_URI;
+
+        if(params?.external) {
+            uri = getEnv().EXTERNAL_SCRIPTS_MONGODB_URI;
+            // eslint-disable-next-line no-console
+            getEnv().EXTERNAL_SCRIPTS_BE_VERBOSE && console.log(`[ connecting to mongo database at ${uri} ]`);
+        }
+
+        memory.client = await MongoClient.connect(uri, { useUnifiedTopology: true });
+        memory.db = memory.client.db();
     }
 
-    if(!db) {
-        const client = await MongoClient.connect(uri, { useUnifiedTopology: true });
+    return memory.db;
+}
 
-        db = client.db();
-        db.client = client;
-    }
+/**
+ * Used to lazily create the database once on-demand instead of immediately when
+ * the app runs. Returns the MongoClient instance used to connect to the
+ * database.
+ *
+ * @param params If `{external: true}`, external Mongo connect URI will be used
+ */
+export async function getDbClient(params?: { external: true }) {
+    !memory && await getDb(params);
+    // @ts-expect-error -- TypeScript doesn't realize memory will NOT be null
+    return memory.client;
+}
 
-    return db;
+/**
+ * Used to kill the MongoClient and close any lingering database connections.
+ */
+export async function closeDb() {
+    memory?.client.isConnected() && await memory?.client.close();
+    memory = null;
 }
 
 /**
  * Used for testing purposes. Sets the global db instance to something else.
  */
-export function setDb(newDB: Db) { db = newDB; }
+export function setClientAndDb({ client, db }: { client: MongoClient, db: Db }) {
+    memory = memory ?? {} as NonNullable<InternalMemory>;
+    memory.client = client;
+    memory.db = db;
+}
 
 /**
  * Destroys all collections in the database. Can be called multiple times
