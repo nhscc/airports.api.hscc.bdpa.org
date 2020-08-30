@@ -10,7 +10,7 @@
     "dev": "gulp checkEnv && next -p `npx -q get-clean-port`",
     "dev-windows": "gulp checkEnv && next -p 3000",
     "build": "gulp checkEnv && next build",
-    "start": "gulp checkEnv && next start",
+    "start": "next start",
     "test": "jest",
     "generate": "BABEL_ENV=generator babel config --extensions \".ts\" --out-dir .",
     "regenerate": "gulp regenerate",
