@@ -11,7 +11,7 @@ export default async function main(isCLI = false) {
 
         isCLI && console.log(`[ bootstrapping flight generation ]`);
 
-        await generateFlights();
+        await generateFlights(!isCLI);
 
         isCLI && console.log('[ closing connection ]');
 
