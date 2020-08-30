@@ -15,8 +15,8 @@
     "generate": "BABEL_ENV=generator babel config --extensions \".ts\" --out-dir .",
     "regenerate": "gulp regenerate",
     "list-tasks": "npm run && echo \"Compiling gulp task list...\" && gulp --tasks",
-    "repl": "rlwrap npx -p @babel/core -p @babel/node babel-node",
-    "check-types": "(command -v unbuffer >/dev/null && (unbuffer tsc; unbuffer eslint .) | less -R -FX || (tsc; eslint .))",
+    "repl": "command -v rlwrap >/dev/null && rlwrap npx -p @babel/core -p @babel/node babel-node",
+    "check-types": "command -v unbuffer >/dev/null && (unbuffer tsc; unbuffer eslint .) | less -R -FX || (tsc; eslint .)",
     "build-externals": "NODE_ENV=production webpack -p"
   },
   "author": "Xunnamius",
