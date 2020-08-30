@@ -32,10 +32,7 @@
     },
     "setupFilesAfterEnv": [
       "jest-extended"
-    ],
-    "transform": {
-      "^.+\\.[t|j]sx?$": "babel-jest"
-    }
+    ]
   },
   "config": {
     "mongodbMemoryServer": {
