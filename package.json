@@ -90,10 +90,16 @@
     "react-dom": "^16.13.1",
     "request-ip": "^2.1.3",
     "typescript": "^4.0.2",
-    "unique-random-array": "^2.0.0"
+    "unique-random-array": "^2.0.0",
+    "babel-loader": "^8.1.0",
+    "dotenv-webpack": "^2.0.0",
+    "fancy-log": "^1.3.3",
+    "saslprep": "^1.0.3",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12",
+    "@next/bundle-analyzer": "^9.5.2"
   },
   "devDependencies": {
-    "@next/bundle-analyzer": "^9.5.2",
     "@types/bytes": "^3.1.0",
     "@types/clone-deep": "^4.0.1",
     "@types/confusing-browser-globals": "^1.0.0",
@@ -113,24 +119,18 @@
     "@typescript-eslint/parser": "^3.10.1",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^26.3.0",
-    "babel-loader": "^8.1.0",
     "babel-plugin-source-map-support": "^2.1.2",
-    "dotenv-webpack": "^2.0.0",
     "eslint": "^7.7.0",
     "eslint-import-resolver-alias": "^1.1.2",
     "eslint-import-resolver-typescript": "^2.2.1",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-jest": "^23.20.0",
     "eslint-plugin-react": "^7.20.6",
-    "fancy-log": "^1.3.3",
     "jest": "^26.4.2",
     "jest-circus": "^26.4.2",
     "jest-extended": "^0.11.5",
     "mongodb-memory-server": "^6.6.7",
-    "saslprep": "^1.0.3",
     "source-map-support": "^0.5.19",
-    "test-listen": "^1.1.0",
-    "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12"
+    "test-listen": "^1.1.0"
   }
 }
