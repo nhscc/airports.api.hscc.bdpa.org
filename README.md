@@ -10,7 +10,8 @@ following the instructions below.
 
 > This project has been tested on Linux (Kubuntu) and Windows 10 Pro. If you
 > encounter any issues (especially Windows-specific issues), please [report
-> them](https://github.com/nhscc/airports.api.hscc.bdpa.org/issues/new).
+> them](https://github.com/nhscc/airports.api.hscc.bdpa.org/issues/new). Note
+> that Windows only supports a subset of the npm run scripts.
 
 ## Accessing the API
 
@@ -38,38 +39,39 @@ To run a local instance of the API:
 1. Ensure the latest [NodeJS](https://nodejs.org/en/) and
    [MongoDB](https://docs.mongodb.com/manual/installation/) are installed and
    set up.
-2. Clone this repo using your favorite terminal
+2. Clone this repo using your favorite terminal.
 3. From the terminal, with the repo as the current working directory, run `npm
-   install`
+   install`.
    * If you're on Windows, you should also run `npm install -g gulp-cli` before
-     continuing
-4. Copy the file `dist.env` to `.env`
+     continuing.
+4. Copy the file `dist.env` to `.env`.
    * [Install MongoDB](https://www.mongodb.com/download-center/community) if you
-     have not already and start it up
+     have not already and start it up.
       * If you're on Windows, you might also be interested in MongoDB Compass
-        (bundled with the installer)
+        (bundled with the installer).
    * Add your MongoDB connect URI to the MONGODB_URI environment variable in
-     `.env`
+     `.env`.
       * The URI should look like this:
         `mongodb://localhost:your-port-number/my-test-db-name`, i.e.
-        `mongodb://localhost:27017/test`
+        `mongodb://localhost:27017/test`.
       * It is important that you include the name of the test database after the
-        slash (you can just make something up) like in the above examples
+        slash (you can just make something up) like in the above examples.
    * Set `HYDRATE_DB_ON_STARTUP=true` in `.env` to have the database you
-     specified in the connect URI automatically configured and hydrated
+     specified in the connect URI automatically configured and hydrated.
 5. At this point you should test that the API will work on your system. To do
-   this, run the command `npm test` in your terminal
+   this, run the command `npm test` in your terminal. If you're on Windows,
+   that's `npm test-windows`.
 6. If all tests passed, you can start up the API in development mode by running
-   the `npm run dev` command
-   * If you're on Windows, run `npm run dev-windows` instead!
+   the `npm run dev` command. If you're on Windows, that's `npm run
+   dev-windows`.
 7. If you set `HYDRATE_DB_ON_STARTUP=true` previously, navigate to the API's URI
-   (details below) using your browser to finish setting up the database
+   (details below) using your browser to finish setting up the database.
    * If you're using MongoDB Compass, you'll be able to visually explore the
-     dummy database's data
+     dummy database's data.
 8. You can now interact with the API using your browser,
-   [Postman](https://www.postman.com/), or otherwise
+   [Postman](https://www.postman.com/), or otherwise.
    * You should see a line on the console that looks like `ready - started
-     server on <URI HERE>`. Use that URI to access the API.
+     server on <http://HOST:PORT IS HERE>`. Use that URI to access the API.
 
 > Note: if you choose to run the API with NODE_ENV=production or `npm start`,
 > the database will not be automatically setup nor hydrated. Better to run the
