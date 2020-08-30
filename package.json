@@ -11,13 +11,13 @@
     "dev-windows": "gulp checkEnv && next -p 3000",
     "build": "gulp checkEnv && next build",
     "start": "next start",
-    "test": "jest",
+    "test": "BABEL_ENV=test jest",
     "generate": "BABEL_ENV=generator babel config --extensions \".ts\" --out-dir .",
     "regenerate": "gulp regenerate",
     "list-tasks": "npm run && echo \"Compiling gulp task list...\" && gulp --tasks",
     "repl": "rlwrap npx -p @babel/core -p @babel/node babel-node",
     "check-types": "(command -v unbuffer >/dev/null && (unbuffer tsc; unbuffer eslint .) | less -R -FX || (tsc; eslint .))",
-    "build-externals": "webpack"
+    "build-externals": "NODE_ENV=production webpack -p"
   },
   "author": "Xunnamius",
   "license": "ISC",
