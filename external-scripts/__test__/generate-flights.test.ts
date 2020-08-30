@@ -18,6 +18,7 @@ describe('external-scripts/generate-flights', () => {
 
         expect(await getCount()).toBe(0);
 
+        process.env.FLIGHTS_GENERATE_DAYS = '1';
         await generateFlights();
 
         setClientAndDb(await getNewClientAndDb());
