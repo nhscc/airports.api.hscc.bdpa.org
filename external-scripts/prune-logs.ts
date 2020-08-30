@@ -11,7 +11,6 @@ export default (async function() {
     try {
         const {
             PRUNE_LOGS_MAX_LOGS,
-            EXTERNAL_SCRIPTS_BE_VERBOSE: beVerbose
         } = getEnv();
 
         if(!PRUNE_LOGS_MAX_LOGS || !(Number(PRUNE_LOGS_MAX_LOGS) > 0))
