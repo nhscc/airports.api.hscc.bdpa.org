@@ -8,8 +8,9 @@ Atlas](https://www.mongodb.com/cloud/atlas). The code is highly documented. You
 can clone this repo and run a fully functional version of this API locally
 following the instructions below.
 
-> This project has been tested on Linux (Kubuntu) and Windows 10 Pro. If you
-> encounter any issues (especially Windows-specific issues), please [report
+> This project has been tested on Linux (Kubuntu) and Windows 10 Pro with WSL2
+> and PowerShell/CMD. If you encounter any issues (especially Windows-specific
+> issues), please [report
 > them](https://github.com/nhscc/airports.api.hscc.bdpa.org/issues/new). Note
 > that Windows only supports a subset of the npm run scripts.
 
@@ -42,8 +43,8 @@ To run a local instance of the API:
 2. Clone this repo using your favorite terminal.
 3. From the terminal, with the repo as the current working directory, run `npm
    install`.
-   * If you're on Windows, you should also run `npm install -g gulp-cli` before
-     continuing.
+   * If you're on Windows, you might also need to run `npm install -g gulp-cli`
+     if you encounter gulp-related errors below.
 4. Copy the file `dist.env` to `.env`.
    * [Install MongoDB](https://www.mongodb.com/download-center/community) if you
      have not already and start it up.
@@ -59,10 +60,10 @@ To run a local instance of the API:
    * Set `HYDRATE_DB_ON_STARTUP=true` in `.env` to have the database you
      specified in the connect URI automatically configured and hydrated.
 5. At this point you should test that the API will work on your system. To do
-   this, run the command `npm test` in your terminal. If you're on Windows,
-   that's `npm test-windows`.
+   this, run the command `npm test` in your terminal. If you're on Windows
+   PowerShell, that's `npm test-windows`.
 6. If all tests passed, you can start up the API in development mode by running
-   the `npm run dev` command. If you're on Windows, that's `npm run
+   the `npm run dev` command. If you're on Windows PowerShell, that's `npm run
    dev-windows`.
 7. If you set `HYDRATE_DB_ON_STARTUP=true` previously, navigate to the API's URI
    (details below) using your browser to finish setting up the database.
