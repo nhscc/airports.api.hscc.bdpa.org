@@ -12,7 +12,7 @@ following the instructions below.
 > and PowerShell/CMD. If you encounter any issues (especially Windows-specific
 > issues), please [report
 > them](https://github.com/nhscc/airports.api.hscc.bdpa.org/issues/new). Note
-> that Windows only supports a subset of the npm run scripts.
+> that non-WSL Windows only supports a subset of the npm run scripts.
 
 ## Accessing the API
 
