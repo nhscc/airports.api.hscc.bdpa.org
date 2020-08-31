@@ -22,19 +22,6 @@
   },
   "author": "Xunnamius",
   "license": "ISC",
-  "jest": {
-    "testEnvironment": "node",
-    "testRunner": "jest-circus/runner",
-    "verbose": false,
-    "moduleNameMapper": {
-      "^universe/(.*)$": "<rootDir>/src/$1",
-      "^multiverse/(.*)$": "<rootDir>/lib/$1",
-      "^types/(.*)$": "<rootDir>/types/$1"
-    },
-    "setupFilesAfterEnv": [
-      "jest-extended"
-    ]
-  },
   "config": {
     "mongodbMemoryServer": {
       "version": "4.2.9"
