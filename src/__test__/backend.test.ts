@@ -1,7 +1,8 @@
-import { WithId, ObjectId } from 'mongodb';
+import { WithId, ObjectId } from 'mongodb'
 import * as Backend from 'universe/backend'
 import { getEnv } from 'universe/backend/env'
 import { populateEnv } from 'universe/dev-utils'
+import sha256 from 'crypto-js/sha256'
 
 import {
     setupJest,
@@ -12,8 +13,7 @@ import {
 
 import {
     RequestLogEntry,
-    LimitedLogEntry,
-    InternalFlight
+    LimitedLogEntry
 } from 'types/global'
 
 import type{ NextApiRequest, NextApiResponse } from 'next'
@@ -92,6 +92,18 @@ describe('universe/backend', () => {
         });
     });
 
+    describe('::getApiKeys', () => {
+        it('returns the airline data as expected', async () => {
+            expect.hasAssertions();
+
+            expect(await Backend.getApiKeys()).toStrictEqual(unhydratedDummyDbData.keys.map(key => {
+                // @ts-expect-error: checking for existence of _id
+                const { _id, ...publicApiKey } = { ...key, key: sha256(key.key).toString() };
+                return publicApiKey;
+            }));
+        });
+    });
+
     describe('::getFlightsById', () => {
         it('throws if bad arguments', async () => {
             expect.hasAssertions();
@@ -151,7 +163,7 @@ describe('universe/backend', () => {
 
             const result1 = await Backend.getFlightsById({ ids: [flight1._id, flight2._id], key });
 
-            expect([result1[0].bookable, result1[1].bookable]).toStrictEqual([
+            expect([result1[0]?.bookable, result1[1]?.bookable]).toStrictEqual([
                 flight1.type == 'departure' && flight1.bookerKey == Backend.DUMMY_KEY,
                 flight2.type == 'departure' && flight2.bookerKey == Backend.DUMMY_KEY
             ]);

@@ -204,7 +204,7 @@ will enter into, from being cancelled to being delayed to arriving to boarding,
 is also generated using a [Markov
 process](https://en.wikipedia.org/wiki/Markov_chain) depending on its `type`.
 Afterwards, using an aggregation pipeline, one of these states is selected
-everytime an API request is made. The state that gets selected depends on the
+every time an API request is made. The state that gets selected depends on the
 time the request is received. This means flight data isn't actually "changing"
 "randomly" (i.e. stochastically) in the database, it only looks that way.
 

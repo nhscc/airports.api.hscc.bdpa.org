@@ -64,6 +64,7 @@ export function setClientAndDb({ client, db }: { client: MongoClient, db: Db }) 
 export async function destroyDb(db: Db) {
     await Promise.allSettled([
         db.dropCollection('keys'),
+        db.dropCollection('tool-keys'),
         db.dropCollection('request-log'),
         db.dropCollection('limited-log-mview'),
         db.dropCollection('flights'),
@@ -71,6 +72,7 @@ export async function destroyDb(db: Db) {
         db.dropCollection('airlines'),
         db.dropCollection('no-fly-list'),
         db.dropCollection('info'),
+        db.dropCollection('tool-overrides'),
     ]);
 }
 
@@ -84,6 +86,7 @@ export async function initializeDb(db: Db) {
 
     await Promise.all([
         db.createCollection('keys'),
+        db.createCollection('tool-keys'),
         db.createCollection('request-log'),
         db.createCollection('limited-log-mview'),
         db.createCollection('flights'),
@@ -91,6 +94,7 @@ export async function initializeDb(db: Db) {
         db.createCollection('airlines'),
         db.createCollection('no-fly-list'),
         db.createCollection('info'),
+        db.createCollection('tool-overrides'),
     ]);
 
     const flights = db.collection('flights');

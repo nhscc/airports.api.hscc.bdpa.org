@@ -21,7 +21,14 @@ import {
     AppError
 } from 'universe/backend/error'
 
-import { isKeyAuthentic, addToRequestLog, isDueForContrivedError, isRateLimited } from 'universe/backend'
+import {
+    isAdminKeyAuthentic,
+    isKeyAuthentic,
+    addToRequestLog,
+    isDueForContrivedError,
+    isRateLimited
+} from 'universe/backend'
+
 import { getEnv } from 'universe/backend/env'
 import Cors from 'cors'
 
@@ -32,6 +39,7 @@ export type AsyncHanCallback = (params: NextParamsRR) => Promise<void>;
 export type GenHanParams = NextParamsRR & {
     apiVersion?: number;
     methods: string[];
+    adminOnly?: boolean;
 };
 
 const cors = Cors({ methods: ['GET', 'POST', 'PUT', 'DELETE'] });
@@ -56,7 +64,7 @@ export const config = { api: { bodyParser: { sizeLimit: getEnv().MAX_CONTENT_LEN
  * handler function to trigger a 501 not implemented (to stub out API
  * endpoints).
  */
-export async function handleEndpoint(fn: AsyncHanCallback, { req, res, methods, apiVersion }: GenHanParams) {
+export async function handleEndpoint(fn: AsyncHanCallback, { req, res, methods, apiVersion, adminOnly }: GenHanParams) {
     const resp = res as typeof res & { $send: typeof res.send };
     // ? This will let us know if the sent method was called
     let sent = false;
@@ -80,13 +88,14 @@ export async function handleEndpoint(fn: AsyncHanCallback, { req, res, methods, 
             await runCorsMiddleware(req, res);
 
             const { limited, retryAfter } = await isRateLimited(req);
+            const { key } = req.headers;
 
             if(!getEnv().IGNORE_RATE_LIMITS && limited)
                 sendHttpRateLimited(resp, { retryAfter });
 
             else if(getEnv().LOCKOUT_ALL_KEYS
-              || typeof req.headers.key != 'string'
-              || !(await isKeyAuthentic(req.headers.key))) {
+              || typeof key != 'string'
+              || !(await (adminOnly ? isAdminKeyAuthentic(key): isKeyAuthentic(key)))) {
                 sendHttpUnauthenticated(resp);
             }
 
