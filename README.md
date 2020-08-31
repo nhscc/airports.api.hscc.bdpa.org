@@ -100,8 +100,8 @@ $ npm run list-tasks
 ```
 
 > Note that, when using Windows PowerShell/CMD, only a subset of these actions
-> are supported. They are: `dev-windows`, `test-windows`, `build`, `start`,
-> `regenerate`.
+> are supported. If you get an error running one, check package.json and try to
+> craft your own version of the command.
 
 ## Project structure
 
