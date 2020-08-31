@@ -155,8 +155,9 @@ folder serves a similar purpose.
 configuration is only used when building external scripts*).
 
 `V1API.apib` and `V2API.apib` are [APIB](https://apiblueprint.org) files used to
-build the [Apiary](https://apiary.io) APIv1 and APIv2 documentation
-respectively.
+build the [Apiary](https://apiary.io)
+[APIv1](https://hsccdfbb7244.docs.apiary.io) and
+[APIv2](https://hscc210ff8c0.docs.apiary.io) documentation, respectively.
 
 `lib/` contains TypeScript modules shared between projects. These are candidates
 for becoming new NPM packages.
