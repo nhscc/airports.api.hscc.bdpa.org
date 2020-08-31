@@ -99,6 +99,10 @@ To get a list of possible actions, run the following from your terminal:
 $ npm run list-tasks
 ```
 
+> Note that, when using Windows PowerShell/CMD, only a subset of these actions
+> are supported. They are: `dev-windows`, `test-windows`, `build`, `start`,
+> `regenerate`.
+
 ## Project structure
 
 This API uses the following technologies:
