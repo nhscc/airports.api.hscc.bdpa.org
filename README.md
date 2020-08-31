@@ -170,6 +170,11 @@ tools UI. `src/pages` contains React (JSX) TypeScript code (`.tsx` files).
 so named to take advantage of [Next dynamic
 routing](https://nextjs.org/docs/routing/dynamic-routes).
 
+`external-scripts/` contains the source code for all the [external
+scripts](#external-scripts). `external-scripts/bin/` is created when running
+`npm run build-externals`, which compiles the scripts in `external-scripts/`
+into `external-scripts/bin/`.
+
 ### External scripts
 
 The files found under `external-scripts/bin` are independently bundled
@@ -228,7 +233,7 @@ process](https://en.wikipedia.org/wiki/Markov_chain) depending on its `type`.
 Afterwards, using an aggregation pipeline, one of these states is selected
 every time an API request is made. The state that gets selected depends on the
 time the request is received. This means flight data isn't actually "changing"
-"randomly" (i.e. stochastically) in the database, it only looks that way.
+"randomly" (i.e. stochastically) in the database. It only looks that way.
 
 These states, made up of `arriveAtReceiver`, `gate`, `status`, and
 `departFromReceiver`, are generated and stored according to the following rules:
