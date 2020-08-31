@@ -13,7 +13,8 @@ import {
 
 import {
     RequestLogEntry,
-    LimitedLogEntry
+    LimitedLogEntry,
+    InternalFlight
 } from 'types/global'
 
 import type{ NextApiRequest, NextApiResponse } from 'next'

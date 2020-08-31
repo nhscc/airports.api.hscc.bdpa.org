@@ -380,7 +380,7 @@ export default function Index({ previouslyHydratedDb, shouldHydrateDb, isInProdu
                     catch(e) { setErrorElement(<span className="error">Error: invalid JSON provided</span>) }
                 };
 
-                formResetHandler = (e: React.FormEvent<HTMLFormElement>) => {
+                formResetHandler = async (e: React.FormEvent<HTMLFormElement>) => {
                     e.preventDefault();
 
                     try {
@@ -388,7 +388,7 @@ export default function Index({ previouslyHydratedDb, shouldHydrateDb, isInProdu
 
                         setRespondWithCode(null);
                         setRespondWithJSON(null);
-                        deleteOverrideEntryFor({ adminKey, targetTeam });
+                        await deleteOverrideEntryFor({ adminKey, targetTeam });
                         setErrorElement(<span className="success">Response override reset successfully!</span>);
                     }
 

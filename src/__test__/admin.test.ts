@@ -7,5 +7,9 @@ const { getDb } = setupJest();
 process.env.REQUESTS_PER_CONTRIVED_ERROR = '0';
 
 describe('api/admin', () => {
+    void getDb;
+    void ApiAdminEndpoint;
+    void testApiEndpoint;
+
     test.todo('functions as expected');
 });

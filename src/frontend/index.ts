@@ -2,6 +2,7 @@ import { fetchEndpoint } from 'multiverse/fetch-endpoint'
 import { getEnv } from 'universe/backend/env'
 
 import type { Options } from 'multiverse/fetch-endpoint'
+import { AppError } from 'universe/backend/error';
 
 type FetchFn = (...params: Parameters<typeof fetchEndpoint>) => ReturnType<typeof fetchEndpoint>;
 
@@ -21,9 +22,13 @@ const fetcher = (fetchFn: FetchFn, options: Options & { adminKey?: string }) =>
     (...params: Parameters<FetchFn>) => fetchFn(params[0], params[1] ?? options);
 
 const api = async (endpoint: string, fetchFn: FetchFn) => {
-    const rawApiUrl = getEnv().ifExists('API_ROOT_URI');
+    const rawApiUrl = getEnv().API_ROOT_URI;
+
+    if(!rawApiUrl)
+        throw new AppError('illegal environment detected, check environment variables');
+
     const apiUri = rawApiUrl.endsWith('/') ? rawApiUrl.slice(0, -1) : rawApiUrl;
-    return await fetchFn(`${apiUri}/${endpoint}`);
+    return fetchFn(`${apiUri}/${endpoint}`);
 };
 
 const PUT = (adminKey: string) => fetcher(fetchEndpoint.put, { adminKey })

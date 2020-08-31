@@ -33,7 +33,6 @@ import type {
     InternalFlight,
     PublicFlight,
     InternalInfo,
-    PublicAirport,
 } from 'types/global'
 
 const isObject = (object: unknown) => !isArray(object) && object !== null && typeof object == 'object';
