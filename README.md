@@ -60,6 +60,8 @@ To run a local instance of the API:
         slash (you can just make something up) like in the above examples.
    * Set `HYDRATE_DB_ON_STARTUP=true` in `.env` to have the database you
      specified in the connect URI automatically configured and hydrated.
+     Alternatively, you can use the `generate-flights.js` [external
+     script](#external-scripts).
 5. At this point you should test that the API will work on your system. To do
    this, run the command `npm test` in your terminal. If you're on Windows
    PowerShell/CMD, that's `npm test-windows`.
@@ -77,8 +79,8 @@ To run a local instance of the API:
      API.
 
 > Note: if you choose to run the API with NODE_ENV=production or `npm start`,
-> the database will not be automatically setup nor hydrated. Better to run the
-> API in development mode (the default).
+> the database will not be automatically setup nor (one-time) hydrated. Better
+> to run the API in development mode (the default).
 
 > Warning: if you've enabled the V1 API, the `"economy"` seat class MUST EXIST
 > in the database (in the `info` collection, `seatClasses` array) or there will
@@ -86,10 +88,10 @@ To run a local instance of the API:
 > queries.
 
 > Note: to generate stochastic flight states, you must hydrate the database.
-> Stochastic flight states are generated automatically only when the API is
-> run in development mode. In production, the functionality is provided by
-> the `generate-flights` script found at
-> `external-scripts/bin/generate-flights.js`.
+> Stochastic flight states are generated one time only: when the API is run in
+> development mode, `HYDRATE_DB_ON_STARTUP=true`, and the index page is
+> accessed. In production, the functionality is provided by the
+> `generate-flights` script found at `external-scripts/bin/generate-flights.js`.
 
 ## Available commands
 

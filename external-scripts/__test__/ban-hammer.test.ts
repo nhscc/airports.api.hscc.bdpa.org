@@ -115,7 +115,7 @@ describe('external-scripts/ban-hammer', () => {
         setClientAndDb(await getNewClientAndDb());
         expect(await getRateLimits()).toHaveLength(0);
 
-        process.env.BAN_HAMMER_WILL_BE_CALLED_EVERY_SECONDS = '3';
+        process.env.BAN_HAMMER_WILL_BE_CALLED_EVERY_SECONDS = '10';
         await banHammer();
 
         setClientAndDb(await getNewClientAndDb());
