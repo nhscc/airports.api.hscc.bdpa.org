@@ -102,8 +102,8 @@ $ npm run list-tasks
 ```
 
 > Note that, when using Windows PowerShell/CMD, only a subset of these actions
-> are supported. If you get an error running one, check package.json and try to
-> craft your own version of the command.
+> are supported. If you get an error when trying to running one, check
+> package.json and try to craft your own version of the command instead.
 
 ## Project structure
 

@@ -18,9 +18,9 @@ describe('external-scripts/ban-hammer', () => {
     it('rate limits only the ips and their keys that exceed BAN_HAMMER_MAX_REQUESTS_PER_WINDOW/BAN_HAMMER_RESOLUTION_WINDOW_SECONDS', async () => {
         expect.hasAssertions();
 
-        const now = Date.now();
+        const now = Date.now() - 1000;
 
-        await (await getRequestLogDb()).updateMany({}, { $set: { time: now - 1000 }});
+        await (await getRequestLogDb()).updateMany({}, { $set: { time: now }});
         await (await getRateLimitsDb()).deleteMany({});
 
         process.env.BAN_HAMMER_MAX_REQUESTS_PER_WINDOW = '10';
@@ -56,16 +56,21 @@ describe('external-scripts/ban-hammer', () => {
             method: 'PUT',
             resStatusCode: 200,
             route: 'jest/test',
-            time: now - 2000
+            // * This corrects an edge case that was causing a heisenbug
+            time: now - (now % 5000) + 3000 // ? 3000ms = 5000ms - 2000ms
         });
 
         process.env.BAN_HAMMER_MAX_REQUESTS_PER_WINDOW = '11';
         await banHammer();
 
         setClientAndDb(await getNewClientAndDb());
-        expect(await getRateLimits()).toHaveLength(0);
+        const rl = await getRateLimits();
+        // TODO: ERROR DEBUG: 1598871658767 1598871658000
+        // eslint-disable-next-line no-console
+        if(rl.length != 0) console.warn('ERROR DEBUG:', now, now - (now % 5000) + 3000);
+        expect(rl).toHaveLength(0);
 
-        process.env.BAN_HAMMER_RESOLUTION_WINDOW_SECONDS = '5';
+        process.env.BAN_HAMMER_RESOLUTION_WINDOW_SECONDS = '5'; // ? 5000ms
         await banHammer();
 
         setClientAndDb(await getNewClientAndDb());
@@ -76,7 +81,7 @@ describe('external-scripts/ban-hammer', () => {
 
         await (await getRateLimitsDb()).deleteMany({});
 
-        process.env.BAN_HAMMER_RESOLUTION_WINDOW_SECONDS = '1';
+        process.env.BAN_HAMMER_RESOLUTION_WINDOW_SECONDS = '1'; // ? vs 1000ms
         await banHammer();
 
         setClientAndDb(await getNewClientAndDb());
@@ -94,28 +99,29 @@ describe('external-scripts/ban-hammer', () => {
         if(!requestLogEntry)
             throw new Error('No request-log entry found?!');
 
-        const now = Date.now();
+        const now = Date.now() - 1000;
 
         await requestLogDb.updateMany({ key: '00000000-0000-0000-0000-000000000000' }, { $set: { ip: '9.8.7.6' }});
-        await requestLogDb.updateMany({}, { $set: { time: now - 1000 }});
+        await requestLogDb.updateMany({}, { $set: { time: now }});
         await requestLogDb.insertOne({
             ip: '1.2.3.4',
             key: null,
             method: 'PUT',
             resStatusCode: 200,
             route: 'jest/test',
-            time: now - 2000
+            // * This corrects an edge case that was causing a heisenbug
+            time: now - (now % 3000) + 1000 // ? 1000ms = 3000ms - 2000ms
         });
 
         process.env.BAN_HAMMER_MAX_REQUESTS_PER_WINDOW = '11';
         process.env.BAN_HAMMER_RESOLUTION_WINDOW_SECONDS = '5';
-        process.env.BAN_HAMMER_WILL_BE_CALLED_EVERY_SECONDS = '1';
+        process.env.BAN_HAMMER_WILL_BE_CALLED_EVERY_SECONDS = '1'; // ? 1000ms
         await banHammer();
 
         setClientAndDb(await getNewClientAndDb());
         expect(await getRateLimits()).toHaveLength(0);
 
-        process.env.BAN_HAMMER_WILL_BE_CALLED_EVERY_SECONDS = '3';
+        process.env.BAN_HAMMER_WILL_BE_CALLED_EVERY_SECONDS = '3'; // ? vs 3000ms
         await banHammer();
 
         setClientAndDb(await getNewClientAndDb());
