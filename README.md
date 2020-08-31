@@ -22,10 +22,11 @@ Version 1 documentation and playground with examples: https://hsccdfbb7244.docs.
 Version 2 documentation and playground with examples: https://hscc210ff8c0.docs.apiary.io
 
 Additionally, you can access the special administrator "tools" interface by
-navigating to https://airports.api.hscc.bdpa.org/?tools. This special URI is
+navigating to https://airports.api.hscc.bdpa.org/?tools. This special UI is
 available for local/development deployments as well. You will need an
 administrator key to use it. If you choose to hydrate the database, see the
-`admin-keys` collection to find one.
+`admin-keys` mongodb collection to find one. [More on this
+below](#administrator-tools).
 
 ## Running a local instance of the API
 
@@ -72,7 +73,8 @@ To run a local instance of the API:
 8. You can now interact with the API using your browser,
    [Postman](https://www.postman.com/), or otherwise.
    * You should see a line on the console that looks like `ready - started
-     server on <http://HOST:PORT IS HERE>`. Use that URI to access the API.
+     server on http://<HOST:PORT>/?tools`. Use that host/port URI to access the
+     API.
 
 > Note: if you choose to run the API with NODE_ENV=production or `npm start`,
 > the database will not be automatically setup nor hydrated. Better to run the
@@ -191,8 +193,28 @@ npm run build-externals
 All executables under `external-scripts/bin` can be run like so:
 
 ```
-node external-scripts/bin/script-name.js
+node external-scripts/bin/script-name-here.js
 ```
+
+Currently, the following external scripts exist:
+
+- `generate-flights.js` - Responsible for generating new flights for the database. Should be run every week or so.
+- `prune-logs.js` - Responsible for ensuring the mongodb request-log collection
+  never grows too large. Should be run every hour or so.
+- `ban-hammer.js` - Responsible for rate limiting (banning) keys and ips that
+  hit the API too often. Should be run every minute.
+
+### Administrator tools
+
+This interface is used by judges and testers to control how the API responds to
+requests from specific API keys. You can access the admin tools interface by
+navigating to `http://<HOST:PORT>/?tools`.
+
+Currently, the following admin tools are available:
+
+- `Tool 1: todo` - todo
+- `Tool 2: todo` - todo
+- `Tool 3: todo` - todo
 
 ### Stochastic flight states
 
