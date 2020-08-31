@@ -18,6 +18,9 @@ describe('external-scripts/ban-hammer', () => {
     it('rate limits only the ips and their keys that exceed BAN_HAMMER_MAX_REQUESTS_PER_WINDOW/BAN_HAMMER_RESOLUTION_WINDOW_SECONDS', async () => {
         expect.hasAssertions();
 
+        const now = Date.now();
+
+        await (await getRequestLogDb()).updateMany({}, { $set: { time: now - 1000 }});
         await (await getRateLimitsDb()).deleteMany({});
 
         process.env.BAN_HAMMER_MAX_REQUESTS_PER_WINDOW = '10';
@@ -47,19 +50,13 @@ describe('external-scripts/ban-hammer', () => {
 
         await (await getRateLimitsDb()).deleteMany({});
 
-        const requestLogDb = await getRequestLogDb();
-        const requestLogEntry = await requestLogDb.find().limit(1).next();
-
-        if(!requestLogEntry)
-            throw new Error('No request-log entry found?!');
-
-        await requestLogDb.insertOne({
+        await (await getRequestLogDb()).insertOne({
             ip: '1.2.3.4',
             key: '00000000-0000-0000-0000-000000000000',
             method: 'PUT',
             resStatusCode: 200,
             route: 'jest/test',
-            time: requestLogEntry.time - (requestLogEntry.time % 2000) - 1
+            time: now - 2000
         });
 
         process.env.BAN_HAMMER_MAX_REQUESTS_PER_WINDOW = '11';
@@ -68,7 +65,7 @@ describe('external-scripts/ban-hammer', () => {
         setClientAndDb(await getNewClientAndDb());
         expect(await getRateLimits()).toHaveLength(0);
 
-        process.env.BAN_HAMMER_RESOLUTION_WINDOW_SECONDS = '1000';
+        process.env.BAN_HAMMER_RESOLUTION_WINDOW_SECONDS = '5';
         await banHammer();
 
         setClientAndDb(await getNewClientAndDb());
@@ -97,25 +94,28 @@ describe('external-scripts/ban-hammer', () => {
         if(!requestLogEntry)
             throw new Error('No request-log entry found?!');
 
+        const now = Date.now();
+
         await requestLogDb.updateMany({ key: '00000000-0000-0000-0000-000000000000' }, { $set: { ip: '9.8.7.6' }});
+        await requestLogDb.updateMany({}, { $set: { time: now - 1000 }});
         await requestLogDb.insertOne({
             ip: '1.2.3.4',
             key: null,
             method: 'PUT',
             resStatusCode: 200,
             route: 'jest/test',
-            time: Date.now() - 2000
+            time: now - 2000
         });
 
         process.env.BAN_HAMMER_MAX_REQUESTS_PER_WINDOW = '11';
-        process.env.BAN_HAMMER_RESOLUTION_WINDOW_SECONDS = '10000';
+        process.env.BAN_HAMMER_RESOLUTION_WINDOW_SECONDS = '5';
         process.env.BAN_HAMMER_WILL_BE_CALLED_EVERY_SECONDS = '1';
         await banHammer();
 
         setClientAndDb(await getNewClientAndDb());
         expect(await getRateLimits()).toHaveLength(0);
 
-        process.env.BAN_HAMMER_WILL_BE_CALLED_EVERY_SECONDS = '10';
+        process.env.BAN_HAMMER_WILL_BE_CALLED_EVERY_SECONDS = '3';
         await banHammer();
 
         setClientAndDb(await getNewClientAndDb());
