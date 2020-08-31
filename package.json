@@ -25,7 +25,7 @@
   "jest": {
     "testEnvironment": "node",
     "testRunner": "jest-circus/runner",
-    "verbose": true,
+    "verbose": false,
     "moduleNameMapper": {
       "^universe/(.*)$": "<rootDir>/src/$1",
       "^multiverse/(.*)$": "<rootDir>/lib/$1",
