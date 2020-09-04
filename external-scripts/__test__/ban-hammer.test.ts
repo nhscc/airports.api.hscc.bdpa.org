@@ -66,6 +66,7 @@ describe('external-scripts/ban-hammer', () => {
         setClientAndDb(await getNewClientAndDb());
         const rl = await getRateLimits();
         // TODO: ERROR DEBUG: 1598871658767 1598871658000
+        // TODO: ERROR DEBUG: 1598875643940 1598875643000
         // eslint-disable-next-line no-console
         if(rl.length != 0) console.warn('ERROR DEBUG:', now, now - (now % 5000) + 3000);
         expect(rl).toHaveLength(0);
@@ -125,7 +126,12 @@ describe('external-scripts/ban-hammer', () => {
         await banHammer();
 
         setClientAndDb(await getNewClientAndDb());
-        expect(await getRateLimits()).toIncludeSameMembers([{ ip: '1.2.3.4' }]);
+        const rl = await getRateLimits();
+        // TODO: ERROR DEBUG: 1598876049570 1598876050000
+        // TODO: ERROR DEBUG: 1598876075603 1598876074000
+        // eslint-disable-next-line no-console
+        if(rl.length != 1) console.warn('ERROR DEBUG:', now, now - (now % 3000) + 1000);
+        expect(rl).toIncludeSameMembers([{ ip: '1.2.3.4' }]);
     });
 
     it('repeat offenders are punished with respect to BAN_HAMMER_DEFAULT_BAN_TIME_MINUTES and BAN_HAMMER_RECIDIVISM_PUNISH_MULTIPLIER', async () => {

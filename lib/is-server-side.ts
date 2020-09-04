@@ -1,1 +1,3 @@
-export default () => typeof window == 'undefined';
+export default function isServerSide() {
+    return typeof window == 'undefined';
+}
