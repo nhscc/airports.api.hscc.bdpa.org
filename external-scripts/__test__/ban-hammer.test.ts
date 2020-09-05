@@ -14,14 +14,34 @@ const getRateLimitsDb = async () => (await getDb()).collection<WithId<LimitedLog
 const getRateLimits = async () => (await getRateLimitsDb()).find().project({ _id: 0, ip:  1, key: 1 }).toArray();
 const getRateLimitUntils = async () => (await getRateLimitsDb()).find().project({ _id: 0, until: 1 }).toArray();
 
+expect.extend({
+    toBeAround(actual, expected, precision) {
+        const pass = Math.abs(expected - actual) <= precision;
+
+        if(pass) {
+            return {
+                message: () => `expected ${actual} not to be with ±${precision} of ${expected}`,
+                pass: true
+            };
+        }
+
+        else {
+            return {
+                message: () => `expected ${actual} to be with ±${precision} of ${expected}`,
+                pass: false
+            }
+        }
+    }
+});
+
 describe('external-scripts/ban-hammer', () => {
     it('rate limits only the ips and their keys that exceed BAN_HAMMER_MAX_REQUESTS_PER_WINDOW/BAN_HAMMER_RESOLUTION_WINDOW_SECONDS', async () => {
         expect.hasAssertions();
 
-        const now = Date.now() - 1000;
+        const now = ((_now: number) => _now - (_now % 5000) - 1000)(Date.now());
 
-        await (await getRequestLogDb()).updateMany({}, { $set: { time: now }});
         await (await getRateLimitsDb()).deleteMany({});
+        await (await getRequestLogDb()).updateMany({}, { $set: { time: now }});
 
         process.env.BAN_HAMMER_MAX_REQUESTS_PER_WINDOW = '10';
         process.env.BAN_HAMMER_RESOLUTION_WINDOW_SECONDS = '1';
@@ -49,27 +69,20 @@ describe('external-scripts/ban-hammer', () => {
         ]);
 
         await (await getRateLimitsDb()).deleteMany({});
-
         await (await getRequestLogDb()).insertOne({
             ip: '1.2.3.4',
             key: '00000000-0000-0000-0000-000000000000',
             method: 'PUT',
             resStatusCode: 200,
             route: 'jest/test',
-            // * This corrects an edge case that was causing a heisenbug
-            time: now - (now % 5000) + 3000 // ? 3000ms = 5000ms - 2000ms
+            time: now - 1000
         });
 
         process.env.BAN_HAMMER_MAX_REQUESTS_PER_WINDOW = '11';
         await banHammer();
 
         setClientAndDb(await getNewClientAndDb());
-        const rl = await getRateLimits();
-        // TODO: ERROR DEBUG: 1598871658767 1598871658000
-        // TODO: ERROR DEBUG: 1598875643940 1598875643000
-        // eslint-disable-next-line no-console
-        if(rl.length != 0) console.warn('ERROR DEBUG:', now, now - (now % 5000) + 3000);
-        expect(rl).toHaveLength(0);
+        expect(await getRateLimits()).toHaveLength(0);
 
         process.env.BAN_HAMMER_RESOLUTION_WINDOW_SECONDS = '5'; // ? 5000ms
         await banHammer();
@@ -100,21 +113,12 @@ describe('external-scripts/ban-hammer', () => {
         if(!requestLogEntry)
             throw new Error('No request-log entry found?!');
 
-        const now = Date.now() - 1000;
+        const now = ((_now: number) => _now - (_now % 5000) - 2000)(Date.now());
 
         await requestLogDb.updateMany({ key: '00000000-0000-0000-0000-000000000000' }, { $set: { ip: '9.8.7.6' }});
         await requestLogDb.updateMany({}, { $set: { time: now }});
-        await requestLogDb.insertOne({
-            ip: '1.2.3.4',
-            key: null,
-            method: 'PUT',
-            resStatusCode: 200,
-            route: 'jest/test',
-            // * This corrects an edge case that was causing a heisenbug
-            time: now - (now % 3000) + 1000 // ? 1000ms = 3000ms - 2000ms
-        });
 
-        process.env.BAN_HAMMER_MAX_REQUESTS_PER_WINDOW = '11';
+        process.env.BAN_HAMMER_MAX_REQUESTS_PER_WINDOW = '10';
         process.env.BAN_HAMMER_RESOLUTION_WINDOW_SECONDS = '5';
         process.env.BAN_HAMMER_WILL_BE_CALLED_EVERY_SECONDS = '1'; // ? 1000ms
         await banHammer();
@@ -122,16 +126,15 @@ describe('external-scripts/ban-hammer', () => {
         setClientAndDb(await getNewClientAndDb());
         expect(await getRateLimits()).toHaveLength(0);
 
-        process.env.BAN_HAMMER_WILL_BE_CALLED_EVERY_SECONDS = '3'; // ? vs 3000ms
+        process.env.BAN_HAMMER_WILL_BE_CALLED_EVERY_SECONDS = '8'; // ? vs 5000 + 2000 ms
         await banHammer();
 
         setClientAndDb(await getNewClientAndDb());
-        const rl = await getRateLimits();
-        // TODO: ERROR DEBUG: 1598876049570 1598876050000
-        // TODO: ERROR DEBUG: 1598876075603 1598876074000
-        // eslint-disable-next-line no-console
-        if(rl.length != 1) console.warn('ERROR DEBUG:', now, now - (now % 3000) + 1000);
-        expect(rl).toIncludeSameMembers([{ ip: '1.2.3.4' }]);
+        expect(await getRateLimits()).toIncludeSameMembers([
+            { key: "00000000-0000-0000-0000-000000000000" },
+            { ip: "9.8.7.6" },
+            { ip: "1.2.3.4" }
+        ]);
     });
 
     it('repeat offenders are punished with respect to BAN_HAMMER_DEFAULT_BAN_TIME_MINUTES and BAN_HAMMER_RECIDIVISM_PUNISH_MULTIPLIER', async () => {
@@ -140,12 +143,25 @@ describe('external-scripts/ban-hammer', () => {
         await (await getRateLimitsDb()).deleteMany({});
         await (await getRequestLogDb()).updateMany({ key: '00000000-0000-0000-0000-000000000000' }, { $set: { ip: '9.8.7.6' }});
 
+        const now = Date.now();
+
         process.env.BAN_HAMMER_DEFAULT_BAN_TIME_MINUTES = '10';
         await banHammer();
 
         setClientAndDb(await getNewClientAndDb());
-        const tenMinutesInMs = 10 * 60 * 1000;
-        const expectedUntils = (await getRateLimitUntils()).map(u => u.until + tenMinutesInMs);
+        const expectUntils = async (length: number, minutes: number, multi: number) => {
+            const untils = await getRateLimitUntils();
+
+            expect(untils).toHaveLength(length);
+
+            untils.forEach(u => {
+                // ? If tests are failing, try make toBeAround param #2 to be > 1000
+                // @ts-expect-error -- toBeAround is defined at the top of this file
+                expect(u.until).toBeAround(now + minutes * 60 * 1000 * multi, multi * 1000);
+            });
+        };
+
+        await expectUntils(3, 10, 1);
 
         await (await getRateLimitsDb()).deleteMany({});
 
@@ -153,15 +169,13 @@ describe('external-scripts/ban-hammer', () => {
         await banHammer();
 
         setClientAndDb(await getNewClientAndDb());
-        const actualUntils = (await getRateLimitUntils()).map(u => u.until);
-
-        expect(actualUntils).toIncludeSameMembers(expectedUntils);
+        await expectUntils(3, 20, 1);
 
         process.env.BAN_HAMMER_RECIDIVISM_PUNISH_MULTIPLIER = '5';
         await banHammer();
 
         setClientAndDb(await getNewClientAndDb());
-        expect((await getRateLimitUntils()).map(u => u.until)).toIncludeSameMembers(expectedUntils.map(u => u * 5))
+        await expectUntils(3, 20, 5);
     });
 
     it('does not replace longer bans with shorter bans', async () => {
@@ -185,10 +199,13 @@ describe('external-scripts/ban-hammer', () => {
 
         expect(await getRateLimits()).toHaveLength(3);
 
-        await (await getRateLimitsDb()).updateMany({ ip: { $ne: '5.6.7.8' }}, { $set: { until: 0 }});
+        await (await getRateLimitsDb()).updateMany({ ip: '5.6.7.8' }, { $set: { until: 0 }});
         await banHammer();
 
         setClientAndDb(await getNewClientAndDb());
-        expect(await getRateLimits()).toIncludeSameMembers([{ ip: '1.2.3.4' }, { ip: '5.6.7.8' }]);
+        expect(await getRateLimits()).toIncludeSameMembers([
+            { ip: '1.2.3.4' },
+            { key: '00000000-0000-0000-0000-000000000000' }
+        ]);
     });
 });

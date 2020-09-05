@@ -2,8 +2,9 @@
 import { getEnv } from 'universe/backend/env'
 import { AppError } from 'universe/backend/error'
 import { getDb, closeDb } from 'universe/backend/db'
-import { WithId } from 'mongodb';
-import { RequestLogEntry } from 'types/global';
+
+import type { WithId } from 'mongodb'
+import type { RequestLogEntry } from 'types/global'
 
 export default async function main(isCLI = false) {
     try {

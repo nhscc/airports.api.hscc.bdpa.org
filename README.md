@@ -25,7 +25,7 @@ Additionally, you can access the special administrator "tools" interface by
 navigating to https://airports.api.hscc.bdpa.org/?tools. This special UI is
 available for local/development deployments as well. You will need an
 administrator key to use it. If you choose to hydrate the database, see the
-`admin-keys` mongodb collection to find one. [More on this
+`tool-keys` mongodb collection to find one. [More on this
 below](#administrator-tools).
 
 ## Running a local instance of the API

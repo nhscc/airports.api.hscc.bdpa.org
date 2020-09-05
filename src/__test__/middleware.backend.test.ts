@@ -6,10 +6,11 @@ import { getEnv } from 'universe/backend/env'
 import { populateEnv } from 'universe/dev-utils'
 import { shuffle } from 'fast-shuffle'
 
+import * as BackendError from 'universe/backend/error'
+
 import type { TestParams } from 'multiverse/test-api-endpoint'
 import type { NextApiRequest, NextApiResponse } from 'next'
-import * as BackendError from 'universe/backend/error'
-import { RequestLogEntry, LimitedLogEntry } from 'types/global'
+import type { RequestLogEntry, LimitedLogEntry } from 'types/global'
 
 populateEnv();
 

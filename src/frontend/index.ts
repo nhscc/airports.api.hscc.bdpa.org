@@ -1,8 +1,8 @@
 import { fetchEndpoint } from 'multiverse/fetch-endpoint'
 import { getEnv } from 'universe/backend/env'
+import { AppError } from 'universe/backend/error'
 
 import type { Options } from 'multiverse/fetch-endpoint'
-import { AppError } from 'universe/backend/error';
 
 type FetchFn = (...params: Parameters<typeof fetchEndpoint>) => ReturnType<typeof fetchEndpoint>;
 

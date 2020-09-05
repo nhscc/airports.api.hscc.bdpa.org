@@ -115,7 +115,7 @@ export async function isAdminKeyAuthentic(key: string): Promise<boolean> {
     if(!key || typeof key != 'string')
         throw new ApiKeyTypeError();
 
-    return !!await (await getDb()).collection<WithId<ApiKey>>('admin-keys').find({ key }).limit(1).count();
+    return !!await (await getDb()).collection<WithId<ApiKey>>('tool-keys').find({ key }).limit(1).count();
 }
 
 /**
