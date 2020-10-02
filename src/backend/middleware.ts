@@ -16,13 +16,13 @@ import {
     NotAuthorizedError,
     FlightGenerationError,
     IdTypeError,
-    ApiKeyTypeError,
+    KeyTypeError,
     ValidationError,
     AppError
 } from 'universe/backend/error'
 
 import {
-    isAdminKeyAuthentic,
+    isToolKeyAuthentic,
     isKeyAuthentic,
     addToRequestLog,
     isDueForContrivedError,
@@ -53,6 +53,7 @@ const runCorsMiddleware = (req: any, res: any) => {
 export function sendHttpContrivedError(res: NextApiResponse, responseJson?: Record<string, unknown>) {
     sendHttpErrorResponse(res, 555, {
         error: '(note: do not report this contrived error)',
+        success: false,
         ...responseJson
     });
 }
@@ -70,7 +71,7 @@ export async function handleEndpoint(fn: AsyncHanCallback, { req, res, methods, 
     let sent = false;
 
     resp.$send = resp.send;
-    resp.send = (...args): void => {
+    resp.send = (...args) => {
         sent = true;
         void addToRequestLog({ req, res });
         resp.$send(...args);
@@ -95,7 +96,7 @@ export async function handleEndpoint(fn: AsyncHanCallback, { req, res, methods, 
 
             else if(getEnv().LOCKOUT_ALL_KEYS
               || typeof key != 'string'
-              || !(await (adminOnly ? isAdminKeyAuthentic(key): isKeyAuthentic(key)))) {
+              || !(await (adminOnly ? isToolKeyAuthentic(key) : isKeyAuthentic(key)))) {
                 sendHttpUnauthenticated(resp);
             }
 
@@ -120,7 +121,7 @@ export async function handleEndpoint(fn: AsyncHanCallback, { req, res, methods, 
 
         else if((error instanceof FlightGenerationError) ||
           (error instanceof IdTypeError) ||
-          (error instanceof ApiKeyTypeError) ||
+          (error instanceof KeyTypeError) ||
           (error instanceof ValidationError)) {
             sendHttpBadRequest(resp, { ...(error.message ? { error: error.message } : {}) });
         }

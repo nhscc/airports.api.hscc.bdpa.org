@@ -16,7 +16,7 @@ export type Falsy = false | '' | 0 | null | undefined;
 export type Nil = false | null | undefined;
 
 export type SuccessJsonResponse = { success: true };
-export type ErrorJsonResponse = { error: string };
+export type ErrorJsonResponse = { error: string, success: false };
 
 export type HttpJsonResponse2xx = SuccessJsonResponse;
 export type HttpJsonResponse3xx = SuccessJsonResponse;

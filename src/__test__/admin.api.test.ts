@@ -1,6 +1,6 @@
 import { setupJest } from 'universe/__test__/db'
 import { testApiEndpoint } from 'multiverse/test-api-endpoint'
-import * as ApiAdminEndpoint from 'universe/pages/api/admin'
+import * as ApiAdminEndpoint from 'universe/pages/api/[[...admin]]'
 
 const { getDb } = setupJest();
 

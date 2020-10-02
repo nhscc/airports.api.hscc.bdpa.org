@@ -53,7 +53,7 @@ module.exports = {
     // ? configuration depending on the value of NODE_ENV and friends. Default
     // ? is: development
     env: {
-        // * Used by Vercel and manual deployments
+        // * Used by Vercel and `npm start`
         production: {
             // ? Source maps are handled by Next.js and Webpack
             presets: [nextBabelPreset]
@@ -61,9 +61,11 @@ module.exports = {
         // * Used by `npm run dev`; is also the default environment
         development: {
             // ? Source maps are handled by Next.js and Webpack
-            presets: [nextBabelPreset]
+            presets: [nextBabelPreset],
+            // ? https://reactjs.org/docs/error-boundaries.html#how-about-event-handlers
+            plugins: ['@babel/plugin-transform-react-jsx-source']
         },
-        // * Used by Jest
+        // * Used by Jest and `npm test`
         test: {
             sourceMaps: 'both',
             presets: [

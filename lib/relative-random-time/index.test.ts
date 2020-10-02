@@ -2,7 +2,7 @@ import * as Time from './index'
 import 'jest-extended'
 
 const now = Date.now();
-Date.now = (): number => now;
+Date.now = () => now;
 
 describe('relative-random-time', () => {
     describe('::fromTimespan', () => {

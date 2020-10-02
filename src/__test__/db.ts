@@ -345,7 +345,7 @@ unhydratedDummyDbData.flights = [...Array(Math.floor(count))].map((_, ndx) => {
     return flight;
 });
 
-export async function hydrateDb(db: Db, data: DummyDbData): Promise<HydratedDummyDbData> {
+export async function hydrateDb(db: Db, data: DummyDbData) {
     const newData = cloneDeep(data);
 
     await Promise.all([

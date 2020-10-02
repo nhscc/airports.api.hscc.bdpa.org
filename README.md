@@ -222,7 +222,7 @@ This interface is used by judges and testers to control how the API responds to
 requests from specific API keys. You can access the admin tools interface by
 navigating to `http://<HOST:PORT>/?tools`.
 
-Currently, the following admin tools are available:
+Currently, the following tools are available:
 
 - `Tool 1: todo` - todo
 - `Tool 2: todo` - todo

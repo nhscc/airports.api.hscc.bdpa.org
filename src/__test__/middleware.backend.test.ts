@@ -212,7 +212,7 @@ describe('universe/backend/middleware', () => {
 
             const genError = function*() {
                 yield new BackendError.IdTypeError();
-                yield new BackendError.ApiKeyTypeError();
+                yield new BackendError.KeyTypeError();
                 yield new BackendError.ValidationError();
                 yield new BackendError.FlightGenerationError();
                 yield new BackendError.NotAuthorizedError();

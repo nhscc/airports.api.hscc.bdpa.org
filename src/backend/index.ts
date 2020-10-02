@@ -11,7 +11,7 @@ import sha256 from 'crypto-js/sha256'
 
 import {
     IdTypeError,
-    ApiKeyTypeError,
+    KeyTypeError,
     FlightGenerationError,
     GuruMeditationError,
     ValidationError,
@@ -104,16 +104,16 @@ export function convertPFlightToPFlightForV1Only(flight: PublicFlight) {
     };
 }
 
-export async function isKeyAuthentic(key: string): Promise<boolean> {
+export async function isKeyAuthentic(key: string) {
     if(!key || typeof key != 'string')
-        throw new ApiKeyTypeError();
+        throw new KeyTypeError();
 
     return !!await (await getDb()).collection<WithId<ApiKey>>('keys').find({ key }).limit(1).count();
 }
 
-export async function isAdminKeyAuthentic(key: string): Promise<boolean> {
+export async function isToolKeyAuthentic(key: string) {
     if(!key || typeof key != 'string')
-        throw new ApiKeyTypeError();
+        throw new KeyTypeError();
 
     return !!await (await getDb()).collection<WithId<ApiKey>>('tool-keys').find({ key }).limit(1).count();
 }
@@ -122,7 +122,7 @@ export async function isAdminKeyAuthentic(key: string): Promise<boolean> {
  * Note that this async function does not have to be awaited. It's fire and
  * forget!
  */
-export async function addToRequestLog({ req, res }: NextParamsRR): Promise<void> {
+export async function addToRequestLog({ req, res }: NextParamsRR) {
     const logEntry: RequestLogEntry = {
         ip: getClientIp(req),
         key: req.headers?.key?.toString() || null,
@@ -135,7 +135,7 @@ export async function addToRequestLog({ req, res }: NextParamsRR): Promise<void>
     await (await getDb()).collection<WithId<RequestLogEntry>>('request-log').insertOne(logEntry);
 }
 
-export async function isRateLimited(req: NextApiRequest): Promise<{ limited: boolean; retryAfter: number }> {
+export async function isRateLimited(req: NextApiRequest) {
     const ip = getClientIp(req);
     const key = req.headers?.key?.toString() || null;
 
@@ -150,7 +150,7 @@ export async function isRateLimited(req: NextApiRequest): Promise<{ limited: boo
     };
 }
 
-export function isDueForContrivedError(): boolean {
+export function isDueForContrivedError() {
     const reqPerErr = getEnv().REQUESTS_PER_CONTRIVED_ERROR;
 
     if(reqPerErr && ++requestCounter >= reqPerErr) {
@@ -207,7 +207,7 @@ export async function getFlightsById(params: GetFliByIdParams) {
         throw new IdTypeError();
 
     if(!key || typeof key != 'string')
-        throw new ApiKeyTypeError();
+        throw new KeyTypeError();
 
     if(!ids.length)
         return [];
@@ -223,7 +223,7 @@ export async function searchFlights(params: SeaFliParams) {
     let regexMatchObjectIds: ObjectId[] = [];
 
     if(!key || typeof key != 'string')
-        throw new ApiKeyTypeError();
+        throw new KeyTypeError();
 
     if(after !== null && !(after instanceof ObjectId))
         throw new IdTypeError(after);

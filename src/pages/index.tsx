@@ -4,10 +4,10 @@ import { hydrateDb, unhydratedDummyDbData } from 'universe/__test__/db'
 import { generateFlights, getApiKeys } from 'universe/backend'
 import { getEnv } from 'universe/backend/env'
 import { getDb, initializeDb, destroyDb } from 'universe/backend/db'
-import { FetchError } from 'universe/backend/error'
+import { AppError } from 'universe/backend/error'
 
 import {
-    isValidAdminKey,
+    isValidToolKey,
     findOneFlightOrNull,
     getCurrentAndNextFlightStates,
     forceNextFlightState,
@@ -68,7 +68,7 @@ export default function Index({ previouslyHydratedDb, shouldHydrateDb, isInProdu
     apiKeys = apiKeys ?? [];
 
     if(toolsMode) {
-        const [ adminKey, setAdminKey ] = useState<string | null>(null);
+        const [ toolKey, setToolKey ] = useState<string | null>(null);
         const [ authenticated, setAuthenticated ] = useState(false);
         const [ targetTeam, setTargetTeam ] = useState<string | null>(null);
         const [ currentFlightState, setCurrentFlightState ] = useState<string | null>(null);
@@ -90,7 +90,7 @@ export default function Index({ previouslyHydratedDb, shouldHydrateDb, isInProdu
 
         const handleTargetTeamChange = (e: React.ChangeEvent<HTMLSelectElement>) => setTargetTeam(e.target.value);
         const handleRespondWithJSONChanges = (e: React.ChangeEvent<HTMLTextAreaElement>) => setRespondWithJSON(e.target.value);
-        const handleAdminKeyUpdate = (e: React.ChangeEvent<HTMLInputElement>) => setAdminKey(e.target.value);
+        const handleToolKeyUpdate = (e: React.ChangeEvent<HTMLInputElement>) => setToolKey(e.target.value);
 
         const handleRespondWithCodeChanges = (e: React.ChangeEvent<HTMLSelectElement>) =>
             setRespondWithCode(e.target.value == '0' ? null : parseInt(e.target.value));
@@ -102,17 +102,17 @@ export default function Index({ previouslyHydratedDb, shouldHydrateDb, isInProdu
         };
 
         const handleAuthentication = async () => {
-            adminKey && (await isValidAdminKey(adminKey))
+            toolKey && (await isValidToolKey(toolKey))
                 ? setAuthenticated(true)
                 : setErrorElement(<span className="error">Error: bad key</span>);
         };
 
-        if(!authenticated || !adminKey) {
+        if(!authenticated || !toolKey) {
             return (
                 <div>
                     <p>
-                        <label>Enter your admin key:</label>
-                        <input type="text" onChange={handleAdminKeyUpdate} value={adminKey || ''} />
+                        <label>Enter your tool key:</label>
+                        <input type="text" onChange={handleToolKeyUpdate} value={toolKey || ''} />
                         {errorElement}
                     </p>
                     <button onClick={handleAuthentication}>Authenticate</button>
@@ -207,7 +207,7 @@ export default function Index({ previouslyHydratedDb, shouldHydrateDb, isInProdu
 
                     try {
                         const { flightId, error } = await findOneFlightOrNull({
-                            adminKey,
+                            toolKey,
                             criteria: {
                                 flightNumber,
                                 flightType,
@@ -218,7 +218,7 @@ export default function Index({ previouslyHydratedDb, shouldHydrateDb, isInProdu
                             }
                         });
 
-                        const { currentState, nextState } = await getCurrentAndNextFlightStates({ adminKey, flightId });
+                        const { currentState, nextState } = await getCurrentAndNextFlightStates({ toolKey, flightId });
 
                         if(flightId) {
                             setTargetFlightId(flightId);
@@ -228,7 +228,7 @@ export default function Index({ previouslyHydratedDb, shouldHydrateDb, isInProdu
                             setRedirectTo(0);
                         }
 
-                        else throw new FetchError(error);
+                        else throw new AppError(error);
                     }
 
                     catch(e) {
@@ -285,7 +285,7 @@ export default function Index({ previouslyHydratedDb, shouldHydrateDb, isInProdu
 
                         try {
                             const { newCurrentState, newNextState } = await forceNextFlightState({
-                                adminKey,
+                                toolKey,
                                 flightId: targetFlightId
                             });
 
@@ -363,18 +363,18 @@ export default function Index({ previouslyHydratedDb, shouldHydrateDb, isInProdu
                     e.preventDefault();
 
                     try {
-                        if(!targetTeam) throw new FetchError('no team selected');
+                        if(!targetTeam) throw new AppError('no team selected');
 
                         const json = respondWithJSON ? JSON.parse(respondWithJSON) : null;
 
-                        const error = (await upsertOverrideEntryFor({
-                            adminKey,
+                        const { error } = (await upsertOverrideEntryFor({
+                            toolKey,
                             code: respondWithCode,
                             json,
                             targetTeam
-                        })).error;
+                        }));
 
-                        if(error) throw new FetchError(error);
+                        if(error) throw new AppError(error);
                     }
 
                     catch(e) { setErrorElement(<span className="error">Error: invalid JSON provided</span>) }
@@ -384,11 +384,11 @@ export default function Index({ previouslyHydratedDb, shouldHydrateDb, isInProdu
                     e.preventDefault();
 
                     try {
-                        if(!targetTeam) throw new FetchError('no team selected');
+                        if(!targetTeam) throw new AppError('no team selected');
 
                         setRespondWithCode(null);
                         setRespondWithJSON(null);
-                        await deleteOverrideEntryFor({ adminKey, targetTeam });
+                        await deleteOverrideEntryFor({ toolKey, targetTeam });
                         setErrorElement(<span className="success">Response override reset successfully!</span>);
                     }
 
