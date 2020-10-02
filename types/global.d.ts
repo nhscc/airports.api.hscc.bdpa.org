@@ -1,7 +1,7 @@
 import type { ObjectId } from 'mongodb'
 
-// ? Access types shared between projects from `types/global` too
-export * from './_shared';
+// ? Expose all the types from `@ergodark/next-types`
+export * from '@ergodark/next-types';
 
 export type FlightId = ObjectId;
 export type FlightNumber = string;

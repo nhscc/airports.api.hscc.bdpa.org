@@ -1,5 +1,5 @@
 import { setClientAndDb } from 'universe/backend/db'
-import { setupJest } from 'universe/__test__/db'
+import { setupJest } from 'testverse/db'
 import generateFlights from '../generate-flights'
 
 import type { InternalFlight } from 'types/global'

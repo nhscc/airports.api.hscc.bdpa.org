@@ -1,5 +1,5 @@
-import { setupJest, convertIFlightToPFlight } from 'universe/__test__/db'
-import { testApiEndpoint } from 'multiverse/test-api-endpoint'
+import { setupJest, convertIFlightToPFlight } from 'testverse/db'
+import { testApiHandler } from 'next-test-api-route-handler'
 import * as V1_all from 'universe/pages/api/v1/flights/all'
 import * as V1_search from 'universe/pages/api/v1/flights/search'
 import * as V1_with_ids from 'universe/pages/api/v1/flights/with-ids'
@@ -40,7 +40,7 @@ describe('api/v1/flights', () => {
 
         const results = getHydratedData().flights.slice(0, getEnv().RESULTS_PER_PAGE).map(convertIFlightToPFlightForV1Only);
 
-        await testApiEndpoint({
+        await testApiHandler({
             handler: v1All,
             test: async ({ fetch }) => {
                 const response = await fetch({ headers: { KEY } });
@@ -71,7 +71,7 @@ describe('api/v1/flights', () => {
             yield `/?after=${new ObjectId()}`;
         }();
 
-        await testApiEndpoint({
+        await testApiHandler({
             requestPatcher: req => { req.url = genUrl.next().value || undefined },
             handler: v1All,
             test: async ({ fetch }) => {
@@ -110,7 +110,7 @@ describe('api/v1/flights', () => {
             yield `/?dne=123`;
         }();
 
-        await testApiEndpoint({
+        await testApiHandler({
             requestPatcher: req => { req.url = genUrl.next().value || undefined },
             handler: v1All,
             test: async ({ fetch }) => {
@@ -136,7 +136,7 @@ describe('api/v1/flights', () => {
 
         await (await getDb()).collection('flights').deleteMany({});
 
-        await testApiEndpoint({
+        await testApiHandler({
             handler: v1All,
             test: async ({ fetch }) => {
                 const response = await fetch({ headers: { KEY } });
@@ -152,7 +152,7 @@ describe('api/v1/flights', () => {
 
         let v1AllFlight: PublicFlight[];
 
-        await testApiEndpoint({
+        await testApiHandler({
             handler: v1All,
             test: async ({ fetch }) => {
                 const response = await fetch({ headers: { KEY }});
@@ -160,7 +160,7 @@ describe('api/v1/flights', () => {
             }
         });
 
-        await testApiEndpoint({
+        await testApiHandler({
             handler: v1Search,
             test: async ({ fetch }) => {
                 const response = await fetch({ headers: { KEY } });
@@ -184,7 +184,7 @@ describe('api/v1/flights', () => {
             yield `/?after=${new ObjectId()}`;
         }();
 
-        await testApiEndpoint({
+        await testApiHandler({
             requestPatcher: req => { req.url = genUrl.next().value || undefined },
 
             handler: v1Search,
@@ -216,7 +216,7 @@ describe('api/v1/flights', () => {
             yield `/?sort=bad`;
         }();
 
-        await testApiEndpoint({
+        await testApiHandler({
             requestPatcher: req => { req.url = genUrl.next().value || undefined },
 
             handler: v1Search,
@@ -256,7 +256,7 @@ describe('api/v1/flights', () => {
             yield `/?match=${encode({ seatPrice: { $lte: 500 } })}`;
         }();
 
-        await testApiEndpoint({
+        await testApiHandler({
             requestPatcher: req => { req.url = genUrl.next().value || undefined },
 
             handler: v1Search,
@@ -279,13 +279,13 @@ describe('api/v1/flights', () => {
             }
         });
 
-        await testApiEndpoint({
+        await testApiHandler({
             handler: v1Search,
             requestPatcher: req => { req.url = `/?match=${encode({ ffms: { $eq: 500 }})}` },
             test: async ({ fetch }) => expect((await fetch({ headers: { KEY } })).status).toBe(400)
         });
 
-        await testApiEndpoint({
+        await testApiHandler({
             handler: v1Search,
             requestPatcher: req => { req.url = `/?match=${encode({ bad: 500 })}` },
             test: async ({ fetch }) => expect((await fetch({ headers: { KEY } })).status).toBe(400)
@@ -305,7 +305,7 @@ describe('api/v1/flights', () => {
             yield `/?regexMatch=${encode({ flightNumber: 'U.*' })}`;
         }();
 
-        await testApiEndpoint({
+        await testApiHandler({
             requestPatcher: req => { req.url = genUrl.next().value || undefined },
 
             handler: v1Search,
@@ -336,7 +336,7 @@ describe('api/v1/flights', () => {
             yield `/?regexMatch=${encode({ seatPrice: 500 })}`;
         }();
 
-        await testApiEndpoint({
+        await testApiHandler({
             requestPatcher: req => { req.url = genUrl.next().value || undefined },
 
             handler: v1Search,
@@ -366,7 +366,7 @@ describe('api/v1/flights', () => {
             yield `/?regexMatch=${encode({ _id: 'super-bad' })}`;
         }();
 
-        await testApiEndpoint({
+        await testApiHandler({
             requestPatcher: req => { req.url = genUrl.next().value || undefined },
 
             handler: v1Search,
@@ -389,7 +389,7 @@ describe('api/v1/flights', () => {
             yield `/?sort=desc&after=${flights[0].flight_id}&match=${encode({ ffms: { $gt: 1000000 }})}&regexMatch=${encode({ airline: 'spirit' })}`;
         }();
 
-        await testApiEndpoint({
+        await testApiHandler({
             requestPatcher: req => { req.url = genUrl.next().value || undefined },
 
             handler: v1Search,
@@ -426,7 +426,7 @@ describe('api/v1/flights', () => {
                 yield `/?ids=`;
             }();
 
-            await testApiEndpoint({
+            await testApiHandler({
                 requestPatcher: req => { req.url = genUrl.next().value || undefined },
                 handler: v1WithIds,
                 test: async ({ fetch }) => {
@@ -462,7 +462,7 @@ describe('api/v1/flights', () => {
                 yield `/?ids=${encodeURIComponent(JSON.stringify(['lol', false]))}`;
             }();
 
-            await testApiEndpoint({
+            await testApiHandler({
                 requestPatcher: req => { req.url = genUrl.next().value || undefined },
                 handler: v1WithIds,
                 test: async ({ fetch }) => {
@@ -491,7 +491,7 @@ describe('api/v2/flights', () => {
 
         const results = getHydratedData().flights.slice(0, getEnv().RESULTS_PER_PAGE).map(convertIFlightToPFlight);
 
-        await testApiEndpoint({
+        await testApiHandler({
             handler: v2Flights,
             test: async ({ fetch }) => {
                 const response = await fetch({ headers: { KEY } });
@@ -522,7 +522,7 @@ describe('api/v2/flights', () => {
             yield `/?after=${new ObjectId()}`;
         }();
 
-        await testApiEndpoint({
+        await testApiHandler({
             requestPatcher: req => { req.url = genUrl.next().value || undefined },
             handler: v2Flights,
             test: async ({ fetch }) => {
@@ -561,7 +561,7 @@ describe('api/v2/flights', () => {
             yield `/?dne=123`;
         }();
 
-        await testApiEndpoint({
+        await testApiHandler({
             requestPatcher: req => { req.url = genUrl.next().value || undefined },
             handler: v2Flights,
             test: async ({ fetch }) => {
@@ -587,7 +587,7 @@ describe('api/v2/flights', () => {
 
         await (await getDb()).collection('flights').deleteMany({});
 
-        await testApiEndpoint({
+        await testApiHandler({
             handler: v2Flights,
             test: async ({ fetch }) => {
                 const response = await fetch({ headers: { KEY } });
@@ -603,7 +603,7 @@ describe('api/v2/flights', () => {
 
         let v2FlightsFlight: PublicFlight[];
 
-        await testApiEndpoint({
+        await testApiHandler({
             handler: v2Flights,
             test: async ({ fetch }) => {
                 const response = await fetch({ headers: { KEY }});
@@ -611,7 +611,7 @@ describe('api/v2/flights', () => {
             }
         });
 
-        await testApiEndpoint({
+        await testApiHandler({
             handler: v2Flights,
             test: async ({ fetch }) => {
                 const response = await fetch({ headers: { KEY } });
@@ -635,7 +635,7 @@ describe('api/v2/flights', () => {
             yield `/?after=${new ObjectId()}`;
         }();
 
-        await testApiEndpoint({
+        await testApiHandler({
             requestPatcher: req => { req.url = genUrl.next().value || undefined },
 
             handler: v2Flights,
@@ -667,7 +667,7 @@ describe('api/v2/flights', () => {
             yield `/?sort=bad`;
         }();
 
-        await testApiEndpoint({
+        await testApiHandler({
             requestPatcher: req => { req.url = genUrl.next().value || undefined },
 
             handler: v2Flights,
@@ -702,7 +702,7 @@ describe('api/v2/flights', () => {
             yield `/?match=${encode({ landingAt: 'F1A' })}`;
         }();
 
-        await testApiEndpoint({
+        await testApiHandler({
             requestPatcher: req => { req.url = genUrl.next().value || undefined },
 
             handler: v2Flights,
@@ -720,13 +720,13 @@ describe('api/v2/flights', () => {
             }
         });
 
-        await testApiEndpoint({
+        await testApiHandler({
             handler: v2Flights,
             requestPatcher: req => { req.url = `/?match=${encode({ ffms: { $eq: 500 }})}` },
             test: async ({ fetch }) => expect((await fetch({ headers: { KEY } })).status).toBe(400)
         });
 
-        await testApiEndpoint({
+        await testApiHandler({
             handler: v2Flights,
             requestPatcher: req => { req.url = `/?match=${encode({ bad: 500 })}` },
             test: async ({ fetch }) => expect((await fetch({ headers: { KEY } })).status).toBe(400)
@@ -746,7 +746,7 @@ describe('api/v2/flights', () => {
             yield `/?regexMatch=${encode({ flightNumber: 'U.*' })}`;
         }();
 
-        await testApiEndpoint({
+        await testApiHandler({
             requestPatcher: req => { req.url = genUrl.next().value || undefined },
 
             handler: v2Flights,
@@ -777,7 +777,7 @@ describe('api/v2/flights', () => {
             yield `/?regexMatch=${encode({ seatPrice: 500 })}`;
         }();
 
-        await testApiEndpoint({
+        await testApiHandler({
             requestPatcher: req => { req.url = genUrl.next().value || undefined },
 
             handler: v2Flights,
@@ -807,7 +807,7 @@ describe('api/v2/flights', () => {
             yield `/?regexMatch=${encode({ _id: 'super-bad' })}`;
         }();
 
-        await testApiEndpoint({
+        await testApiHandler({
             requestPatcher: req => { req.url = genUrl.next().value || undefined },
 
             handler: v2Flights,
@@ -830,7 +830,7 @@ describe('api/v2/flights', () => {
             yield `/?sort=desc&after=${flights[0].flight_id}&match=${encode({ ffms: { $gt: 1000000 }})}&regexMatch=${encode({ airline: 'spirit' })}`;
         }();
 
-        await testApiEndpoint({
+        await testApiHandler({
             requestPatcher: req => { req.url = genUrl.next().value || undefined },
 
             handler: v2Flights,
@@ -865,7 +865,7 @@ describe('api/v2/flights', () => {
             yield `/?regexMatch=${encode([(new ObjectId()).toHexString(), (new ObjectId()).toHexString()])}`;
         }();
 
-        await testApiEndpoint({
+        await testApiHandler({
             requestPatcher: req => { req.url = genUrl.next().value || undefined },
             handler: v2Flights,
             test: async ({ fetch }) => {

@@ -1,18 +1,19 @@
-import { NamedAppError } from 'multiverse/named-errors'
+import { AppError, makeNamedError } from 'named-app-errors'
 
-export * from 'multiverse/named-errors'
+export * from 'named-app-errors'
 
-export class FlightGenerationError extends NamedAppError {
+export class FlightGenerationError extends AppError {
     constructor(message?: string) {
-        super(FlightGenerationError.name, message || 'data upsert failed');
+        super(message || 'data upsert failed');
     }
 }
 
-export class IdTypeError<T=string|number> extends NamedAppError {
+makeNamedError(FlightGenerationError, 'FlightGenerationError');
+
+export class IdTypeError<T=string|number> extends AppError {
     constructor(id?: T) {
-        super(
-            IdTypeError.name,
-            id ? `expected valid ObjectId instance, got "${id}" instead` : 'invalid ObjectId encountered'
-        );
+        super(id ? `expected valid ObjectId instance, got "${id}" instead` : 'invalid ObjectId encountered');
     }
 }
+
+makeNamedError(IdTypeError, 'IdTypeError');

@@ -1,4 +1,4 @@
-import { setupJest } from 'universe/__test__/db'
+import { setupJest } from 'testverse/db'
 import * as IndexPage from 'universe/pages/index'
 
 const { getDb } = setupJest();

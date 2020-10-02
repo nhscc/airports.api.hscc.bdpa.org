@@ -14,12 +14,16 @@
         "moduleResolution": "node",
         "baseUrl": ".",
         "paths": {
-            // ! If changed, also update these aliases in package.json & .eslintrc.js
+            // ! If changed, also update these aliases in jest.config.js,
+            // ! webpack.config.js, and .eslintrc.js
             "universe/*": [
                 "src/*"
             ],
             "multiverse/*": [
                 "lib/*"
+            ],
+            "testverse/*": [
+                "src/__test__/*"
             ],
             "types/*": [
                 "types/*"
@@ -38,18 +42,14 @@
         "resolveJsonModule": true,
         "inlineSourceMap": true
     },
-    "exclude": [
-        "node_modules",
-        "__test__",
-        ".next",
-        "bin"
-    ],
     "include": [
-        "next-env.d.ts",
-        "external-scripts/**/*.ts",
+        "types/**/*.ts",
         "lib/**/*.ts",
+        "lib/**/*.tsx",
         "src/**/*.ts",
         "src/**/*.tsx",
-        "types/**/*.ts",
+        "test/**/*.ts",
+        "test/**/*.tsx",
+        "src/dev-utils.js",
     ]
 }

@@ -1,11 +1,11 @@
 import { isNumber } from 'util'
 import { parse as parseAsBytes } from 'bytes'
-import isServer from 'multiverse/is-server-side'
+import { isServer } from 'is-server-side'
 import { AppError } from 'universe/backend/error'
 
 export function getEnv(loud=false) {
     const env = {
-        NODE_ENV: process.env.NODE_ENV || process.env.BABEL_ENV || process.env.APP_ENV || 'unknown',
+        NODE_ENV: process.env.APP_ENV || process.env.NODE_ENV || process.env.BABEL_ENV || 'unknown',
         MONGODB_URI: (process.env.MONGODB_URI || '').toString(),
         MONGODB_MS_PORT: !!process.env.MONGODB_MS_PORT ? Number(process.env.MONGODB_MS_PORT) : null,
         DISABLED_API_VERSIONS: !!process.env.DISABLED_API_VERSIONS ? process.env.DISABLED_API_VERSIONS.split(',') : [],
@@ -63,11 +63,20 @@ export function getEnv(loud=false) {
 
     // ? Typescript troubles
     const NODE_X: string = env.NODE_ENV;
+    const errors = [];
 
-    if(NODE_X == 'unknown' || (isServer() && env.MONGODB_URI === '') ||
-       _mustBeGtZero.some(v => !isNumber(v) || isNaN(v) || v < 0)) {
-        throw new AppError('illegal environment detected, check environment variables');
-    }
+    NODE_X == 'unknown' && errors.push(`bad NODE_ENV, saw "${NODE_X}"`);
+
+    isServer()
+        && env.MONGODB_URI === ''
+        && errors.push(`bad MONGODB_URI, saw "${env.MONGODB_URI}"`);
+
+    isServer()
+        &&_mustBeGtZero.some(v => (typeof v != 'number' || isNaN(v) || v < 0)
+        && errors.push(`bad value "${v}", expected a number`));
+
+    if(errors.length)
+        throw new AppError(`illegal environment detected:\n - ${errors.join('\n - ')}`);
 
     if(env.RESULTS_PER_PAGE < 15)
         throw new AppError(`RESULTS_PER_PAGE must be >= 15`);

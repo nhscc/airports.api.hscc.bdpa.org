@@ -1,8 +1,8 @@
-import { fetch } from 'multiverse/quick-fetch'
+import { fetch } from 'isomorphic-json-fetch'
 import { getEnv } from 'universe/backend/env'
 import { AppError } from 'universe/backend/error'
 
-import type { FetchConfig } from 'multiverse/quick-fetch'
+import type { FetchConfig } from 'isomorphic-json-fetch'
 
 type FetchFn = (...params: Parameters<typeof fetch>) => ReturnType<typeof fetch>;
 
@@ -40,33 +40,33 @@ export async function isValidToolKey(toolKey: string) {
 
 export async function findOneFlightOrNull({ toolKey, criteria }: FinOneFliOrNulParams) {
     const serialized = encodeURIComponent(JSON.stringify(criteria));
-    const { data, res } = await api(`admin/find-one/${serialized}`, PUT(toolKey));
+    const { json, res } = await api(`admin/find-one/${serialized}`, PUT(toolKey));
 
-    return { error: data.error, res, flightId: data.flight_id || null };
+    return { error: json.error, res, flightId: json.flight_id || null };
 }
 
 export async function getCurrentAndNextFlightStates({ toolKey, flightId }: { toolKey: string, flightId: string }) {
-    const  { data, res } = await api(`admin/get-states/${flightId}`, PUT(toolKey));
-    const { currentState, nextState } = data;
+    const  { json, res } = await api(`admin/get-states/${flightId}`, PUT(toolKey));
+    const { currentState, nextState } = json;
 
-    return { error: data.error, res, currentState, nextState };
+    return { error: json.error, res, currentState, nextState };
 }
 
 export async function forceNextFlightState({ toolKey, flightId }: { toolKey: string, flightId: string }) {
-    const  { data, res } = await api(`admin/advance-state/${flightId}`, PUT(toolKey));
-    const { newCurrentState, newNextState } = data;
+    const  { json, res } = await api(`admin/advance-state/${flightId}`, PUT(toolKey));
+    const { newCurrentState, newNextState } = json;
 
-    return { error: data.error, res, newCurrentState, newNextState };
+    return { error: json.error, res, newCurrentState, newNextState };
 }
 
 export async function upsertOverrideEntryFor({ toolKey, json, code, targetTeam }: UpsOveEntForParams) {
     const serialized = encodeURIComponent(JSON.stringify(json));
-    const { data, res } = await api(`admin/response-override/${targetTeam}/${code}/${serialized}`, PUT(toolKey));
+    const { json: data, res } = await api(`admin/response-override/${targetTeam}/${code}/${serialized}`, PUT(toolKey));
 
     return { error: data.error, res };
 }
 
 export async function deleteOverrideEntryFor({ toolKey, targetTeam }: { toolKey: string, targetTeam: string }) {
-    const  { data, res } = await api(`admin/delete-override/${targetTeam}`, PUT(toolKey));
-    return { error: data.error, res };
+    const  { json, res } = await api(`admin/delete-override/${targetTeam}`, PUT(toolKey));
+    return { error: json.error, res };
 }

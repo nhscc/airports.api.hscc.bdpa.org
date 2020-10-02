@@ -1,7 +1,6 @@
 import { ObjectId } from 'mongodb'
 import { getEnv } from 'universe/backend/env'
 import { getDb, pipelines } from 'universe/backend/db'
-import { isArray } from 'util'
 import { getClientIp } from 'request-ip'
 import { shuffle } from 'fast-shuffle'
 import cloneDeep from 'clone-deep'
@@ -35,7 +34,7 @@ import type {
     InternalInfo,
 } from 'types/global'
 
-const isObject = (object: unknown) => !isArray(object) && object !== null && typeof object == 'object';
+const isObject = (object: unknown) => !Array.isArray(object) && object !== null && typeof object == 'object';
 
 let requestCounter = 0;
 
@@ -266,7 +265,7 @@ export async function searchFlights(params: SeaFliParams) {
         const test = () => Object.keys(val).every(subky => (valNotEmpty = true) && matchableSubStrings.includes(subky)
             && typeof (val as Record<string, unknown>)[subky] == 'number');
 
-        return !isArray(val)
+        return !Array.isArray(val)
             && matchableStrings.includes(ky)
             && (val instanceof ObjectId || ['number', 'string'].includes(typeof(val)) || (isObject(val) && test() && valNotEmpty));
     });

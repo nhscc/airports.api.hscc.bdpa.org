@@ -1,5 +1,5 @@
 import { getAirports } from 'universe/backend'
-import { sendHttpOk } from 'multiverse/respond'
+import { sendHttpOk } from 'next-respond'
 import { handleEndpoint } from 'universe/backend/middleware'
 
 import type { NextApiResponse, NextApiRequest } from 'next'

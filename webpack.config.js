@@ -25,21 +25,17 @@ module.exports = {
 
     resolve: {
         extensions: ['.ts', '.tsx', '.js', '.json'],
+        // ! If changed, also update these aliases in tsconfig.json,
+        // ! jest.config.js, and .eslintrc.js
         alias: {
             universe: `${__dirname}/src/`,
-            multiverse: `${__dirname}/lib/`
+            multiverse: `${__dirname}/lib/`,
+            testverse: `${__dirname}/src/__test__/`
+            // ? We don't care about types at this point
         }
     },
 
-    module: {
-        rules: [{ test: /\.(ts|js)x?$/, loader: 'babel-loader', exclude: /node_modules/ }],
-    },
-
-    stats: {
-        warningsFilter: [/critical dependency:/i],
-    },
-
-    plugins: [
-        new DotenvPlugin()
-    ]
+    module: { rules: [{ test: /\.(ts|js)x?$/, loader: 'babel-loader', exclude: /node_modules/ }]},
+    stats: { warningsFilter: [/critical dependency:/i] },
+    plugins: [ new DotenvPlugin() ]
 };

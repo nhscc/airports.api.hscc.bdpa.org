@@ -2,9 +2,8 @@ import { MongoClient } from 'mongodb'
 import { NULL_KEY, DUMMY_KEY } from 'universe/backend'
 import { getDb, setClientAndDb, destroyDb, initializeDb, getDbClient } from 'universe/backend/db'
 import { MongoMemoryServer } from 'mongodb-memory-server'
-import { populateEnv } from 'universe/dev-utils'
 import cloneDeep from 'clone-deep'
-import * as Time from 'multiverse/relative-random-time'
+import { nearFuture, farFuture } from 'relative-random-time'
 import { getEnv } from 'universe/backend/env'
 
 import type { Db, WithId } from 'mongodb'
@@ -20,8 +19,6 @@ import type {
     InternalInfo,
     PublicFlight,
 } from 'types/global'
-
-populateEnv();
 
 export const EXPAND_RESULTS_BY_MULT = 2.5;
 
@@ -218,15 +215,15 @@ export const unhydratedDummyDbData: DummyDbData = {
             },
             stochasticStates: {
                 '0': {
-                    departFromSender: Time.nearFuture(),
-                    arriveAtReceiver: Time.nearFuture(),
+                    departFromSender: nearFuture(),
+                    arriveAtReceiver: nearFuture(),
                     departFromReceiver: null,
                     status: 'scheduled',
                     gate: null,
                 },
-                [Time.nearFuture().toString()]: {
-                    departFromSender: Time.nearFuture(),
-                    arriveAtReceiver: Time.nearFuture(),
+                [nearFuture().toString()]: {
+                    departFromSender: nearFuture(),
+                    arriveAtReceiver: nearFuture(),
                     departFromReceiver: null,
                     status: 'landed',
                     gate: 'A1',
@@ -290,16 +287,16 @@ export const unhydratedDummyDbData: DummyDbData = {
             },
             stochasticStates: {
                 '0': {
-                    departFromSender: Time.farFuture(),
-                    arriveAtReceiver: Time.farFuture(),
-                    departFromReceiver: Time.farFuture(),
+                    departFromSender: farFuture(),
+                    arriveAtReceiver: farFuture(),
+                    departFromReceiver: farFuture(),
                     status: 'boarding',
                     gate: 'B2',
                 },
                 [Date.now().toString()]: {
-                    departFromSender: Time.farFuture(),
-                    arriveAtReceiver: Time.farFuture(),
-                    departFromReceiver: Time.farFuture(),
+                    departFromSender: farFuture(),
+                    arriveAtReceiver: farFuture(),
+                    departFromReceiver: farFuture(),
                     status: 'departed',
                     gate: 'C3',
                 },
@@ -326,9 +323,9 @@ unhydratedDummyDbData.flights = [...Array(Math.floor(count))].map((_, ndx) => {
         flight.ffms = 100000000;
         flight.stochasticStates = {
             '0': {
-                departFromSender: Time.farFuture(),
-                arriveAtReceiver: Time.farFuture(),
-                departFromReceiver: Time.farFuture(),
+                departFromSender: farFuture(),
+                arriveAtReceiver: farFuture(),
+                departFromReceiver: farFuture(),
                 status: 'boarding',
                 gate: 'B2',
             },

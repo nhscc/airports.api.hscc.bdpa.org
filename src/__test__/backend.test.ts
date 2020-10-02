@@ -1,7 +1,6 @@
 import { WithId, ObjectId } from 'mongodb'
 import * as Backend from 'universe/backend'
 import { getEnv } from 'universe/backend/env'
-import { populateEnv } from 'universe/dev-utils'
 import sha256 from 'crypto-js/sha256'
 
 import {
@@ -9,7 +8,7 @@ import {
     unhydratedDummyDbData,
     EXPAND_RESULTS_BY_MULT,
     convertIFlightToPFlight
-} from 'universe/__test__/db'
+} from 'testverse/db'
 
 import {
     RequestLogEntry,
@@ -18,8 +17,6 @@ import {
 } from 'types/global'
 
 import type{ NextApiRequest, NextApiResponse } from 'next'
-
-populateEnv();
 
 const { getHydratedData, getDb } = setupJest();
 

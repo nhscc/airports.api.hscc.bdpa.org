@@ -49,52 +49,12 @@ module.exports = () => {
         async rewrites() {
             return [
                 {
-                    source: '/v1/flights/all',
-                    destination: '/api/v1/flights/all'
+                    source: '/v1/:path*',
+                    destination: '/api/v1/:path*'
                 },
                 {
-                    source: '/v1/flights/search',
-                    destination: '/api/v1/flights/search'
-                },
-                {
-                    source: '/v1/flights/with-ids',
-                    destination: '/api/v1/flights/with-ids'
-                },
-                {
-                    source: '/v1/info/airlines',
-                    destination: '/api/v1/info/airlines'
-                },
-                {
-                    source: '/v1/info/airports',
-                    destination: '/api/v1/info/airports'
-                },
-                {
-                    source: '/v1/info/no-fly-list',
-                    destination: '/api/v1/info/no-fly-list'
-                },
-                {
-                    source: '/v2/flights',
-                    destination: '/api/v2/flights'
-                },
-                {
-                    source: '/v2/info/airlines',
-                    destination: '/api/v2/info/airlines'
-                },
-                {
-                    source: '/v2/info/airports',
-                    destination: '/api/v2/info/airports'
-                },
-                {
-                    source: '/v2/info/all-extras',
-                    destination: '/api/v2/info/all-extras'
-                },
-                {
-                    source: '/v2/info/no-fly-list',
-                    destination: '/api/v2/info/no-fly-list'
-                },
-                {
-                    source: '/v2/info/seat-classes',
-                    destination: '/api/v2/info/seat-classes'
+                    source: '/v2/:path*',
+                    destination: '/api/v2/:path*'
                 },
             ];
         }

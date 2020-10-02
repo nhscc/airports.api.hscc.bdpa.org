@@ -1,6 +1,8 @@
 const restrictedGlobals = require('confusing-browser-globals');
 
 module.exports = {
+    //preset: 'jest-puppeteer',
+    //setupFilesAfterEnv: [ './test/setup.ts' ],
     parser: '@typescript-eslint/parser',
     plugins: [
         'jest',
@@ -49,21 +51,12 @@ module.exports = {
             'ts-expect-error': 'allow-with-description',
             minimumDescriptionLength: 6,
         }],
-        // ? Disable these rules for all files...
+        // ? Ever since v4, we will rely on TypeScript to catch these
         'no-undef': 'off',
         '@typescript-eslint/no-var-requires': 'off',
-        'no-unused-vars': 'off',
+        'no-unused-vars': 'off'
     },
     overrides: [{
-        // ? ... but enable these rules specifically for TypeScript files
-        files: ['*.ts', '*.tsx'],
-        rules: {
-            'no-undef': 'error',
-            '@typescript-eslint/no-var-requires': 'error',
-            // ? Already handled by vscode
-            '@typescript-eslint/no-unused-vars': 'off',
-        }
-    }, {
         files: ['*.test.*'],
         extends: [
             'plugin:jest/all',
@@ -75,6 +68,7 @@ module.exports = {
             'jest/require-top-level-describe': 'off',
             'jest/valid-describe': 'off',
             'jest/no-hooks': 'off',
+            'jest/require-to-throw-message': 'off',
         }
     }],
     settings: {
@@ -92,10 +86,11 @@ module.exports = {
         'import/resolver': {
             alias : {
                 map: [
-                    // ! If changed, also update these aliases in tsconfig.js &
-                    // ! package.json
+                    // ! If changed, also update these aliases in tsconfig.json,
+                    // ! webpack.config.js, and jest.config.js
                     ['universe','./src'],
                     ['multiverse','./lib'],
+                    ['testverse','./src/__test__'],
                     ['types','./types'],
                 ],
                 extensions: ['.js', '.jsx', '.ts', '.tsx'],
@@ -108,5 +103,11 @@ module.exports = {
             '.*/bin/.*'
         ]
     },
-    ignorePatterns: ['coverage', 'build', '/gulpfile.js', '/next.config.js', 'bin']
+    ignorePatterns: ['coverage', 'build', '/gulpfile.js', '/next.config.js', 'bin'],
+    globals: {
+        page: true,
+        browser: true,
+        context: true,
+        jestPuppeteer: true,
+    },
 };

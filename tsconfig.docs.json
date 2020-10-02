@@ -1,0 +1,15 @@
+{
+    "extends": "./tsconfig.json",
+    "include": [
+        "types/global.d.ts",
+        "lib/**/*.ts",
+        "lib/**/*.tsx",
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "test/**/*.ts",
+        "test/**/*.tsx",
+        "external-scripts/**/*.ts",
+        "external-scripts/**/*.tsx",
+        "src/dev-utils.js",
+    ]
+}

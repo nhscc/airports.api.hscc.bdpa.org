@@ -1,25 +1,24 @@
-// TODO: turn this into @ergodark/next-respond npm package along with the types
-
 import type { NextApiResponse } from 'next'
 import type {
     HttpStatusCode,
     SuccessJsonResponse,
     ErrorJsonResponse
-} from 'types/global'
+} from './types'
 
 export function sendGenericHttpResponse(res: NextApiResponse, statusCode: HttpStatusCode, responseJson?: Record<string, unknown>) {
     res.status(statusCode).send(responseJson || {});
 }
 
-export function sendHttpSuccessResponse(res: NextApiResponse, statusCode: HttpStatusCode, responseJson?: Omit<SuccessJsonResponse, 'success'>) {
+export function sendHttpSuccessResponse(res: NextApiResponse, statusCode: HttpStatusCode, responseJson?: Record<string, unknown>) {
     const json: SuccessJsonResponse = { ...responseJson, success: true };
     sendGenericHttpResponse(res, statusCode, json);
     return json;
 }
 
-export function sendHttpErrorResponse(res: NextApiResponse, statusCode: HttpStatusCode, responseJson?: ErrorJsonResponse) {
-    sendGenericHttpResponse(res, statusCode, responseJson);
-    return responseJson;
+export function sendHttpErrorResponse(res: NextApiResponse, statusCode: HttpStatusCode, responseJson: Record<string, unknown> & { error: string }) {
+    const json: ErrorJsonResponse = { ...responseJson, success: false };
+    sendGenericHttpResponse(res, statusCode, json);
+    return json;
 }
 
 export function sendHttpOk(res: NextApiResponse, responseJson?: Record<string, unknown>) {

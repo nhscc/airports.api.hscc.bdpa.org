@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useState } from 'react'
-import { hydrateDb, unhydratedDummyDbData } from 'universe/__test__/db'
+import { hydrateDb, unhydratedDummyDbData } from 'testverse/db'
 import { generateFlights, getApiKeys } from 'universe/backend'
 import { getEnv } from 'universe/backend/env'
 import { getDb, initializeDb, destroyDb } from 'universe/backend/db'

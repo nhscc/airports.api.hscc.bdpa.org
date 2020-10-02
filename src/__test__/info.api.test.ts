@@ -1,5 +1,5 @@
-import { setupJest } from 'universe/__test__/db'
-import { testApiEndpoint } from 'multiverse/test-api-endpoint'
+import { setupJest } from 'testverse/db'
+import { testApiHandler } from 'next-test-api-route-handler'
 import * as V1_airlines from 'universe/pages/api/v1/info/airlines'
 import * as V1_airports from 'universe/pages/api/v1/info/airports'
 import * as V1_no_fly_list from 'universe/pages/api/v1/info/no-fly-list'
@@ -55,7 +55,7 @@ describe('api/v1/info', () => {
                 };
             });
 
-            await testApiEndpoint({
+            await testApiHandler({
                 handler: v1Airlines,
                 test: async ({ fetch }) => {
                     const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
@@ -83,7 +83,7 @@ describe('api/v1/info', () => {
                 };
             });
 
-            await testApiEndpoint({
+            await testApiHandler({
                 handler: v1Airports,
                 test: async ({ fetch }) => {
                     const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
@@ -104,7 +104,7 @@ describe('api/v1/info', () => {
                 return noFly;
             });
 
-            await testApiEndpoint({
+            await testApiHandler({
                 handler: v1NoFlyList,
                 test: async ({ fetch }) => {
                     const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
@@ -131,7 +131,7 @@ describe('api/v2/info', () => {
                 };
             });
 
-            await testApiEndpoint({
+            await testApiHandler({
                 handler: v2Airlines,
                 test: async ({ fetch }) => {
                     const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
@@ -159,7 +159,7 @@ describe('api/v2/info', () => {
                 };
             });
 
-            await testApiEndpoint({
+            await testApiHandler({
                 handler: v2Airports,
                 test: async ({ fetch }) => {
                     const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
@@ -175,7 +175,7 @@ describe('api/v2/info', () => {
         it('returns data as expected', async () => {
             expect.hasAssertions();
 
-            await testApiEndpoint({
+            await testApiHandler({
                 handler: v2AllExtras,
                 test: async ({ fetch }) => {
                     const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
@@ -199,7 +199,7 @@ describe('api/v2/info', () => {
                 return noFly;
             });
 
-            await testApiEndpoint({
+            await testApiHandler({
                 handler: v2NoFlyList,
                 test: async ({ fetch }) => {
                     const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
@@ -215,7 +215,7 @@ describe('api/v2/info', () => {
         it('returns data as expected', async () => {
             expect.hasAssertions();
 
-            await testApiEndpoint({
+            await testApiHandler({
                 handler: v2SeatClasses,
                 test: async ({ fetch }) => {
                     const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
