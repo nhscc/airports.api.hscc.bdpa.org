@@ -168,7 +168,7 @@ build the [Apiary](https://apiary.io)
 `lib/` contains TypeScript modules shared between projects. These are candidates
 for becoming new NPM packages.
 
-`src/` contains the source code of the application. `src/__test__` contains the
+`src/` contains the source code of the application. `test` contains the
 unit and integration tests for the API. `src/backend` contains backend business
 logic and the database ORM layer (kept thin thanks to MongoDB). `src/frontend`
 contains frontend business logic and the API client ORM layer for the API's

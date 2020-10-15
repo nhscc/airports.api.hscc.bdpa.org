@@ -1,6 +1,6 @@
 import { handleEndpoint } from 'universe/backend/middleware'
 import { searchFlights, convertPFlightToPFlightForV1Only } from 'universe/backend'
-import { sendHttpOk, sendHttpBadRequest } from 'next-respond'
+import { sendHttpOk, sendHttpBadRequest } from 'multiverse/next-respond'
 import { NotFoundError } from 'universe/backend/error'
 import { ObjectId } from 'mongodb'
 

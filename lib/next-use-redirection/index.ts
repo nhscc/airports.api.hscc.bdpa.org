@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useIsomorphicLayoutEffect as useLayoutEffect } from 'react-use'
-import { frontendRedirect } from 'next-isomorphic-redirect'
+import { frontendRedirect } from 'multiverse/next-isomorphic-redirect'
 import { fetch } from 'isomorphic-json-fetch'
 import useSWR from 'swr'
 
-import type { RedirectParams } from './types'
+import type { FrontendRedirectConfig } from 'multiverse/next-isomorphic-redirect/types'
 
 /**
  * Redirects to another location when configurable conditions are met.
@@ -14,7 +14,13 @@ import type { RedirectParams } from './types'
  * redirecting = false - not redirecting
  * error is defined    - error occurred
  */
-export function useRedirection<T>({ uri, redirectIf, redirectTo, redirectConfig, fetchConfig }: RedirectParams<T>) {
+export function useRedirection<T>({ uri, redirectIf, redirectTo, redirectConfig, fetchConfig }: {
+    uri: string,
+    redirectIf?: (data: T) => boolean,
+    redirectTo?: string,
+    fetchConfig?: FetchConfig,
+    redirectConfig?: FrontendRedirectConfig
+}) {
     const { data, error, mutate } = useSWR(uri,
         url => fetch.get(url, { ...fetchConfig }).then(o => o.json)
     );
@@ -24,7 +30,7 @@ export function useRedirection<T>({ uri, redirectIf, redirectTo, redirectConfig,
     useLayoutEffect(() => {
         if(data === undefined) return;
 
-        if(!redirectTo || !redirectIf || typeof redirectIf == 'function' && !redirectIf(data || {}))
+        if(!redirectTo || !redirectIf || typeof redirectIf == 'function' && !redirectIf((data || {}) as T))
             setRedirecting(false);
 
         else {

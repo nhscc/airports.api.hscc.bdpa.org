@@ -1,55 +1,61 @@
 {
-    "compilerOptions": {
-        "target": "esnext",
-        "module": "esnext",
-        "allowJs": true,
-        "checkJs": true,
-        "jsx": "preserve",
-        "declaration": true,
-        "isolatedModules": true,
-        "strict": true,
-        "alwaysStrict": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "moduleResolution": "node",
-        "baseUrl": ".",
-        "paths": {
-            // ! If changed, also update these aliases in jest.config.js,
-            // ! webpack.config.js, and .eslintrc.js
-            "universe/*": [
-                "src/*"
-            ],
-            "multiverse/*": [
-                "lib/*"
-            ],
-            "testverse/*": [
-                "src/__test__/*"
-            ],
-            "types/*": [
-                "types/*"
-            ]
-        },
-        "allowSyntheticDefaultImports": true,
-        "forceConsistentCasingInFileNames": true,
-        "lib": [
-            "dom",
-            "dom.iterable",
-            "esnext"
-        ],
-        "skipLibCheck": true,
-        "noEmit": true,
-        "esModuleInterop": true,
-        "resolveJsonModule": true,
-        "inlineSourceMap": true
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "allowJs": true,
+    "checkJs": true,
+    "jsx": "preserve",
+    "declaration": true,
+    "isolatedModules": true,
+    "strict": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      // ! If changed, also update these aliases in jest.config.js,
+      // ! webpack.config.js, next.config.ts, and .eslintrc.js
+      "universe/*": [
+        "src/*"
+      ],
+      "multiverse/*": [
+        "lib/*"
+      ],
+      "testverse/*": [
+        "test/*"
+      ],
+      "externals/*": [
+        "external-scripts/*"
+      ],
+      "types/*": [
+        "types/*"
+      ]
     },
-    "include": [
-        "types/**/*.ts",
-        "lib/**/*.ts",
-        "lib/**/*.tsx",
-        "src/**/*.ts",
-        "src/**/*.tsx",
-        "test/**/*.ts",
-        "test/**/*.tsx",
-        "src/dev-utils.js",
-    ]
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "skipLibCheck": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "inlineSourceMap": true
+  },
+  "include": [
+    "types/**/*.ts",
+    "lib/**/*.ts",
+    "lib/**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "test/**/*.ts",
+    "test/**/*.tsx",
+    "src/dev-utils.js"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

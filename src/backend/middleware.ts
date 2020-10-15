@@ -8,7 +8,7 @@ import {
     sendHttpUnauthorized,
     sendHttpBadRequest,
     sendHttpRateLimited,
-} from 'next-respond'
+} from 'multiverse/next-respond'
 
 import {
     GuruMeditationError,

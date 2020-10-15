@@ -1,4 +1,4 @@
-import { sendHttpOk, sendHttpBadRequest } from 'next-respond'
+import { sendHttpOk, sendHttpBadRequest } from 'multiverse/next-respond'
 import { searchFlights } from 'universe/backend'
 import { NotFoundError } from 'universe/backend/error'
 import { handleEndpoint } from 'universe/backend/middleware'

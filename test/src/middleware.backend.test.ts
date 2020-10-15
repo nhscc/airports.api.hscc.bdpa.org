@@ -16,7 +16,6 @@ import {
     GuruMeditationError
 } from 'universe/backend/error'
 
-import type { TestParams } from 'next-test-api-route-handler'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import type { RequestLogEntry, LimitedLogEntry } from 'types/global'
 
@@ -61,7 +60,7 @@ describe('universe/backend/middleware', () => {
                     req, res,
                     methods: ['GET', 'POST', 'PUT', 'DELETE']
                 }),
-                test: async ({ fetch }: TestParams) => {
+                test: async ({ fetch }) => {
                     const results1 = await Promise.all([
                         ...[...Array(expectedReqPerError - 1)].map(_ => getStatus(fetch({ method: getMethod() }))),
                         getStatus(fetch({ method: getMethod() })),
@@ -366,7 +365,7 @@ describe('universe/backend/middleware', () => {
                     req, res,
                     methods: ['GET']
                 }),
-                test: async ({ fetch }: TestParams) => {
+                test: async ({ fetch }) => {
                     process.env.DISABLED_API_VERSIONS = '1';
                     expect((await fetch()).status).toBe(404);
 
@@ -388,7 +387,7 @@ describe('universe/backend/middleware', () => {
                 handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     apiVersion: 1, req, res, methods: ['GET']
                 }),
-                test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(200)
+                test: async ({ fetch }) => expect((await fetch()).status).toBe(200)
             });
 
             await testApiHandler({
@@ -396,7 +395,7 @@ describe('universe/backend/middleware', () => {
                 handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     apiVersion: 2, req, res, methods: ['GET']
                 }),
-                test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(404)
+                test: async ({ fetch }) => expect((await fetch()).status).toBe(404)
             });
 
             await testApiHandler({
@@ -404,7 +403,7 @@ describe('universe/backend/middleware', () => {
                 handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     apiVersion: 3, req, res, methods: ['GET']
                 }),
-                test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(404)
+                test: async ({ fetch }) => expect((await fetch()).status).toBe(404)
             });
 
             await testApiHandler({
@@ -412,7 +411,7 @@ describe('universe/backend/middleware', () => {
                 handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     apiVersion: 4, req, res, methods: ['GET']
                 }),
-                test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(404)
+                test: async ({ fetch }) => expect((await fetch()).status).toBe(404)
             });
 
             await testApiHandler({
@@ -428,7 +427,7 @@ describe('universe/backend/middleware', () => {
                 handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     req, res, methods: ['GET']
                 }),
-                test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(200)
+                test: async ({ fetch }) => expect((await fetch()).status).toBe(200)
             });
 
             process.env.DISABLED_API_VERSIONS = '';
@@ -438,7 +437,7 @@ describe('universe/backend/middleware', () => {
                 handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     apiVersion: 1, req, res, methods: ['GET']
                 }),
-                test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(200)
+                test: async ({ fetch }) => expect((await fetch()).status).toBe(200)
             });
 
             await testApiHandler({
@@ -446,7 +445,7 @@ describe('universe/backend/middleware', () => {
                 handler: (req: NextApiRequest, res: NextApiResponse) => Middleware.handleEndpoint(noop, {
                     req, res, methods: ['GET']
                 }),
-                test: async ({ fetch }: TestParams) => expect((await fetch()).status).toBe(200)
+                test: async ({ fetch }) => expect((await fetch()).status).toBe(200)
             });
         });
 
@@ -459,7 +458,7 @@ describe('universe/backend/middleware', () => {
                     expect(req.query).toStrictEqual({ some: 'url', yes: '' });
                     res.status(200).send({});
                 }, { req, res, methods: ['GET'] }),
-                test: async ({ fetch }: TestParams) => {
+                test: async ({ fetch }) => {
                     expect((await fetch()).status).toBe(200);
                 }
             });

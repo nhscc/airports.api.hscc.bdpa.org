@@ -19,13 +19,14 @@ module.exports = () => {
         // ! server-side and once client-side!
         webpack: (config: Configuration) => {
             // ? These are aliases that can be used during JS import calls
-            // ! Note that you must also change these same aliases in tsconfig.json
-            // ! Note that you must also change these same aliases in package.json (jest)
+            // ! If changed, also update these aliases in tsconfig.json,
+            // ! jest.config.js, webpack.config.ts, and .eslintrc.js
             config.resolve && (config.resolve.alias = {
                 ...config.resolve.alias,
                 universe: `${__dirname}/src/`,
                 multiverse: `${__dirname}/lib/`,
-                // types/ is purposely excluded
+                externals: `${__dirname}/external-scripts/`,
+                types: `${__dirname}/types/`,
             });
 
             return config;

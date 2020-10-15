@@ -1,6 +1,6 @@
 import { setClientAndDb } from 'universe/backend/db'
 import { setupJest } from 'testverse/db'
-import pruneLogs from '../prune-logs'
+import pruneLogs from 'externals/prune-logs'
 
 import type { RequestLogEntry } from 'types/global'
 import type { WithId, Db } from 'mongodb'

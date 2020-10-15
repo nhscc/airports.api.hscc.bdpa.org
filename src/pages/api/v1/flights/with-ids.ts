@@ -1,6 +1,6 @@
 import { handleEndpoint } from 'universe/backend/middleware'
 import { getFlightsById, convertPFlightToPFlightForV1Only } from 'universe/backend'
-import { sendHttpOk } from 'next-respond'
+import { sendHttpOk } from 'multiverse/next-respond'
 import { ObjectId } from 'mongodb'
 
 import type { NextApiResponse, NextApiRequest } from 'next'

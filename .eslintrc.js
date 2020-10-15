@@ -51,6 +51,12 @@ module.exports = {
             'ts-expect-error': 'allow-with-description',
             minimumDescriptionLength: 6,
         }],
+        '@typescript-eslint/no-unused-vars': ['warn', {
+            argsIgnorePattern: '^_+',
+            varsIgnorePattern: '^_+',
+            caughtErrorsIgnorePattern: '^ignored?\\d*$',
+            caughtErrors: 'all'
+        }],
         // ? Ever since v4, we will rely on TypeScript to catch these
         'no-undef': 'off',
         '@typescript-eslint/no-var-requires': 'off',
@@ -87,10 +93,11 @@ module.exports = {
             alias : {
                 map: [
                     // ! If changed, also update these aliases in tsconfig.json,
-                    // ! webpack.config.js, and jest.config.js
+                    // ! webpack.config.js, next.config.ts, and jest.config.js
                     ['universe','./src'],
                     ['multiverse','./lib'],
-                    ['testverse','./src/__test__'],
+                    ['testverse','./test'],
+                    ['externals','./external-scripts'],
                     ['types','./types'],
                 ],
                 extensions: ['.js', '.jsx', '.ts', '.tsx'],

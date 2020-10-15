@@ -26,12 +26,13 @@ module.exports = {
     resolve: {
         extensions: ['.ts', '.tsx', '.js', '.json'],
         // ! If changed, also update these aliases in tsconfig.json,
-        // ! jest.config.js, and .eslintrc.js
+        // ! jest.config.js, next.config.ts, and .eslintrc.js
         alias: {
             universe: `${__dirname}/src/`,
             multiverse: `${__dirname}/lib/`,
-            testverse: `${__dirname}/src/__test__/`
-            // ? We don't care about types at this point
+            testverse: `${__dirname}/test/`,
+            externals: `${__dirname}/external-scripts/`,
+            types: `${__dirname}/types/`
         }
     },
 

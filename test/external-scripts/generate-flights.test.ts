@@ -1,6 +1,6 @@
 import { setClientAndDb } from 'universe/backend/db'
 import { setupJest } from 'testverse/db'
-import generateFlights from '../generate-flights'
+import generateFlights from 'externals/generate-flights'
 
 import type { InternalFlight } from 'types/global'
 import { WithId } from 'mongodb'
