@@ -4,6 +4,7 @@
     "module": "esnext",
     "allowJs": true,
     "checkJs": true,
+    // ? Only for Next.js
     "jsx": "preserve",
     "declaration": true,
     "isolatedModules": true,
@@ -46,14 +47,11 @@
     "inlineSourceMap": true
   },
   "include": [
-    "types/**/*.ts",
-    "lib/**/*.ts",
-    "lib/**/*.tsx",
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "test/**/*.ts",
-    "test/**/*.tsx",
-    "src/dev-utils.js"
+    "types/**/*.ts*",
+    "lib/**/*.ts*",
+    "src/**/*.ts*",
+    "external-scripts/**/*.ts*",
+    "test/**/*.ts*"
   ],
   "exclude": [
     "node_modules"

@@ -4,6 +4,7 @@ import { frontendRedirect } from 'multiverse/next-isomorphic-redirect'
 import { fetch } from 'isomorphic-json-fetch'
 import useSWR from 'swr'
 
+import type { FetchConfig } from 'isomorphic-json-fetch'
 import type { FrontendRedirectConfig } from 'multiverse/next-isomorphic-redirect/types'
 
 /**

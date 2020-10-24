@@ -6,7 +6,7 @@ module.exports = {
     testEnvironment: 'node',
     testRunner: 'jest-circus/runner',
     verbose: false,
-    testPathIgnorePatterns: [ '/node_modules/', '/build/', '/bin/' ],
+    testPathIgnorePatterns: [ '/node_modules/' ],
     // ! If changed, also update these aliases in tsconfig.json,
     // ! webpack.config.js, next.config.ts, and .eslintrc.js
     moduleNameMapper: {
@@ -14,7 +14,7 @@ module.exports = {
         '^multiverse/(.*)$': '<rootDir>/lib/$1',
         '^testverse/(.*)$': '<rootDir>/test/$1',
         '^externals/(.*)$': '<rootDir>/external-scripts/$1',
-        '^types/(.*)$': '<rootDir>/types/$1'
+        '^types/(.*)$': '<rootDir>/types/$1',
     },
-    setupFilesAfterEnv: [ './test/setup.ts' ]
+    setupFilesAfterEnv: [ './test/setup.ts' ],
 };

@@ -1,16 +1,19 @@
-// This webpack config is only used for compiling the external scripts. For the
-// NextJS specific webpack configs, check config/next.config.ts
+// This webpack config is used for compiling the scripts under
+// external-scripts/. For the NextJS specific webpack configs, check
+// config/next.config.ts
 
 // ? Running an environment check first just to make sure everything is okay...
 require('./src/dev-utils').populateEnv();
 
 const DotenvPlugin = require('dotenv-webpack');
+const nodeExternals = require('webpack-node-externals');
 
-process.env.NODE_ENV = 'external';
 
 module.exports = {
+    name: 'externals',
     mode: 'production',
     target: 'node',
+    node: false,
 
     entry: {
         'ban-hammer': `${__dirname}/external-scripts/ban-hammer.ts`,
@@ -20,11 +23,19 @@ module.exports = {
 
     output: {
         filename: '[name].js',
-        path: `${__dirname}/external-scripts/bin`
+        path: `${__dirname}/external-scripts/bin`,
+    },
+
+    externals: [nodeExternals()],
+
+    stats: {
+        //orphanModules: true, // ? Webpack 5
+        providedExports: true,
+        usedExports: true,
     },
 
     resolve: {
-        extensions: ['.ts', '.tsx', '.js', '.json'],
+        extensions: ['.ts', '.wasm', '.mjs', '.cjs', '.js', '.json'],
         // ! If changed, also update these aliases in tsconfig.json,
         // ! jest.config.js, next.config.ts, and .eslintrc.js
         alias: {
@@ -33,10 +44,11 @@ module.exports = {
             testverse: `${__dirname}/test/`,
             externals: `${__dirname}/external-scripts/`,
             types: `${__dirname}/types/`
-        }
+        },
     },
 
-    module: { rules: [{ test: /\.(ts|js)x?$/, loader: 'babel-loader', exclude: /node_modules/ }]},
-    stats: { warningsFilter: [/critical dependency:/i] },
-    plugins: [ new DotenvPlugin() ]
+    module: { rules: [{ test: /\.(ts|js)x?$/, loader: 'babel-loader', exclude: /node_modules/ }] },
+    optimization: { usedExports: true },
+    //ignoreWarnings: [/critical dependency:/i], // ? Webpack 5
+    plugins: [ new DotenvPlugin() ],
 };

@@ -75,6 +75,9 @@ module.exports = {
             'jest/valid-describe': 'off',
             'jest/no-hooks': 'off',
             'jest/require-to-throw-message': 'off',
+            'jest/prefer-called-with': 'off',
+            'jest/prefer-spy-on': 'off',
+            'jest/no-if': 'off',
         }
     }],
     settings: {

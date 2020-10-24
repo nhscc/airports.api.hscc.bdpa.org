@@ -3,6 +3,7 @@ import { getEnv } from 'universe/backend/env'
 import { AppError } from 'universe/backend/error'
 
 import type { FetchConfig } from 'isomorphic-json-fetch'
+import { ErrorJson, SuccessJson } from '@ergodark/next-types';
 
 type FetchFn = (...params: Parameters<typeof fetch>) => ReturnType<typeof fetch>;
 
@@ -31,7 +32,7 @@ const api = async (endpoint: string, fetchFn: FetchFn) => {
     return fetchFn(`${apiUri}/${endpoint}`);
 };
 
-const PUT = (toolKey: string) => fetcher(fetch.put, { toolKey })
+const PUT = (toolKey: string) => fetcher(fetch.put, { toolKey });
 const GET = (toolKey: string) => fetcher(fetch.get, { toolKey });
 
 export async function isValidToolKey(toolKey: string) {
