@@ -114,7 +114,7 @@
     "jest-extended": "^0.11.5",
     "mongodb": "^3.6.0",
     "mongodb-client-encryption": "^1.1.0",
-    "mongodb-memory-server": "^6.6.7",
+    "mongodb-memory-server": "^6.9.2",
     "next": "^9.5.2",
     "next-transpile-modules": "^4.1.0",
     "random-int": "^2.0.1",
