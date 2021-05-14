@@ -253,7 +253,7 @@ flight's status becomes <span style="color: rgb(23, 190, 207)">*boarding*
 (**J**)</span>.
 
 Once `departFromReceiver` elapses, the flight's status becomes <span
-style="color: rgb(31, 119, 180)">*boarding* (**K**)</span>. 2 to 5 hours after
+style="color: rgb(31, 119, 180)">*departed* (**K**)</span>. 2 to 5 hours after
 that, the flight's status becomes <span style="color: rgb(255, 127, 14)">*past*
 (**L**)</span> and no longer changes states in the system.
 
