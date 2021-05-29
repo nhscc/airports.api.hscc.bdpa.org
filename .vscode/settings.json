@@ -36,11 +36,5 @@
     "wgbrd",
     "ywayrht"
   ],
-  "files.exclude": {
-    "build": true,
-    "external-scripts/bin": true
-  },
-  "cSpell.ignoreWords": [
-    "fjkdnskf"
-  ]
+  "cSpell.ignoreWords": ["fjkdnskf"]
 }

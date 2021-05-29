@@ -1,6 +1,6 @@
 import { setupJest, convertIFlightToPFlight } from 'testverse/db'
 import { testApiHandler } from 'next-test-api-route-handler'
-import * as V1_all from 'universe/pages/api/v1/flights/all'
+import v1AllEndpoint, { config as v1AllConfig } from 'universe/pages/api/v1/flights/all'
 import * as V1_search from 'universe/pages/api/v1/flights/search'
 import * as V1_with_ids from 'universe/pages/api/v1/flights/with-ids'
 import * as V2_flights from 'universe/pages/api/v2/flights'
@@ -9,14 +9,15 @@ import { getEnv } from 'universe/backend/env'
 import { ObjectId } from 'mongodb'
 
 import type { WithId } from 'mongodb'
+import type { PageConfig } from 'next'
 import type { WithConfig, PublicFlight, InternalFlight } from 'types/global'
 
 const RESULT_SIZE = getEnv().RESULTS_PER_PAGE;
 
 const { getHydratedData, getDb } = setupJest();
 
-const v1All: WithConfig<typeof V1_all.default> = V1_all.default;
-v1All.config = V1_all.config;
+const v1All: typeof v1AllEndpoint & { config?: PageConfig } = v1AllEndpoint;
+v1All.config = v1AllConfig;
 
 const v1Search: WithConfig<typeof V1_search.default> = V1_search.default;
 v1Search.config = V1_search.config;

@@ -131,7 +131,7 @@ describe('universe/backend/middleware', () => {
                     await fetch({ method: 'DELETE' });
 
                     // ? Logs are added asynchronously, so let's wait a bit...
-                    await new Promise(resolve => setTimeout(() => resolve(), 500));
+                    await new Promise<void>(resolve => setTimeout(() => resolve(), 500));
 
                     const logs = await (await getDb()).collection<RequestLogEntry>('request-log').find().sort({
                         time: 1
