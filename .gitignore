@@ -1,12 +1,10 @@
-/.vscode
+*.ignore
+*.ignore.*
+ignore.*
 /build
+/.vscode
 /.env
 /external-scripts/bin
-/next-env.d.ts
 /node_modules
-/dist
 /coverage
-/npm.pipe
-/tmp-docs
-/tmp-docs-diff
-/docs-diff
+/next-env.d.ts
