@@ -111,7 +111,7 @@
     "isomorphic-unfetch": "^3.0.0",
     "jest": "^26.4.2",
     "jest-circus": "^26.4.2",
-    "jest-extended": "^0.11.5",
+    "jest-extended": "^1.0.0",
     "mongodb": "^3.6.0",
     "mongodb-client-encryption": "^1.1.0",
     "mongodb-memory-server": "^6.6.7",
