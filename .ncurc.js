@@ -3,6 +3,8 @@
 module.exports = {
   reject: [
     // ? Pin the working version of random-int
-    'random-int'
+    'random-int',
+    // ? Pin the working version of unique-random-array
+    'unique-random-array'
   ]
 };
