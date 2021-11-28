@@ -1,7 +1,7 @@
 /* eslint-disable no-var */
-import { populateEnv } from 'universe/dev-utils'
+const dotenv = require('dotenv');
 // import 'expect-puppeteer'
-import 'jest-extended'
+require('jest-extended');
 
 // import type { Page, Browser, BrowserContext as Context } from 'puppeteer';
 
@@ -11,4 +11,4 @@ import 'jest-extended'
 //     const context: Context;
 // }
 
-populateEnv();
+dotenv.config();
