@@ -165,7 +165,7 @@ internet. This is useful for hiding secrets like the `.env` file.
 file that globally defines TypeScript types used by other files. The `types/`
 folder serves a similar purpose.
 
-`LICENSE` is an [unlicense](https://unlicense.org) license file that says you
+`LICENSE` is an [MIT](https://MIT.org) license file that says you
 can do whatever you want with the code in this project. Be a good denizen of
 open-source and set your code free!
 
