@@ -62,20 +62,19 @@ export const convertIFlightToPFlight = (
 export const unhydratedDummyDbData: DummyDbData = {
   keys: [
     {
-      // TODO: fixme
-      //owner: 'chapter1',
+      owner: 'chapter1',
       key: DUMMY_KEY
     },
     {
-      //owner: 'chapter2',
+      owner: 'chapter2',
       key: 'xyz4c4d3-294a-4086-9751-f3fce82da'
     },
     {
-      //owner: 'chapter3',
+      owner: 'chapter3',
       key: '35b6ny53-83a7-gf0r-b060-b4ywayrht'
     },
     {
-      //owner: 'chapter4',
+      owner: 'chapter4',
       key: 'h90wgbrd-294a-536h-9751-rydmjetgg'
     }
   ],
@@ -410,7 +409,7 @@ export async function hydrateDb(db: Db, data: DummyDbData) {
 }
 
 export function setupJest() {
-  //const port = getEnv().DEBUG_MODE ? getEnv().MONGODB_MS_PORT : undefined;
+  const port = getEnv().DEBUG_MODE ? getEnv().MONGODB_MS_PORT : undefined;
 
   // * The in-memory server is not started until it's needed later on
   const server = new MongoMemoryServer({

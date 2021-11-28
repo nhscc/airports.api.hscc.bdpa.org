@@ -1,4 +1,3 @@
-export {};
 /* eslint-disable no-var */
 const dotenv = require('dotenv');
 // import 'expect-puppeteer'
