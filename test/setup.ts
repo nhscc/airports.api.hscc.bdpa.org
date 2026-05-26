@@ -1,14 +1,20 @@
-/* eslint-disable no-var */
-const dotenv = require('dotenv');
-// import 'expect-puppeteer'
-require('jest-extended');
+/**
+ ** This file is automatically imported by Jest, and is responsible for
+ **  bootstrapping the runtime for every test file.
+ */
 
-// import type { Page, Browser, BrowserContext as Context } from 'puppeteer';
+import { toPath } from '@-xun/fs';
+import { config as loadEnv } from 'dotenv';
 
-// declare global {
-//     const page: Page;
-//     const browser: Browser;
-//     const context: Context;
-// }
+import '@testing-library/jest-dom';
 
-dotenv.config();
+// ? jest-extended will always come from @-xun/symbiote (i.e. transitively)
+// {@symbiote/notInvalid jest-extended}
+
+// ? https://github.com/jest-community/jest-extended#typescript
+import 'jest-extended';
+import 'jest-extended/all';
+
+loadEnv({ path: toPath(__dirname, '..', '.env'), quiet: true });
+
+jest.mock('@nhscc/backend-airports~npm', () => require('@nhscc/backend-airports'));
