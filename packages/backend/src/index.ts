@@ -17,13 +17,13 @@ import {
 } from 'universe+backend:db.ts';
 
 import { getEnv } from 'universe+backend:env.ts';
+import { validateAndParseJson } from 'universe+backend:util.ts';
 
 import type {
   PublicAirport,
   PublicFlight,
   PublicNoFlyListEntry
 } from 'universe+backend:db.ts';
-import { validateAndParseJson } from 'universe+backend:util.ts';
 
 type SearchFlightsMatch = {
   [specifier: string]:
@@ -51,7 +51,7 @@ const primaryMatchTargets = [
   'ffms',
   'seats.economy.priceDollars',
   '_id'
-];
+] as const;
 
 const secondaryMatchTargets = [
   'departFromSender',
@@ -59,11 +59,11 @@ const secondaryMatchTargets = [
   'departFromReceiver',
   'status',
   'gate'
-];
+] as const;
 
 const matchableStrings = [...primaryMatchTargets, ...secondaryMatchTargets];
 
-const matchableSubStrings = ['$gt', '$lt', '$gte', '$lte'];
+const matchableSubStrings = ['$gt', '$lt', '$gte', '$lte'] as const;
 
 export async function getNoFlyList() {
   const { noFlyListDb } = await getNoFlyListDb();
@@ -201,8 +201,10 @@ export async function searchFlights({
     throw new ClientValidationError(ErrorMessage.InvalidFlightId());
   }
 
-  const matchKeys = Object.keys(rawMatch);
-  const regexMatchKeys = Object.keys(rawRegexMatch);
+  const match = rawMatch as SearchFlightsMatch;
+  const regexMatch = rawRegexMatch as SearchFlightsRegexMatch;
+  const matchKeys = Object.keys(match);
+  const regexMatchKeys = Object.keys(regexMatch);
 
   if (matchKeys.length && !matchKeysAreValid()) {
     throw new ClientValidationError(ErrorMessage.InvalidMatchObject());
@@ -219,22 +221,26 @@ export async function searchFlights({
   // ? for both normal matchers and regex matchers (the latter takes
   // ? precedence due to code order)
 
-  for (const [prop, val] of Object.entries(rawMatch)) {
-    if (primaryMatchTargets.includes(prop)) {
+  for (const [prop, val] of Object.entries(match)) {
+    if (primaryMatchTargets.includes(prop as (typeof primaryMatchTargets)[number])) {
       primaryMatchers[prop] = val;
-    } else if (secondaryMatchTargets.includes(prop)) {
+    } else if (
+      secondaryMatchTargets.includes(prop as (typeof secondaryMatchTargets)[number])
+    ) {
       secondaryMatchers[prop] = val;
     } else {
       throw new ClientValidationError(ErrorMessage.StrangeMatcherError(prop));
     }
   }
 
-  for (const [prop, val] of Object.entries(rawRegexMatch)) {
+  for (const [prop, val] of Object.entries(regexMatch)) {
     const regexVal = { $regex: val, $options: 'i' };
 
-    if (primaryMatchTargets.includes(prop)) {
+    if (primaryMatchTargets.includes(prop as (typeof primaryMatchTargets)[number])) {
       primaryMatchers[prop] = regexVal;
-    } else if (secondaryMatchTargets.includes(prop)) {
+    } else if (
+      secondaryMatchTargets.includes(prop as (typeof secondaryMatchTargets)[number])
+    ) {
       secondaryMatchers[prop] = regexVal;
     } else {
       throw new ClientValidationError(ErrorMessage.StrangeMatcherError(prop));
@@ -271,18 +277,18 @@ export async function searchFlights({
     .toArray();
 
   function matchKeysAreValid() {
-    return matchKeys.every((key) => {
-      const val = rawMatch[key];
+    return matchKeys.every((key_) => {
+      const key = key_ as (typeof matchableStrings)[number];
+      const val = match[key];
       let valNotEmpty = false;
 
       const test = () =>
-        Object.keys(val as object).every((subKey) => {
+        isObject(val) &&
+        Object.keys(val).every((subKey_) => {
+          const subKey = subKey_ as (typeof matchableSubStrings)[number];
           valNotEmpty = true;
 
-          return (
-            matchableSubStrings.includes(subKey) &&
-            typeof (val as Record<string, unknown>)[subKey] === 'number'
-          );
+          return matchableSubStrings.includes(subKey) && typeof val[subKey] === 'number';
         });
 
       return (
@@ -290,17 +296,19 @@ export async function searchFlights({
         matchableStrings.includes(key) &&
         (val instanceof ObjectId ||
           ['number', 'string'].includes(typeof val) ||
-          (isObject(val) && test() && valNotEmpty))
+          (test() && valNotEmpty))
       );
     });
   }
 
   function regexMatchKeysAreValid() {
-    return regexMatchKeys.every(
-      (k) =>
-        matchableStrings.includes(k) &&
-        (rawRegexMatch[k] instanceof ObjectId || typeof rawRegexMatch[k] === 'string')
-    );
+    return regexMatchKeys.every((key_) => {
+      const key = key_ as (typeof matchableStrings)[number];
+      return (
+        matchableStrings.includes(key) &&
+        (regexMatch[key] instanceof ObjectId || typeof rawRegexMatch[key] === 'string')
+      );
+    });
   }
 }
 
