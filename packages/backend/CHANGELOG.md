@@ -6,17 +6,18 @@ this project adheres to [Semantic Versioning][2].
 
 <br />
 
-## @nhscc/backend-airports\@1.0.0-canary.1 (2026-05-28)
+## @nhscc/backend-airports[@1.1.0][3] (2026-05-28)
 
 ### ✨ Features
 
-- Extract backend code to @nhscc/backend-airports ([a9f1c34][3])
+- Extract backend code to @nhscc/backend-airports ([a9f1c34][4])
 
 ### ⚙️ Build System
 
-- Update "engines" and lock file ([4f7c696][4])
+- Update "engines" and lock file ([4f7c696][5])
 
 [1]: https://conventionalcommits.org
 [2]: https://semver.org
-[3]: https://github.com/nhscc/airports.api.hscc.bdpa.org/commit/a9f1c3441859a7629204dcb3b989eb12cf789a27
-[4]: https://github.com/nhscc/airports.api.hscc.bdpa.org/commit/4f7c696b03d2aff9f6797857a9edb6d8c856d11e
+[3]: https://github.com/nhscc/airports.api.hscc.bdpa.org/compare/@nhscc/backend-airports@1.0.0...@nhscc/backend-airports@1.1.0
+[4]: https://github.com/nhscc/airports.api.hscc.bdpa.org/commit/a9f1c3441859a7629204dcb3b989eb12cf789a27
+[5]: https://github.com/nhscc/airports.api.hscc.bdpa.org/commit/4f7c696b03d2aff9f6797857a9edb6d8c856d11e

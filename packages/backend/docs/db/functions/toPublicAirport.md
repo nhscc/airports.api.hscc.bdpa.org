@@ -8,7 +8,7 @@
 
 > **toPublicAirport**(`internalAirport`): [`PublicAirport`](../type-aliases/PublicAirport.md)
 
-Defined in: [packages/backend/src/db.ts:271](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/d631ba318d3e65370cee148ae59953ef059cface/packages/backend/src/db.ts#L271)
+Defined in: [packages/backend/src/db.ts:271](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/729006e855b829bf84928331492bcc92064f3981/packages/backend/src/db.ts#L271)
 
 Transforms an [InternalAirport](../type-aliases/InternalAirport.md) into a [PublicAirport](../type-aliases/PublicAirport.md).
 

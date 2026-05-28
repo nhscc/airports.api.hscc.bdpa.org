@@ -8,7 +8,7 @@
 
 > **getFlightsById**(`__namedParameters`): `Promise`\<[`PublicFlight`](../../db/type-aliases/PublicFlight.md)[]\>
 
-Defined in: [packages/backend/src/index.ts:108](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/d631ba318d3e65370cee148ae59953ef059cface/packages/backend/src/index.ts#L108)
+Defined in: [packages/backend/src/index.ts:108](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/729006e855b829bf84928331492bcc92064f3981/packages/backend/src/index.ts#L108)
 
 ## Parameters
 
