@@ -16,8 +16,18 @@ this project adheres to [Semantic Versioning][2].
 
 - Update "engines" and lock file ([4f7c696][5])
 
+<br />
+
+### 🏗️ Patch @nhscc/backend-airports[@1.1.1][6] (2026-05-28)
+
+#### ⚙️ Build System
+
+- **packages/backend:** add /util export path ([d67532e][7])
+
 [1]: https://conventionalcommits.org
 [2]: https://semver.org
-[3]: https://github.com/nhscc/airports.api.hscc.bdpa.org/compare/@nhscc/backend-airports@1.0.0...@nhscc/backend-airports@1.1.0
+[3]: https://github.com/nhscc/airports.api.hscc.bdpa.org/compare/@nhscc/backend-airports@0.0.0-init...@nhscc/backend-airports@1.1.0
 [4]: https://github.com/nhscc/airports.api.hscc.bdpa.org/commit/a9f1c3441859a7629204dcb3b989eb12cf789a27
 [5]: https://github.com/nhscc/airports.api.hscc.bdpa.org/commit/4f7c696b03d2aff9f6797857a9edb6d8c856d11e
+[6]: https://github.com/nhscc/airports.api.hscc.bdpa.org/compare/@nhscc/backend-airports@1.1.0...@nhscc/backend-airports@1.1.1
+[7]: https://github.com/nhscc/airports.api.hscc.bdpa.org/commit/d67532e282fe351f4c530f0480af3cec70355407
