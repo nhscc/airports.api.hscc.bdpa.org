@@ -36,6 +36,10 @@
       "types": "./dist/packages/backend/src/env.d.ts",
       "default": "./dist/packages/backend/src/env.js"
     },
+    "./util": {
+      "types": "./dist/packages/backend/src/util.d.ts",
+      "default": "./dist/packages/backend/src/util.js"
+    },
     "./package": "./package.json",
     "./package.json": "./package.json"
   },
@@ -55,6 +59,9 @@
       ],
       "env": [
         "dist/packages/backend/src/env.d.ts"
+      ],
+      "util": [
+        "dist/packages/backend/src/util.d.ts"
       ],
       "package": [
         "package.json"
