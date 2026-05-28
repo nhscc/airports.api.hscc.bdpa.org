@@ -8,7 +8,7 @@
 
 > **getDummyData**(): `DummyData`
 
-Defined in: [packages/backend/src/dummy.ts:16](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/e58635515aaccbecfff868b37cbae9a64bb762c2/packages/backend/src/dummy.ts#L16)
+Defined in: [packages/backend/src/dummy.ts:29](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/d631ba318d3e65370cee148ae59953ef059cface/packages/backend/src/dummy.ts#L29)
 
 Returns data used to hydrate databases and their collections.
 

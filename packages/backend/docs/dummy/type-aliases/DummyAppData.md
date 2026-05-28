@@ -8,7 +8,7 @@
 
 > **DummyAppData** = `object`
 
-Defined in: [packages/backend/src/dummy.ts:23](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/e58635515aaccbecfff868b37cbae9a64bb762c2/packages/backend/src/dummy.ts#L23)
+Defined in: [packages/backend/src/dummy.ts:36](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/d631ba318d3e65370cee148ae59953ef059cface/packages/backend/src/dummy.ts#L36)
 
 The shape of the application database's test data.
 
@@ -18,28 +18,44 @@ The shape of the application database's test data.
 
 > **\_generatedAt**: `number`
 
-Defined in: [packages/backend/src/dummy.ts:24](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/e58635515aaccbecfff868b37cbae9a64bb762c2/packages/backend/src/dummy.ts#L24)
+Defined in: [packages/backend/src/dummy.ts:37](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/d631ba318d3e65370cee148ae59953ef059cface/packages/backend/src/dummy.ts#L37)
 
 ***
 
-### mail
+### airlines
 
-> **mail**: `InternalMail`[]
+> **airlines**: [`InternalAirline`](../../db/type-aliases/InternalAirline.md)[]
 
-Defined in: [packages/backend/src/dummy.ts:26](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/e58635515aaccbecfff868b37cbae9a64bb762c2/packages/backend/src/dummy.ts#L26)
-
-***
-
-### questions
-
-> **questions**: `InternalQuestion`[]
-
-Defined in: [packages/backend/src/dummy.ts:27](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/e58635515aaccbecfff868b37cbae9a64bb762c2/packages/backend/src/dummy.ts#L27)
+Defined in: [packages/backend/src/dummy.ts:41](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/d631ba318d3e65370cee148ae59953ef059cface/packages/backend/src/dummy.ts#L41)
 
 ***
 
-### users
+### airports
 
-> **users**: `InternalUser`[]
+> **airports**: [`InternalAirport`](../../db/type-aliases/InternalAirport.md)[]
 
-Defined in: [packages/backend/src/dummy.ts:25](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/e58635515aaccbecfff868b37cbae9a64bb762c2/packages/backend/src/dummy.ts#L25)
+Defined in: [packages/backend/src/dummy.ts:39](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/d631ba318d3e65370cee148ae59953ef059cface/packages/backend/src/dummy.ts#L39)
+
+***
+
+### flights
+
+> **flights**: [`InternalFlight`](../../db/type-aliases/InternalFlight.md)[]
+
+Defined in: [packages/backend/src/dummy.ts:38](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/d631ba318d3e65370cee148ae59953ef059cface/packages/backend/src/dummy.ts#L38)
+
+***
+
+### info
+
+> **info**: [`InternalInfo`](../../db/type-aliases/InternalInfo.md)[]
+
+Defined in: [packages/backend/src/dummy.ts:42](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/d631ba318d3e65370cee148ae59953ef059cface/packages/backend/src/dummy.ts#L42)
+
+***
+
+### no-fly-list
+
+> **no-fly-list**: [`InternalNoFlyListEntry`](../../db/type-aliases/InternalNoFlyListEntry.md)[]
+
+Defined in: [packages/backend/src/dummy.ts:40](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/d631ba318d3e65370cee148ae59953ef059cface/packages/backend/src/dummy.ts#L40)

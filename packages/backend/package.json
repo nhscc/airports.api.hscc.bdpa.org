@@ -1,6 +1,6 @@
 {
   "name": "@nhscc/backend-airports",
-  "version": "1.0.0",
+  "version": "1.0.0-canary.1",
   "description": "https://airports.api.hscc.bdpa.org",
   "keywords": [],
   "homepage": "https://github.com/nhscc/airports.api.hscc.bdpa.org/tree/main/packages/backend#readme",
@@ -92,13 +92,13 @@
   "dependencies": {
     "@-xun/api-strategy": "^1.3.9",
     "@-xun/env": "^1.1.3",
+    "@-xun/js": "^2.0.0",
     "@-xun/mongo-item": "^1.3.0",
     "@-xun/mongo-schema": "^1.5.0",
     "@-xun/mongo-test": "^3.0.4",
     "core-js": "^3.44.0",
     "mongodb": "^6.18.0",
-    "type-fest": "4.40.0",
-    "@-xun/js": "^2.0.0"
+    "type-fest": "4.40.0"
   },
   "peerDependencies": {
     "@-xun/jest": ">=2"

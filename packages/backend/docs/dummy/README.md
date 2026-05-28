@@ -16,4 +16,6 @@
 
 ## Functions
 
+- [farFuture](functions/farFuture.md)
 - [getDummyData](functions/getDummyData.md)
+- [nearFuture](functions/nearFuture.md)

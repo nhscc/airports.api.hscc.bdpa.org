@@ -8,7 +8,7 @@
 
 > **getSchemaConfig**(): `DbSchema`
 
-Defined in: [packages/backend/src/db.ts:21](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/e58635515aaccbecfff868b37cbae9a64bb762c2/packages/backend/src/db.ts#L21)
+Defined in: [packages/backend/src/db.ts:17](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/d631ba318d3e65370cee148ae59953ef059cface/packages/backend/src/db.ts#L17)
 
 A JSON representation of the backend Mongo database structure. This is used
 for consistent app-wide db access across projects and to generate transient
