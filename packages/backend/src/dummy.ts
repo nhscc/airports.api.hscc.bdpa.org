@@ -50,7 +50,8 @@ const airports: InternalAirport[] = [
     shortName: 'F1A',
     city: 'Los Angeles',
     state: 'CA',
-    country: 'USA'
+    country: 'USA',
+    owner_id: dummyRootData.auth[1]!._id.toString()
   },
   {
     _id: new ObjectId(),
@@ -58,7 +59,8 @@ const airports: InternalAirport[] = [
     shortName: 'SCA',
     city: 'Chicago',
     state: 'IL',
-    country: 'USA'
+    country: 'USA',
+    owner_id: 'fake-1'
   },
   {
     _id: new ObjectId(),
@@ -66,7 +68,8 @@ const airports: InternalAirport[] = [
     shortName: 'TC3',
     city: 'New York',
     state: 'NY',
-    country: 'USA'
+    country: 'USA',
+    owner_id: 'fake-2'
   },
   {
     _id: new ObjectId(),
@@ -74,7 +77,8 @@ const airports: InternalAirport[] = [
     shortName: 'CHF',
     city: 'Atlanta',
     state: 'GA',
-    country: 'USA'
+    country: 'USA',
+    owner_id: 'fake-3'
   }
 ];
 
@@ -106,8 +110,8 @@ const airlines: InternalAirline[] = [
   },
   {
     _id: new ObjectId(),
-    name: 'Spirit',
-    codePrefix: 'P'
+    name: 'JetBlue',
+    codePrefix: 'J'
   }
 ];
 
@@ -154,7 +158,7 @@ const info: InternalInfo[] = [
 
 const unhydratedFlights: WithoutId<InternalFlight>[] = [
   {
-    bookerAuthId: dummyRootData.auth[1]!._id.toString(),
+    booker_id: dummyRootData.auth[1]!._id.toString(),
     type: 'arrival',
     airline: 'Delta',
     comingFrom: 'SCA',
@@ -222,7 +226,7 @@ const unhydratedFlights: WithoutId<InternalFlight>[] = [
     }
   },
   {
-    bookerAuthId: null,
+    booker_id: null,
     type: 'departure',
     airline: 'United',
     comingFrom: 'CHF',
@@ -311,7 +315,7 @@ const flights = Array.from({ length: count }).map((_, ndx) => {
   flight._id = new ObjectId();
 
   if (ndx === specialFlightIndex) {
-    flight.airline = 'Spirit';
+    flight.airline = airlines.at(-1)!.name;
     flight.ffms = 100_000_000;
     flight.stochasticStates = {
       '0': {

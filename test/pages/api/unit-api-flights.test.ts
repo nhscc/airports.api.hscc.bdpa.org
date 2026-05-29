@@ -62,17 +62,17 @@ jest.mock<typeof import('universe:route-wrapper.ts')>(
 );
 
 const resultSize = getEnv().RESULTS_PER_PAGE;
-const bookerAuthId = dummyRootData.auth[1]!._id.toString();
+const booker_id = dummyRootData.auth[1]!._id.toString();
 
 const nonExistentObjectIdFromTheFuture = ObjectId.createFromTime(
   Date.now() * 2
 ).toString();
 
 const v1Flights = dummyAppData.flights.map(internalFlightToPublicFlightV1);
-const v2Flights = dummyAppData.flights.map((f) => toPublicFlight(f, bookerAuthId));
+const v2Flights = dummyAppData.flights.map((f) => toPublicFlight(f, booker_id));
 
 function internalFlightToPublicFlightV1(flight: WithId<InternalFlight>) {
-  return toPublicFlightV1(toPublicFlight(flight, bookerAuthId));
+  return toPublicFlightV1(toPublicFlight(flight, booker_id));
 }
 
 describe('api/v1/flights', () => {
@@ -288,7 +288,7 @@ describe('api/v1/flights', () => {
     const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
     const genUrl = (function* () {
-      yield `/?match=${encode({ airline: 'Spirit' })}`;
+      yield `/?match=${encode({ airline: 'JetBlue' })}`;
       yield `/?match=${encode({ type: 'departure' })}`;
       yield `/?match=${encode({ landingAt: 'F1A' })}`;
       yield `/?match=${encode({ seatPrice: 500 })}`;
@@ -313,7 +313,7 @@ describe('api/v1/flights', () => {
 
         expect(responses.some((o) => !o?.success)).toBeFalse();
         expect(responses.map((r) => r.flights)).toIncludeSameMembers([
-          v1Flights.filter((f) => f.airline === 'Spirit').slice(0, resultSize),
+          v1Flights.filter((f) => f.airline === 'JetBlue').slice(0, resultSize),
           v1Flights.filter((f) => f.type === 'departure').slice(0, resultSize),
           v1Flights.filter((f) => f.landingAt === 'F1A').slice(0, resultSize),
           v1Flights.filter((f) => f.seatPrice === 500).slice(0, resultSize),
@@ -348,7 +348,7 @@ describe('api/v1/flights', () => {
     const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
     const genUrl = (function* () {
-      yield `/?regexMatch=${encode({ airline: 'spirit' })}`;
+      yield `/?regexMatch=${encode({ airline: 'jetblue' })}`;
       yield `/?regexMatch=${encode({ type: '^dep' })}`;
       yield `/?regexMatch=${encode({ flightNumber: 'u.*' })}`;
       yield `/?regexMatch=${encode({ flightNumber: 'U.*' })}`;
@@ -369,7 +369,7 @@ describe('api/v1/flights', () => {
 
         expect(responses.some((o) => !o?.success)).toBeFalse();
         expect(responses.map((r) => r.flights)).toIncludeSameMembers([
-          v1Flights.filter((f) => /spirit/i.test(f.airline)).slice(0, resultSize),
+          v1Flights.filter((f) => /jetblue/i.test(f.airline)).slice(0, resultSize),
           v1Flights.filter((f) => /^dep/i.test(f.type)).slice(0, resultSize),
           v1Flights.filter((f) => /u.*/i.test(f.flightNumber)).slice(0, resultSize),
           v1Flights.filter((f) => /U.*/i.test(f.flightNumber)).slice(0, resultSize)
@@ -449,8 +449,8 @@ describe('api/v1/flights', () => {
     const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
     const genUrl = (function* () {
-      yield `/?sort=desc&after=${v1Flights[249]!.flight_id}&match=${encode({ ffms: { $gt: 1_000_000 } })}&regexMatch=${encode({ airline: 'spirit' })}`;
-      yield `/?sort=desc&after=${v1Flights[0]!.flight_id}&match=${encode({ ffms: { $gt: 1_000_000 } })}&regexMatch=${encode({ airline: 'spirit' })}`;
+      yield `/?sort=desc&after=${v1Flights[249]!.flight_id}&match=${encode({ ffms: { $gt: 1_000_000 } })}&regexMatch=${encode({ airline: 'jetblue' })}`;
+      yield `/?sort=desc&after=${v1Flights[0]!.flight_id}&match=${encode({ ffms: { $gt: 1_000_000 } })}&regexMatch=${encode({ airline: 'jetblue' })}`;
     })();
 
     await testApiHandler({
@@ -776,7 +776,7 @@ describe('api/v2/flights', () => {
     const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
     const genUrl = (function* () {
-      yield `/?match=${encode({ airline: 'Spirit' })}`;
+      yield `/?match=${encode({ airline: 'JetBlue' })}`;
       yield `/?match=${encode({ type: 'departure' })}`;
       yield `/?match=${encode({ landingAt: 'F1A' })}`;
     })();
@@ -796,7 +796,7 @@ describe('api/v2/flights', () => {
 
         expect(responses.some((o) => !o?.success)).toBeFalse();
         expect(responses.map((r) => r.flights)).toIncludeSameMembers([
-          v2Flights.filter((f) => f.airline === 'Spirit').slice(0, resultSize),
+          v2Flights.filter((f) => f.airline === 'JetBlue').slice(0, resultSize),
           v2Flights.filter((f) => f.type === 'departure').slice(0, resultSize),
           v2Flights.filter((f) => f.landingAt === 'F1A').slice(0, resultSize)
         ]);
@@ -826,7 +826,7 @@ describe('api/v2/flights', () => {
     const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
     const genUrl = (function* () {
-      yield `/?regexMatch=${encode({ airline: 'spirit' })}`;
+      yield `/?regexMatch=${encode({ airline: 'jetblue' })}`;
       yield `/?regexMatch=${encode({ type: '^dep' })}`;
       yield `/?regexMatch=${encode({ flightNumber: 'u.*' })}`;
       yield `/?regexMatch=${encode({ flightNumber: 'U.*' })}`;
@@ -847,7 +847,7 @@ describe('api/v2/flights', () => {
 
         expect(responses.some((o) => !o?.success)).toBeFalse();
         expect(responses.map((r) => r.flights)).toIncludeSameMembers([
-          v2Flights.filter((f) => /spirit/i.test(f.airline)).slice(0, resultSize),
+          v2Flights.filter((f) => /jetblue/i.test(f.airline)).slice(0, resultSize),
           v2Flights.filter((f) => /^dep/i.test(f.type)).slice(0, resultSize),
           v2Flights.filter((f) => /u.*/i.test(f.flightNumber)).slice(0, resultSize),
           v2Flights.filter((f) => /U.*/i.test(f.flightNumber)).slice(0, resultSize)
@@ -927,8 +927,8 @@ describe('api/v2/flights', () => {
     const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
     const genUrl = (function* () {
-      yield `/?sort=desc&after=${v2Flights[249]!.flight_id}&match=${encode({ ffms: { $gt: 1_000_000 } })}&regexMatch=${encode({ airline: 'spirit' })}`;
-      yield `/?sort=desc&after=${v2Flights[0]!.flight_id}&match=${encode({ ffms: { $gt: 1_000_000 } })}&regexMatch=${encode({ airline: 'spirit' })}`;
+      yield `/?sort=desc&after=${v2Flights[249]!.flight_id}&match=${encode({ ffms: { $gt: 1_000_000 } })}&regexMatch=${encode({ airline: 'jetblue' })}`;
+      yield `/?sort=desc&after=${v2Flights[0]!.flight_id}&match=${encode({ ffms: { $gt: 1_000_000 } })}&regexMatch=${encode({ airline: 'jetblue' })}`;
     })();
 
     await testApiHandler({

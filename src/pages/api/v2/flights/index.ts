@@ -18,7 +18,7 @@ export default withMiddleware(
     // * GET
     sendHttpOk(res, {
       flights: await searchFlights({
-        bookerAuthId: clientToken?.auth_id,
+        booker_id: clientToken?.auth_id,
         after_id: req.query.after?.toString(),
         match: req.query.match?.toString(),
         regexMatch: req.query.regexMatch?.toString(),

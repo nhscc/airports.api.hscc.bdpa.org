@@ -21,7 +21,7 @@ export default withMiddleware(
       sendHttpOk(res, {
         flights: (
           await getFlightsById({
-            bookerAuthId: clientToken?.auth_id,
+            booker_id: clientToken?.auth_id,
             flight_ids: req.query.ids?.toString()
           })
         )

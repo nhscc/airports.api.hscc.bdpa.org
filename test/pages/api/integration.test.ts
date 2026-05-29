@@ -1,4 +1,3 @@
-/* eslint-disable jest/no-standalone-expect */
 /* eslint-disable jest/require-hook */
 import assert from 'node:assert';
 

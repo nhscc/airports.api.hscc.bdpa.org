@@ -27,7 +27,7 @@ export function getSchemaConfig(): DbSchema {
             // https://stackoverflow.com/a/40914924/1367414
             createOptions: { collation: { locale: 'en', strength: 2 } },
             indices: [
-              { spec: 'bookerAuthId' },
+              { spec: 'booker_id' },
               { spec: 'type' },
               { spec: 'airline' },
               { spec: 'comingFrom' },
@@ -39,10 +39,18 @@ export function getSchemaConfig(): DbSchema {
             ]
           },
           {
-            name: 'airports'
+            name: 'airports',
+            indices: [
+              { spec: 'name', options: { unique: true } },
+              { spec: 'shortName', options: { unique: true } }
+            ]
           },
           {
-            name: 'airlines'
+            name: 'airlines',
+            indices: [
+              { spec: 'name', options: { unique: true } },
+              { spec: 'codePrefix', options: { unique: true } }
+            ]
           },
           {
             name: 'no-fly-list'
@@ -131,7 +139,7 @@ export type InternalInfo = WithId<{
  * The shape of an internal flight.
  */
 export type InternalFlight = WithId<{
-  bookerAuthId: string | null;
+  booker_id: string | null;
   type: 'arrival' | 'departure';
   airline: string;
   comingFrom: string;
@@ -172,7 +180,7 @@ export type InternalFlight = WithId<{
  * The shape of a public flight.
  */
 export type PublicFlight = WithoutId<
-  Omit<InternalFlight, 'bookerAuthId' | 'stochasticStates'>
+  Omit<InternalFlight, 'booker_id' | 'stochasticStates'>
 > &
   StochasticFlightState & {
     flight_id: string;
@@ -188,12 +196,13 @@ export type InternalAirport = WithId<{
   city: string;
   state: string;
   country: string;
+  owner_id: string;
 }>;
 
 /**
  * The shape of a public airport.
  */
-export type PublicAirport = WithoutId<InternalAirport>;
+export type PublicAirport = WithoutId<Omit<InternalAirport, 'owner_id'>>;
 
 /**
  * The shape of an internal airline.
@@ -234,11 +243,8 @@ export type PublicNoFlyListEntry = WithoutId<InternalNoFlyListEntry>;
  * Transforms an {@link InternalFlight} into a {@link PublicFlight} for the V2
  * API.
  */
-export function toPublicFlight(
-  flight: InternalFlight,
-  requestAuthId: string
-): PublicFlight {
-  const { _id, bookerAuthId, stochasticStates, ...publicV2FlightData } = flight;
+export function toPublicFlight(flight: InternalFlight, auth_id: string): PublicFlight {
+  const { _id, booker_id, stochasticStates, ...publicV2FlightData } = flight;
   const stochasticStatesEntries = Object.entries(stochasticStates);
   const firstStochasticState = stochasticStatesEntries[0]?.[1];
 
@@ -246,7 +252,7 @@ export function toPublicFlight(
 
   return {
     flight_id: _id.toHexString(),
-    bookable: flight.type === 'arrival' ? false : bookerAuthId === requestAuthId,
+    bookable: flight.type === 'arrival' ? false : booker_id === auth_id,
     ...publicV2FlightData,
     // eslint-disable-next-line unicorn/no-array-reduce
     ...stochasticStatesEntries.reduce((previous, entry) => {
@@ -344,10 +350,10 @@ export const publicNoFlyListProjection = {
  * {@link PublicFlight}s, i.e. their current "stochastic" states.
  */
 export function makeFlightStateResolverAggregation({
-  bookerAuthId,
+  booker_id,
   removeIdsFromResult
 }: {
-  bookerAuthId: string;
+  booker_id: string;
   removeIdsFromResult: boolean;
 }) {
   return [
@@ -369,10 +375,7 @@ export function makeFlightStateResolverAggregation({
         bookable: {
           $cond: {
             if: {
-              $and: [
-                { $eq: ['$bookerAuthId', bookerAuthId] },
-                { $eq: ['$type', 'departure'] }
-              ]
+              $and: [{ $eq: ['$booker_id', booker_id] }, { $eq: ['$type', 'departure'] }]
             },
             // eslint-disable-next-line unicorn/no-thenable
             then: true,
@@ -392,7 +395,7 @@ export function makeFlightStateResolverAggregation({
       $project: {
         state: false,
         ...(removeIdsFromResult ? { _id: false } : {}),
-        bookerAuthId: false,
+        booker_id: false,
         stochasticStates: false
       }
     }
