@@ -10,7 +10,7 @@
     "alwaysStrict": true,
     // ? Does too much; opt-in (provided by allowJs) is better
     "checkJs": false,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "declaration": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
