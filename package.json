@@ -69,7 +69,7 @@
     "dotenv": "^17.4.2",
     "jest-fixed-jsdom": "^0.0.11",
     "mongodb": "^7.2.0",
-    "next": "^15.5.18",
+    "next": "^16.2.6",
     "next-test-api-route-handler": "^5.0.0",
     "react": "^19.1.0",
     "rejoinder": "^2.0.2",
