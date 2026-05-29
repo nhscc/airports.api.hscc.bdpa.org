@@ -1,16 +1,19 @@
-import { setupJest, convertIFlightToPFlight } from 'testverse/db';
+import { ObjectId } from 'mongodb';
 import { testApiHandler } from 'next-test-api-route-handler';
+
+import { convertPFlightToPFlightForV1Only, DUMMY_KEY as KEY } from 'universe/backend';
+import { getEnv } from 'universe/backend/env';
 import v1AllEndpoint, { config as v1AllConfig } from 'universe/pages/api/v1/flights/all';
 import * as V1_search from 'universe/pages/api/v1/flights/search';
 import * as V1_with_ids from 'universe/pages/api/v1/flights/with-ids';
 import * as V2_flights from 'universe/pages/api/v2/flights';
-import { DUMMY_KEY as KEY, convertPFlightToPFlightForV1Only } from 'universe/backend';
-import { getEnv } from 'universe/backend/env';
-import { ObjectId } from 'mongodb';
+
+import { convertIFlightToPFlight, setupJest } from 'testverse/db';
+
 
 import type { WithId } from 'mongodb';
 import type { PageConfig } from 'next';
-import type { WithConfig, PublicFlight, InternalFlight } from 'types/global';
+import type { InternalFlight, PublicFlight, WithConfig } from 'types/global';
 
 const RESULT_SIZE = getEnv().RESULTS_PER_PAGE;
 
@@ -81,7 +84,7 @@ describe('api/v1/flights', () => {
       handler: v1All,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          [...Array(10)].map((_) => {
+          Array.from({length: 10}).map((_) => {
             return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : null));
           })
         );
@@ -124,7 +127,7 @@ describe('api/v1/flights', () => {
       handler: v1All,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          [...Array(7)].map((_) => {
+          Array.from({length: 7}).map((_) => {
             return fetch({ headers: { KEY } }).then((r) => r.status);
           })
         );
@@ -195,7 +198,7 @@ describe('api/v1/flights', () => {
       handler: v1Search,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          [...Array(3)].map((_) => {
+          Array.from({length: 3}).map((_) => {
             return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : null));
           })
         );
@@ -231,7 +234,7 @@ describe('api/v1/flights', () => {
       handler: v1Search,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          [...Array(4)].map((_) => {
+          Array.from({length: 4}).map((_) => {
             return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : r.status));
           })
         );
@@ -275,7 +278,7 @@ describe('api/v1/flights', () => {
       handler: v1Search,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          [...Array(8)].map((_) => {
+          Array.from({length: 8}).map((_) => {
             return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : r.status));
           })
         );
@@ -334,7 +337,7 @@ describe('api/v1/flights', () => {
       handler: v1Search,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          [...Array(4)].map((_) => {
+          Array.from({length: 4}).map((_) => {
             return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : r.status));
           })
         );
@@ -369,7 +372,7 @@ describe('api/v1/flights', () => {
       handler: v1Search,
       test: async ({ fetch }) => {
         await Promise.all(
-          [...Array(3)].map((_) => {
+          Array.from({length: 3}).map((_) => {
             return fetch({ headers: { KEY } })
               .then((r) => r.status)
               .then((s) => expect(s).toBe(400));
@@ -405,7 +408,7 @@ describe('api/v1/flights', () => {
       handler: v1Search,
       test: async ({ fetch }) => {
         await Promise.all(
-          [...Array(10)].map((_) => {
+          Array.from({length: 10}).map((_) => {
             return fetch({ headers: { KEY } })
               .then((r) => r.status)
               .then((s) => expect(s).toBe(400));
@@ -422,8 +425,8 @@ describe('api/v1/flights', () => {
     const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
     const genUrl = (function* () {
-      yield `/?sort=desc&after=${flights[249].flight_id}&match=${encode({ ffms: { $gt: 1000000 } })}&regexMatch=${encode({ airline: 'spirit' })}`;
-      yield `/?sort=desc&after=${flights[0].flight_id}&match=${encode({ ffms: { $gt: 1000000 } })}&regexMatch=${encode({ airline: 'spirit' })}`;
+      yield `/?sort=desc&after=${flights[249].flight_id}&match=${encode({ ffms: { $gt: 1_000_000 } })}&regexMatch=${encode({ airline: 'spirit' })}`;
+      yield `/?sort=desc&after=${flights[0].flight_id}&match=${encode({ ffms: { $gt: 1_000_000 } })}&regexMatch=${encode({ airline: 'spirit' })}`;
     })();
 
     await testApiHandler({
@@ -434,7 +437,7 @@ describe('api/v1/flights', () => {
       handler: v1Search,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          [...Array(2)].map((_) => {
+          Array.from({length: 2}).map((_) => {
             return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : r.status));
           })
         );
@@ -476,7 +479,7 @@ describe('api/v1/flights', () => {
         handler: v1WithIds,
         test: async ({ fetch }) => {
           const responses = await Promise.all(
-            [...Array(9)].map((_) => {
+            Array.from({length: 9}).map((_) => {
               return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : null));
             })
           );
@@ -518,7 +521,7 @@ describe('api/v1/flights', () => {
         handler: v1WithIds,
         test: async ({ fetch }) => {
           const responses = await Promise.all(
-            [...Array(5)].map((_) => {
+            Array.from({length: 5}).map((_) => {
               return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : null));
             })
           );
@@ -584,7 +587,7 @@ describe('api/v2/flights', () => {
       handler: v2Flights,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          [...Array(10)].map((_) => {
+          Array.from({length: 10}).map((_) => {
             return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : null));
           })
         );
@@ -627,7 +630,7 @@ describe('api/v2/flights', () => {
       handler: v2Flights,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          [...Array(7)].map((_) => {
+          Array.from({length: 7}).map((_) => {
             return fetch({ headers: { KEY } }).then((r) => r.status);
           })
         );
@@ -698,7 +701,7 @@ describe('api/v2/flights', () => {
       handler: v2Flights,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          [...Array(3)].map((_) => {
+          Array.from({length: 3}).map((_) => {
             return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : null));
           })
         );
@@ -734,7 +737,7 @@ describe('api/v2/flights', () => {
       handler: v2Flights,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          [...Array(4)].map((_) => {
+          Array.from({length: 4}).map((_) => {
             return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : r.status));
           })
         );
@@ -773,7 +776,7 @@ describe('api/v2/flights', () => {
       handler: v2Flights,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          [...Array(3)].map((_) => {
+          Array.from({length: 3}).map((_) => {
             return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : r.status));
           })
         );
@@ -827,7 +830,7 @@ describe('api/v2/flights', () => {
       handler: v2Flights,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          [...Array(4)].map((_) => {
+          Array.from({length: 4}).map((_) => {
             return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : r.status));
           })
         );
@@ -862,7 +865,7 @@ describe('api/v2/flights', () => {
       handler: v2Flights,
       test: async ({ fetch }) => {
         await Promise.all(
-          [...Array(3)].map((_) => {
+          Array.from({length: 3}).map((_) => {
             return fetch({ headers: { KEY } })
               .then((r) => r.status)
               .then((s) => expect(s).toBe(400));
@@ -898,7 +901,7 @@ describe('api/v2/flights', () => {
       handler: v2Flights,
       test: async ({ fetch }) => {
         await Promise.all(
-          [...Array(10)].map((_) => {
+          Array.from({length: 10}).map((_) => {
             return fetch({ headers: { KEY } })
               .then((r) => r.status)
               .then((s) => expect(s).toBe(400));
@@ -915,8 +918,8 @@ describe('api/v2/flights', () => {
     const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
     const genUrl = (function* () {
-      yield `/?sort=desc&after=${flights[249].flight_id}&match=${encode({ ffms: { $gt: 1000000 } })}&regexMatch=${encode({ airline: 'spirit' })}`;
-      yield `/?sort=desc&after=${flights[0].flight_id}&match=${encode({ ffms: { $gt: 1000000 } })}&regexMatch=${encode({ airline: 'spirit' })}`;
+      yield `/?sort=desc&after=${flights[249].flight_id}&match=${encode({ ffms: { $gt: 1_000_000 } })}&regexMatch=${encode({ airline: 'spirit' })}`;
+      yield `/?sort=desc&after=${flights[0].flight_id}&match=${encode({ ffms: { $gt: 1_000_000 } })}&regexMatch=${encode({ airline: 'spirit' })}`;
     })();
 
     await testApiHandler({
@@ -927,7 +930,7 @@ describe('api/v2/flights', () => {
       handler: v2Flights,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          [...Array(2)].map((_) => {
+          Array.from({length: 2}).map((_) => {
             return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : r.status));
           })
         );
@@ -968,7 +971,7 @@ describe('api/v2/flights', () => {
       handler: v2Flights,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          [...Array(8)].map((_) => {
+          Array.from({length: 8}).map((_) => {
             return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : null));
           })
         );

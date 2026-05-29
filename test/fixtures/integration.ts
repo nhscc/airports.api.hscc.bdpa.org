@@ -207,7 +207,7 @@ export function getFixtures(
             questions: 0,
             answers: 0,
             points: 1
-          } as PublicUser
+          }
         }
       }
     },
@@ -350,7 +350,7 @@ export function getFixtures(
             questions: 0,
             answers: 0,
             points: 1
-          } as PublicUser
+          }
         }
       }
     },

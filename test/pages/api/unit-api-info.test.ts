@@ -1,5 +1,6 @@
-import { setupJest } from 'testverse/db'
 import { testApiHandler } from 'next-test-api-route-handler'
+
+import { DUMMY_KEY as KEY } from 'universe/backend'
 import * as V1_airlines from 'universe/pages/api/v1/info/airlines'
 import * as V1_airports from 'universe/pages/api/v1/info/airports'
 import * as V1_no_fly_list from 'universe/pages/api/v1/info/no-fly-list'
@@ -8,7 +9,8 @@ import * as V2_airports from 'universe/pages/api/v2/info/airports'
 import * as V2_all_extras from 'universe/pages/api/v2/info/all-extras'
 import * as V2_no_fly_list from 'universe/pages/api/v2/info/no-fly-list'
 import * as V2_seat_classes from 'universe/pages/api/v2/info/seat-classes'
-import { DUMMY_KEY as KEY } from 'universe/backend'
+
+import { setupJest } from 'testverse/db'
 
 import type { WithConfig } from 'types/global'
 
@@ -61,7 +63,7 @@ describe('api/v1/info', () => {
                     const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
 
                     expect(response.status).toBe(200);
-                    expect(await response.json()).toStrictEqual({ airlines, success: true });
+                    await expect(response.json()).resolves.toStrictEqual({ airlines, success: true });
                 }
             });
         });
@@ -89,7 +91,7 @@ describe('api/v1/info', () => {
                     const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
 
                     expect(response.status).toBe(200);
-                    expect(await response.json()).toStrictEqual({ airports, success: true });
+                    await expect(response.json()).resolves.toStrictEqual({ airports, success: true });
                 }
             });
         });
@@ -110,7 +112,7 @@ describe('api/v1/info', () => {
                     const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
 
                     expect(response.status).toBe(200);
-                    expect(await response.json()).toStrictEqual({ noFlyList, success: true });
+                    await expect(response.json()).resolves.toStrictEqual({ noFlyList, success: true });
                 }
             });
         });
@@ -137,7 +139,7 @@ describe('api/v2/info', () => {
                     const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
 
                     expect(response.status).toBe(200);
-                    expect(await response.json()).toStrictEqual({ airlines, success: true });
+                    await expect(response.json()).resolves.toStrictEqual({ airlines, success: true });
                 }
             });
         });
@@ -165,7 +167,7 @@ describe('api/v2/info', () => {
                     const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
 
                     expect(response.status).toBe(200);
-                    expect(await response.json()).toStrictEqual({ airports, success: true });
+                    await expect(response.json()).resolves.toStrictEqual({ airports, success: true });
                 }
             });
         });
@@ -181,7 +183,7 @@ describe('api/v2/info', () => {
                     const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
 
                     expect(response.status).toBe(200);
-                    expect(await response.json()).toStrictEqual({
+                    await expect(response.json()).resolves.toStrictEqual({
                         extras: getHydratedData().info.allExtras,
                         success: true
                     });
@@ -205,7 +207,7 @@ describe('api/v2/info', () => {
                     const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
 
                     expect(response.status).toBe(200);
-                    expect(await response.json()).toStrictEqual({ noFlyList, success: true });
+                    await expect(response.json()).resolves.toStrictEqual({ noFlyList, success: true });
                 }
             });
         });
@@ -221,7 +223,7 @@ describe('api/v2/info', () => {
                     const response = await fetch({ headers: { KEY, 'content-type': 'application/json' }});
 
                     expect(response.status).toBe(200);
-                    expect(await response.json()).toStrictEqual({
+                    await expect(response.json()).resolves.toStrictEqual({
                         seats: getHydratedData().info.seatClasses,
                         success: true
                     });

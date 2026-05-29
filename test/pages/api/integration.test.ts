@@ -5,8 +5,6 @@ import assert from 'node:assert';
 import { BANNED_BEARER_TOKEN, DUMMY_BEARER_TOKEN } from '@-xun/api-strategy/auth';
 import { getDb } from '@-xun/mongo-schema';
 import { setupMemoryServerOverride } from '@-xun/mongo-test';
-import { getSchemaConfig } from '@nhscc/backend-airports/db';
-import { getDummyData } from '@nhscc/backend-airports/dummy';
 import { get as dotPath } from 'dot-prop';
 import { testApiHandler } from 'next-test-api-route-handler';
 
@@ -15,6 +13,9 @@ import { ErrorMessage } from 'multiverse+shared:error.ts';
 import { api } from 'testverse:fixtures/index.ts';
 import { getFixtures } from 'testverse:fixtures/integration.ts';
 import { mockEnvFactory, withMockedOutput } from 'testverse:util.ts';
+
+import { getSchemaConfig } from '@nhscc/backend-airports/db';
+import { getDummyData } from '@nhscc/backend-airports/dummy';
 
 import type { TestResult, TestResultset } from 'testverse:fixtures/integration.ts';
 

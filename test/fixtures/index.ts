@@ -3,150 +3,79 @@ import CatchAllForNotFoundEndpoint, {
   metadata as CatchAllForNotFoundMetadata
 } from 'universe:pages/api/[[...catchAllForNotFound]].ts';
 
-import V1EndpointMailUsername, {
-  config as V1ConfigMailUsername,
-  metadata as V1MetadataMailUsername
-} from 'universe:pages/api/v1/mail/[username].ts';
+import V1EndpointFlightsAll, {
+  config as V1ConfigFlightsAll,
+  metadata as V1MetadataFlightsAll
+} from 'universe:pages/api/v1/flights/all.ts';
 
-import V1EndpointMail, {
-  config as V1ConfigMail,
-  metadata as V1MetadataMail
-} from 'universe:pages/api/v1/mail/index.ts';
+import V1EndpointFlightsSearch, {
+  config as V1ConfigFlightsSearch,
+  metadata as V1MetadataFlightsSearch
+} from 'universe:pages/api/v1/flights/search.ts';
 
-import V1EndpointQuestionsQuestionIdAnswersAnswerIdCommentsCommentId, {
-  config as V1ConfigQuestionsQuestionIdAnswersAnswerIdCommentsCommentId,
-  metadata as V1MetadataQuestionsQuestionIdAnswersAnswerIdCommentsCommentId
-} from 'universe:pages/api/v1/questions/[question_id]/answers/[answer_id]/comments/[comment_id]/index.ts';
+import V1EndpointFlightsWithIds, {
+  config as V1ConfigFlightsWithIds,
+  metadata as V1MetadataFlightsWithIds
+} from 'universe:pages/api/v1/flights/with-ids.ts';
 
-import V1EndpointQuestionsQuestionIdAnswersAnswerIdCommentsCommentIdVoteUsername, {
-  config as V1ConfigQuestionsQuestionIdAnswersAnswerIdCommentsCommentIdVoteUsername,
-  metadata as V1MetadataQuestionsQuestionIdAnswersAnswerIdCommentsCommentIdVoteUsername
-} from 'universe:pages/api/v1/questions/[question_id]/answers/[answer_id]/comments/[comment_id]/vote/[username].ts';
+import V1EndpointInfoAirlines, {
+  config as V1ConfigInfoAirlines,
+  metadata as V1MetadataInfoAirlines
+} from 'universe:pages/api/v1/info/airlines.ts';
 
-import V1EndpointQuestionsQuestionIdAnswersAnswerIdComments, {
-  config as V1ConfigQuestionsQuestionIdAnswersAnswerIdComments,
-  metadata as V1MetadataQuestionsQuestionIdAnswersAnswerIdComments
-} from 'universe:pages/api/v1/questions/[question_id]/answers/[answer_id]/comments/index.ts';
+import V1EndpointInfoAirports, {
+  config as V1ConfigInfoAirports,
+  metadata as V1MetadataInfoAirports
+} from 'universe:pages/api/v1/info/airports.ts';
 
-import V1EndpointQuestionsQuestionIdAnswersAnswerId, {
-  config as V1ConfigQuestionsQuestionIdAnswersAnswerId,
-  metadata as V1MetadataQuestionsQuestionIdAnswersAnswerId
-} from 'universe:pages/api/v1/questions/[question_id]/answers/[answer_id]/index.ts';
+import V1EndpointInfoNoFlyList, {
+  config as V1ConfigInfoNoFlyList,
+  metadata as V1MetadataInfoNoFlyList
+} from 'universe:pages/api/v1/info/no-fly-list.ts';
 
-import V1EndpointQuestionsQuestionIdAnswersAnswerIdVoteUsername, {
-  config as V1ConfigQuestionsQuestionIdAnswersAnswerIdVoteUsername,
-  metadata as V1MetadataQuestionsQuestionIdAnswersAnswerIdVoteUsername
-} from 'universe:pages/api/v1/questions/[question_id]/answers/[answer_id]/vote/[username].ts';
+import V2EndpointFlights, {
+  config as V2ConfigFlights,
+  metadata as V2MetadataFlights
+} from 'universe:pages/api/v2/flights/index.ts';
 
-import V1EndpointQuestionsQuestionIdAnswers, {
-  config as V1ConfigQuestionsQuestionIdAnswers,
-  metadata as V1MetadataQuestionsQuestionIdAnswers
-} from 'universe:pages/api/v1/questions/[question_id]/answers/index.ts';
+import V2EndpointInfoAirlines, {
+  config as V2ConfigInfoAirlines,
+  metadata as V2MetadataInfoAirlines
+} from 'universe:pages/api/v2/info/airlines.ts';
 
-import V1EndpointQuestionsQuestionIdCommentsCommentId, {
-  config as V1ConfigQuestionsQuestionIdCommentsCommentId,
-  metadata as V1MetadataQuestionsQuestionIdCommentsCommentId
-} from 'universe:pages/api/v1/questions/[question_id]/comments/[comment_id]/index.ts';
+import V2EndpointInfoAirports, {
+  config as V2ConfigInfoAirports,
+  metadata as V2MetadataInfoAirports
+} from 'universe:pages/api/v2/info/airports.ts';
 
-import V1EndpointQuestionsQuestionIdCommentsCommentIdVoteUsername, {
-  config as V1ConfigQuestionsQuestionIdCommentsCommentIdVoteUsername,
-  metadata as V1MetadataQuestionsQuestionIdCommentsCommentIdVoteUsername
-} from 'universe:pages/api/v1/questions/[question_id]/comments/[comment_id]/vote/[username].ts';
+import V2EndpointInfoAllExtras, {
+  config as V2ConfigInfoAllExtras,
+  metadata as V2MetadataInfoAllExtras
+} from 'universe:pages/api/v2/info/all-extras.ts';
 
-import V1EndpointQuestionsQuestionIdComments, {
-  config as V1ConfigQuestionsQuestionIdComments,
-  metadata as V1MetadataQuestionsQuestionIdComments
-} from 'universe:pages/api/v1/questions/[question_id]/comments/index.ts';
+import V2EndpointInfoNoFlyList, {
+  config as V2ConfigInfoNoFlyList,
+  metadata as V2MetadataInfoNoFlyList
+} from 'universe:pages/api/v2/info/no-fly-list.ts';
 
-import V1EndpointQuestionsQuestionId, {
-  config as V1ConfigQuestionsQuestionId,
-  metadata as V1MetadataQuestionsQuestionId
-} from 'universe:pages/api/v1/questions/[question_id]/index.ts';
-
-import V1EndpointQuestionsQuestionIdVoteUsername, {
-  config as V1ConfigQuestionsQuestionIdVoteUsername,
-  metadata as V1MetadataQuestionsQuestionIdVoteUsername
-} from 'universe:pages/api/v1/questions/[question_id]/vote/[username].ts';
-
-import V1EndpointQuestions, {
-  config as V1ConfigQuestions,
-  metadata as V1MetadataQuestions
-} from 'universe:pages/api/v1/questions/index.ts';
-
-import V1EndpointQuestionsSearch, {
-  config as V1ConfigQuestionsSearch,
-  metadata as V1MetadataQuestionsSearch
-} from 'universe:pages/api/v1/questions/search.ts';
-
-import V1EndpointUsersUsernameAnswers, {
-  config as V1ConfigUsersUsernameAnswers,
-  metadata as V1MetadataUsersUsernameAnswers
-} from 'universe:pages/api/v1/users/[username]/answers.ts';
-
-import V1EndpointUsersUsernameAuth, {
-  config as V1ConfigUsersUsernameAuth,
-  metadata as V1MetadataUsersUsernameAuth
-} from 'universe:pages/api/v1/users/[username]/auth.ts';
-
-import V1EndpointUsersUsername, {
-  config as V1ConfigUsersUsername,
-  metadata as V1MetadataUsersUsername
-} from 'universe:pages/api/v1/users/[username]/index.ts';
-
-import V1EndpointUsersUsernamePoints, {
-  config as V1ConfigUsersUsernamePoints,
-  metadata as V1MetadataUsersUsernamePoints
-} from 'universe:pages/api/v1/users/[username]/points.ts';
-
-import V1EndpointUsersUsernameQuestions, {
-  config as V1ConfigUsersUsernameQuestions,
-  metadata as V1MetadataUsersUsernameQuestions
-} from 'universe:pages/api/v1/users/[username]/questions.ts';
-
-import V1EndpointUsers, {
-  config as V1ConfigUsers,
-  metadata as V1MetadataUsers
-} from 'universe:pages/api/v1/users/index.ts';
+import V2EndpointInfoSeatClasses, {
+  config as V2ConfigInfoSeatClasses,
+  metadata as V2MetadataInfoSeatClasses
+} from 'universe:pages/api/v2/info/seat-classes.ts';
 
 import { asMocked } from 'testverse:util.ts';
 
 import {
-  applyVotesUpdateOperation,
-  authAppUser,
-  createAnswer,
-  createComment,
-  createMessage,
-  createQuestion,
-  createUser,
-  deleteAnswer,
-  deleteComment,
-  deleteMessage,
-  deleteQuestion,
-  deleteUser,
-  getAllUsers,
-  getAnswers,
-  getComments,
-  getHowUserVoted,
-  getQuestion,
-  getUser,
-  getUserAnswers,
-  getUserMessages,
-  getUserQuestions,
-  searchQuestions,
-  updateAnswer,
-  updateQuestion,
-  updateUser
+  getAirlines,
+  getAirports,
+  getExtras,
+  getFlightsById,
+  getNoFlyList,
+  getSeats,
+  searchFlights
 } from '@nhscc/backend-airports';
 
 import type { NextApiHandler, PageConfig } from 'next';
-
-import type {
-  PublicAnswer,
-  PublicComment,
-  PublicMail,
-  PublicQuestion,
-  PublicUser
-} from '@nhscc/backend-airports/db';
 
 export type NextApiHandlerMixin = NextApiHandler & {
   config?: PageConfig;
@@ -159,37 +88,20 @@ export type NextApiHandlerMixin = NextApiHandler & {
 export const api = {
   catchAllForNotFound: CatchAllForNotFoundEndpoint as NextApiHandlerMixin,
   v1: {
-    users: V1EndpointUsers as NextApiHandlerMixin,
-    usersUsername: V1EndpointUsersUsername as NextApiHandlerMixin,
-    usersUsernameAuth: V1EndpointUsersUsernameAuth as NextApiHandlerMixin,
-    usersUsernameQuestions: V1EndpointUsersUsernameQuestions as NextApiHandlerMixin,
-    usersUsernameAnswers: V1EndpointUsersUsernameAnswers as NextApiHandlerMixin,
-    usersUsernamePoints: V1EndpointUsersUsernamePoints as NextApiHandlerMixin,
-    mail: V1EndpointMail as NextApiHandlerMixin,
-    mailUsername: V1EndpointMailUsername as NextApiHandlerMixin,
-    questions: V1EndpointQuestions as NextApiHandlerMixin,
-    questionsSearch: V1EndpointQuestionsSearch as NextApiHandlerMixin,
-    questionsQuestionId: V1EndpointQuestionsQuestionId as NextApiHandlerMixin,
-    questionsQuestionIdVoteUsername:
-      V1EndpointQuestionsQuestionIdVoteUsername as NextApiHandlerMixin,
-    questionsQuestionIdComments:
-      V1EndpointQuestionsQuestionIdComments as NextApiHandlerMixin,
-    questionsQuestionIdCommentsCommentId:
-      V1EndpointQuestionsQuestionIdCommentsCommentId as NextApiHandlerMixin,
-    questionsQuestionIdCommentsCommentIdVoteUsername:
-      V1EndpointQuestionsQuestionIdCommentsCommentIdVoteUsername as NextApiHandlerMixin,
-    questionsQuestionIdAnswers:
-      V1EndpointQuestionsQuestionIdAnswers as NextApiHandlerMixin,
-    questionsQuestionIdAnswersAnswerId:
-      V1EndpointQuestionsQuestionIdAnswersAnswerId as NextApiHandlerMixin,
-    questionsQuestionIdAnswersAnswerIdVoteUsername:
-      V1EndpointQuestionsQuestionIdAnswersAnswerIdVoteUsername as NextApiHandlerMixin,
-    questionsQuestionIdAnswersAnswerIdComments:
-      V1EndpointQuestionsQuestionIdAnswersAnswerIdComments as NextApiHandlerMixin,
-    questionsQuestionIdAnswersAnswerIdCommentsCommentId:
-      V1EndpointQuestionsQuestionIdAnswersAnswerIdCommentsCommentId as NextApiHandlerMixin,
-    questionsQuestionIdAnswersAnswerIdCommentsCommentIdVoteUsername:
-      V1EndpointQuestionsQuestionIdAnswersAnswerIdCommentsCommentIdVoteUsername as NextApiHandlerMixin
+    flightsAll: V1EndpointFlightsAll as NextApiHandlerMixin,
+    flightsSearch: V1EndpointFlightsSearch as NextApiHandlerMixin,
+    flightsWithIds: V1EndpointFlightsWithIds as NextApiHandlerMixin,
+    infoAirlines: V1EndpointInfoAirlines as NextApiHandlerMixin,
+    infoAirports: V1EndpointInfoAirports as NextApiHandlerMixin,
+    infoNoFlyList: V1EndpointInfoNoFlyList as NextApiHandlerMixin
+  },
+  v2: {
+    flights: V2EndpointFlights as NextApiHandlerMixin,
+    infoAirlines: V2EndpointInfoAirlines as NextApiHandlerMixin,
+    infoAirports: V2EndpointInfoAirports as NextApiHandlerMixin,
+    allExtras: V2EndpointInfoAllExtras as NextApiHandlerMixin,
+    infoNoFlyList: V2EndpointInfoNoFlyList as NextApiHandlerMixin,
+    seatClasses: V2EndpointInfoSeatClasses as NextApiHandlerMixin
   }
 };
 
@@ -199,34 +111,19 @@ export const api = {
 
 api.catchAllForNotFound.config = CatchAllForNotFoundConfig;
 
-api.v1.users.config = V1ConfigUsers;
-api.v1.usersUsername.config = V1ConfigUsersUsername;
-api.v1.usersUsernameAuth.config = V1ConfigUsersUsernameAuth;
-api.v1.usersUsernameQuestions.config = V1ConfigUsersUsernameQuestions;
-api.v1.usersUsernameAnswers.config = V1ConfigUsersUsernameAnswers;
-api.v1.usersUsernamePoints.config = V1ConfigUsersUsernamePoints;
-api.v1.mail.config = V1ConfigMail;
-api.v1.mailUsername.config = V1ConfigMailUsername;
-api.v1.questions.config = V1ConfigQuestions;
-api.v1.questionsSearch.config = V1ConfigQuestionsSearch;
-api.v1.questionsQuestionId.config = V1ConfigQuestionsQuestionId;
-api.v1.questionsQuestionIdVoteUsername.config = V1ConfigQuestionsQuestionIdVoteUsername;
-api.v1.questionsQuestionIdComments.config = V1ConfigQuestionsQuestionIdComments;
-api.v1.questionsQuestionIdCommentsCommentId.config =
-  V1ConfigQuestionsQuestionIdCommentsCommentId;
-api.v1.questionsQuestionIdCommentsCommentIdVoteUsername.config =
-  V1ConfigQuestionsQuestionIdCommentsCommentIdVoteUsername;
-api.v1.questionsQuestionIdAnswers.config = V1ConfigQuestionsQuestionIdAnswers;
-api.v1.questionsQuestionIdAnswersAnswerId.config =
-  V1ConfigQuestionsQuestionIdAnswersAnswerId;
-api.v1.questionsQuestionIdAnswersAnswerIdVoteUsername.config =
-  V1ConfigQuestionsQuestionIdAnswersAnswerIdVoteUsername;
-api.v1.questionsQuestionIdAnswersAnswerIdComments.config =
-  V1ConfigQuestionsQuestionIdAnswersAnswerIdComments;
-api.v1.questionsQuestionIdAnswersAnswerIdCommentsCommentId.config =
-  V1ConfigQuestionsQuestionIdAnswersAnswerIdCommentsCommentId;
-api.v1.questionsQuestionIdAnswersAnswerIdCommentsCommentIdVoteUsername.config =
-  V1ConfigQuestionsQuestionIdAnswersAnswerIdCommentsCommentIdVoteUsername;
+api.v1.flightsAll.config = V1ConfigFlightsAll;
+api.v1.flightsSearch.config = V1ConfigFlightsSearch;
+api.v1.flightsWithIds.config = V1ConfigFlightsWithIds;
+api.v1.infoAirlines.config = V1ConfigInfoAirlines;
+api.v1.infoAirports.config = V1ConfigInfoAirports;
+api.v1.infoNoFlyList.config = V1ConfigInfoNoFlyList;
+
+api.v2.flights.config = V2ConfigFlights;
+api.v2.infoAirlines.config = V2ConfigInfoAirlines;
+api.v2.infoAirports.config = V2ConfigInfoAirports;
+api.v2.allExtras.config = V2ConfigInfoAllExtras;
+api.v2.infoNoFlyList.config = V2ConfigInfoNoFlyList;
+api.v2.seatClasses.config = V2ConfigInfoSeatClasses;
 
 // **                           **
 // ** Add metadata descriptors  **
@@ -234,36 +131,19 @@ api.v1.questionsQuestionIdAnswersAnswerIdCommentsCommentIdVoteUsername.config =
 
 api.catchAllForNotFound.uri = CatchAllForNotFoundMetadata.descriptor;
 
-api.v1.users.uri = V1MetadataUsers.descriptor;
-api.v1.usersUsername.uri = V1MetadataUsersUsername.descriptor;
-api.v1.usersUsernameAuth.uri = V1MetadataUsersUsernameAuth.descriptor;
-api.v1.usersUsernameQuestions.uri = V1MetadataUsersUsernameQuestions.descriptor;
-api.v1.usersUsernameAnswers.uri = V1MetadataUsersUsernameAnswers.descriptor;
-api.v1.usersUsernamePoints.uri = V1MetadataUsersUsernamePoints.descriptor;
-api.v1.mail.uri = V1MetadataMail.descriptor;
-api.v1.mailUsername.uri = V1MetadataMailUsername.descriptor;
-api.v1.questions.uri = V1MetadataQuestions.descriptor;
-api.v1.questionsSearch.uri = V1MetadataQuestionsSearch.descriptor;
-api.v1.questionsQuestionId.uri = V1MetadataQuestionsQuestionId.descriptor;
-api.v1.questionsQuestionIdVoteUsername.uri =
-  V1MetadataQuestionsQuestionIdVoteUsername.descriptor;
-api.v1.questionsQuestionIdComments.uri =
-  V1MetadataQuestionsQuestionIdComments.descriptor;
-api.v1.questionsQuestionIdCommentsCommentId.uri =
-  V1MetadataQuestionsQuestionIdCommentsCommentId.descriptor;
-api.v1.questionsQuestionIdCommentsCommentIdVoteUsername.uri =
-  V1MetadataQuestionsQuestionIdCommentsCommentIdVoteUsername.descriptor;
-api.v1.questionsQuestionIdAnswers.uri = V1MetadataQuestionsQuestionIdAnswers.descriptor;
-api.v1.questionsQuestionIdAnswersAnswerId.uri =
-  V1MetadataQuestionsQuestionIdAnswersAnswerId.descriptor;
-api.v1.questionsQuestionIdAnswersAnswerIdVoteUsername.uri =
-  V1MetadataQuestionsQuestionIdAnswersAnswerIdVoteUsername.descriptor;
-api.v1.questionsQuestionIdAnswersAnswerIdComments.uri =
-  V1MetadataQuestionsQuestionIdAnswersAnswerIdComments.descriptor;
-api.v1.questionsQuestionIdAnswersAnswerIdCommentsCommentId.uri =
-  V1MetadataQuestionsQuestionIdAnswersAnswerIdCommentsCommentId.descriptor;
-api.v1.questionsQuestionIdAnswersAnswerIdCommentsCommentIdVoteUsername.uri =
-  V1MetadataQuestionsQuestionIdAnswersAnswerIdCommentsCommentIdVoteUsername.descriptor;
+api.v1.flightsAll.uri = V1MetadataFlightsAll.descriptor;
+api.v1.flightsSearch.uri = V1MetadataFlightsSearch.descriptor;
+api.v1.flightsWithIds.uri = V1MetadataFlightsWithIds.descriptor;
+api.v1.infoAirlines.uri = V1MetadataInfoAirlines.descriptor;
+api.v1.infoAirports.uri = V1MetadataInfoAirports.descriptor;
+api.v1.infoNoFlyList.uri = V1MetadataInfoNoFlyList.descriptor;
+
+api.v2.flights.uri = V2MetadataFlights.descriptor;
+api.v2.infoAirlines.uri = V2MetadataInfoAirlines.descriptor;
+api.v2.infoAirports.uri = V2MetadataInfoAirports.descriptor;
+api.v2.allExtras.uri = V2MetadataInfoAllExtras.descriptor;
+api.v2.infoNoFlyList.uri = V2MetadataInfoNoFlyList.descriptor;
+api.v2.seatClasses.uri = V2MetadataInfoSeatClasses.descriptor;
 
 /**
  * A convenience function that mocks the entire backend and returns the mock
@@ -273,85 +153,31 @@ api.v1.questionsQuestionIdAnswersAnswerIdCommentsCommentIdVoteUsername.uri =
  * calling this function!**
  */
 export function setupMockBackend() {
-  const mockedApplyVotesUpdateOperation = asMocked(applyVotesUpdateOperation);
-  const mockedAuthAppUser = asMocked(authAppUser);
-  const mockedCreateAnswer = asMocked(createAnswer);
-  const mockedCreateComment = asMocked(createComment);
-  const mockedCreateMessage = asMocked(createMessage);
-  const mockedCreateQuestion = asMocked(createQuestion);
-  const mockedCreateUser = asMocked(createUser);
-  const mockedDeleteComment = asMocked(deleteComment);
-  const mockedDeleteUser = asMocked(deleteUser);
-  const mockedGetAllUsers = asMocked(getAllUsers);
-  const mockedGetAnswers = asMocked(getAnswers);
-  const mockedGetComments = asMocked(getComments);
-  const mockedGetQuestion = asMocked(getQuestion);
-  const mockedGetUser = asMocked(getUser);
-  const mockedGetUserAnswers = asMocked(getUserAnswers);
-  const mockedGetUserMessages = asMocked(getUserMessages);
-  const mockedGetUserQuestions = asMocked(getUserQuestions);
-  const mockedSearchQuestions = asMocked(searchQuestions);
-  const mockedUpdateAnswer = asMocked(updateAnswer);
-  const mockedUpdateQuestion = asMocked(updateQuestion);
-  const mockedUpdateUser = asMocked(updateUser);
-  const mockedDeleteAnswer = asMocked(deleteAnswer);
-  const mockedDeleteMessage = asMocked(deleteMessage);
-  const mockedDeleteQuestion = asMocked(deleteQuestion);
-  const mockedGetHowUserVoted = asMocked(getHowUserVoted);
+  const mockedGetAirlines = asMocked(getAirlines);
+  const mockedGetAirports = asMocked(getAirports);
+  const mockedGetExtras = asMocked(getExtras);
+  const mockedGetFlightsById = asMocked(getFlightsById);
+  const mockedGetNoFlyList = asMocked(getNoFlyList);
+  const mockedGetSeats = asMocked(getSeats);
+  const mockedSearchFlights = asMocked(searchFlights);
 
   beforeEach(() => {
-    mockedApplyVotesUpdateOperation.mockReturnValue(Promise.resolve());
-    mockedAuthAppUser.mockReturnValue(Promise.resolve(false));
-    mockedCreateAnswer.mockReturnValue(Promise.resolve({} as PublicAnswer));
-    mockedCreateComment.mockReturnValue(Promise.resolve({} as PublicComment));
-    mockedCreateMessage.mockReturnValue(Promise.resolve({} as PublicMail));
-    mockedCreateQuestion.mockReturnValue(Promise.resolve({} as PublicQuestion));
-    mockedCreateUser.mockReturnValue(Promise.resolve({} as PublicUser));
-    mockedDeleteComment.mockReturnValue(Promise.resolve());
-    mockedDeleteUser.mockReturnValue(Promise.resolve());
-    mockedGetAllUsers.mockReturnValue(Promise.resolve([]));
-    mockedGetAnswers.mockReturnValue(Promise.resolve([]));
-    mockedGetComments.mockReturnValue(Promise.resolve([]));
-    mockedGetQuestion.mockReturnValue(Promise.resolve({} as PublicQuestion));
-    mockedGetUser.mockReturnValue(Promise.resolve({} as PublicUser));
-    mockedGetUserAnswers.mockReturnValue(Promise.resolve([]));
-    mockedGetUserMessages.mockReturnValue(Promise.resolve([]));
-    mockedGetUserQuestions.mockReturnValue(Promise.resolve([]));
-    mockedSearchQuestions.mockReturnValue(Promise.resolve([]));
-    mockedUpdateAnswer.mockReturnValue(Promise.resolve());
-    mockedUpdateQuestion.mockReturnValue(Promise.resolve());
-    mockedUpdateUser.mockReturnValue(Promise.resolve());
-    mockedDeleteAnswer.mockReturnValue(Promise.resolve());
-    mockedDeleteMessage.mockReturnValue(Promise.resolve());
-    mockedDeleteQuestion.mockReturnValue(Promise.resolve());
-    mockedGetHowUserVoted.mockReturnValue(Promise.resolve(null));
+    mockedGetAirlines.mockReturnValue(Promise.resolve([]));
+    mockedGetAirports.mockReturnValue(Promise.resolve([]));
+    mockedGetExtras.mockReturnValue(Promise.resolve([]));
+    mockedGetFlightsById.mockReturnValue(Promise.resolve([]));
+    mockedGetNoFlyList.mockReturnValue(Promise.resolve([]));
+    mockedGetSeats.mockReturnValue(Promise.resolve([]));
+    mockedSearchFlights.mockReturnValue(Promise.resolve([]));
   });
 
   return {
-    mockedApplyVotesUpdateOperation,
-    mockedAuthAppUser,
-    mockedCreateAnswer,
-    mockedCreateComment,
-    mockedCreateMessage,
-    mockedCreateQuestion,
-    mockedCreateUser,
-    mockedDeleteComment,
-    mockedDeleteUser,
-    mockedGetAllUsers,
-    mockedGetAnswers,
-    mockedGetComments,
-    mockedGetQuestion,
-    mockedGetUser,
-    mockedGetUserAnswers,
-    mockedGetUserMessages,
-    mockedGetUserQuestions,
-    mockedSearchQuestions,
-    mockedUpdateAnswer,
-    mockedUpdateQuestion,
-    mockedUpdateUser,
-    mockedDeleteAnswer,
-    mockedDeleteMessage,
-    mockedDeleteQuestion,
-    mockedGetHowUserVoted
+    mockedGetAirlines,
+    mockedGetAirports,
+    mockedGetExtras,
+    mockedGetFlightsById,
+    mockedGetNoFlyList,
+    mockedGetSeats,
+    mockedSearchFlights
   };
 }

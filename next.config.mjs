@@ -23,6 +23,22 @@ const config = deepMergeConfig(baseConfig, {
   // ! Take care not to overwrite certain configs (e.g. baseConfig.webpack)
 });
 
+const configWebpack = config.webpack;
+
+/**
+ * @param {any} config
+ * @param {any} context
+ */
+config.webpack = (config, context) => {
+  config.externals = [
+    ...config.externals,
+    'commonjs @nhscc/backend-airports',
+    'commonjs @nhscc/backend-airports~npm'
+  ];
+
+  return configWebpack?.(config, context);
+};
+
 export default config;
 
 debug('exported config: %O', config);

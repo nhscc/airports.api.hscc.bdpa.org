@@ -3,8 +3,9 @@
  ** exported by @-xun/jest; these can be imported using the testversal aliases.
  */
 
-import { defaultConfig } from '@nhscc/backend-airports/api';
 import { disableLoggers, enableLoggers, LoggerType } from 'rejoinder';
+
+import { defaultConfig } from '@nhscc/backend-airports/api';
 
 import type { withMockedEnv } from '@-xun/jest';
 import type { NextApiHandler, NextApiRequest, NextApiResponse, PageConfig } from 'next';
