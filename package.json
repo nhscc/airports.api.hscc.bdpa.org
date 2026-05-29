@@ -68,7 +68,7 @@
     "bytes": "^3.1.2",
     "dotenv": "^17.4.2",
     "jest-fixed-jsdom": "^0.0.11",
-    "mongodb": "^6.21.0",
+    "mongodb": "^7.2.0",
     "next": "^16.2.6",
     "next-test-api-route-handler": "^5.0.5",
     "react": "^19.2.6",
