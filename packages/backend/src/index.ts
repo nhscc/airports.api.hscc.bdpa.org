@@ -97,12 +97,12 @@ export async function getAirlines() {
 
 export async function getExtras() {
   const { infoDb } = await getInfoDb();
-  return (await infoDb.findOne())?.allExtras;
+  return (await infoDb.findOne())?.allExtras || [];
 }
 
 export async function getSeats() {
   const { infoDb } = await getInfoDb();
-  return (await infoDb.findOne())?.seatClasses;
+  return (await infoDb.findOne())?.seatClasses || [];
 }
 
 export async function getFlightsById({
@@ -116,17 +116,21 @@ export async function getFlightsById({
     throw new ClientValidationError(ErrorMessage.InvalidObjectId(bookerKey));
   }
 
-  const rawFlightIds = validateAndParseJson<string[]>(flight_ids);
+  const rawFlightIds = validateAndParseJson(flight_ids);
+
+  if (!Array.isArray(rawFlightIds)) {
+    throw new ClientValidationError(ErrorMessage.InvalidFlightId());
+  }
 
   if (rawFlightIds.length > getEnv().RESULTS_PER_PAGE) {
     throw new ClientValidationError(ErrorMessage.TooManyFlightIds());
   }
 
-  if (rawFlightIds.length <= 0) {
+  const flightIds = itemToObjectId(rawFlightIds.filter((item) => !!item));
+
+  if (flightIds.length <= 0) {
     return [];
   }
-
-  const flightIds = itemToObjectId(rawFlightIds);
 
   const { flightsDb } = await getFlightsDb();
 
@@ -158,10 +162,8 @@ export async function searchFlights({
   const afterId = after_id ? itemToObjectId(after_id) : undefined;
 
   const rawSort = sort_ || 'asc';
-  const rawMatch = validateAndParseJson<Record<string, unknown>>(match_ || '{}');
-  const rawRegexMatch = validateAndParseJson<Record<string, unknown>>(
-    regexMatch_ || '{}'
-  );
+  const rawMatch = validateAndParseJson(match_ || '{}');
+  const rawRegexMatch = validateAndParseJson(regexMatch_ || '{}');
 
   let regexMatchObjectIds: ObjectId[] = [];
 
@@ -205,6 +207,18 @@ export async function searchFlights({
   const regexMatch = rawRegexMatch as SearchFlightsRegexMatch;
   const matchKeys = Object.keys(match);
   const regexMatchKeys = Object.keys(regexMatch);
+
+  // ? seatPrice in match? Convert it to a proper query!
+  if (match.seatPrice) {
+    match['seats.economy.priceDollars'] = match.seatPrice;
+    delete match.seatPrice;
+  }
+
+  // ? seatPrice in regexMatch? Convert it to a proper query!
+  if (regexMatch.seatPrice) {
+    regexMatch['seats.economy.priceDollars'] = regexMatch.seatPrice;
+    delete regexMatch.seatPrice;
+  }
 
   if (matchKeys.length && !matchKeysAreValid()) {
     throw new ClientValidationError(ErrorMessage.InvalidMatchObject());
@@ -306,7 +320,7 @@ export async function searchFlights({
       const key = key_ as (typeof matchableStrings)[number];
       return (
         matchableStrings.includes(key) &&
-        (regexMatch[key] instanceof ObjectId || typeof rawRegexMatch[key] === 'string')
+        (regexMatch[key] instanceof ObjectId || typeof regexMatch[key] === 'string')
       );
     });
   }
