@@ -2,7 +2,11 @@
 import { itemToObjectId } from '@-xun/mongo-item';
 import { ObjectId } from 'mongodb';
 
-import { ClientValidationError, ErrorMessage } from 'multiverse+shared:error.ts';
+import {
+  AuthError,
+  ClientValidationError,
+  ErrorMessage
+} from 'multiverse+shared:error.ts';
 
 import {
   getAirlinesDb,
@@ -113,7 +117,7 @@ export async function getFlightsById({
   bookerKey: string | undefined;
 }) {
   if (!bookerKey) {
-    throw new ClientValidationError(ErrorMessage.InvalidObjectId(bookerKey));
+    throw new AuthError();
   }
 
   const rawFlightIds = validateAndParseJson(flight_ids);
@@ -156,7 +160,7 @@ export async function searchFlights({
   sort: string | undefined;
 }) {
   if (!bookerKey) {
-    throw new ClientValidationError(ErrorMessage.InvalidObjectId(bookerKey));
+    throw new AuthError();
   }
 
   const afterId = after_id ? itemToObjectId(after_id) : undefined;
@@ -205,8 +209,6 @@ export async function searchFlights({
 
   const match = rawMatch as SearchFlightsMatch;
   const regexMatch = rawRegexMatch as SearchFlightsRegexMatch;
-  const matchKeys = Object.keys(match);
-  const regexMatchKeys = Object.keys(regexMatch);
 
   // ? seatPrice in match? Convert it to a proper query!
   if (match.seatPrice) {
@@ -219,6 +221,9 @@ export async function searchFlights({
     regexMatch['seats.economy.priceDollars'] = regexMatch.seatPrice;
     delete regexMatch.seatPrice;
   }
+
+  const matchKeys = Object.keys(match);
+  const regexMatchKeys = Object.keys(regexMatch);
 
   if (matchKeys.length && !matchKeysAreValid()) {
     throw new ClientValidationError(ErrorMessage.InvalidMatchObject());

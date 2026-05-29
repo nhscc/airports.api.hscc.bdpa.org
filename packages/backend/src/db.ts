@@ -31,10 +31,12 @@ export function getSchemaConfig(): DbSchema {
               { spec: 'bookerKey' },
               { spec: 'type' },
               { spec: 'airline' },
-              { spec: 'departingTo' },
+              { spec: 'comingFrom' },
               { spec: 'landingAt' },
+              { spec: 'departingTo' },
               { spec: 'flightNumber' },
-              { spec: 'ffms' }
+              { spec: 'ffms' },
+              { spec: 'seats.economy.priceDollars' }
             ]
           },
           {
