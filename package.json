@@ -74,7 +74,7 @@
     "react": "^19.1.0",
     "rejoinder": "^2.0.2",
     "toss-expression": "^0.1.2",
-    "type-fest": "^4.41.0"
+    "type-fest": "^5.6.0"
   },
   "engines": {
     "node": "^20.18.0 || >=22.12.0"
