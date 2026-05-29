@@ -8,7 +8,7 @@
 
 > **toPublicFlightV1**(`flight`): `object`
 
-Defined in: [packages/backend/src/db.ts:259](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/09913e8dcd16836d62112704c3b5912d8298d63b/packages/backend/src/db.ts#L259)
+Defined in: [packages/backend/src/db.ts:261](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/c20d5d9fc2d2d1a784d1d934be931ba08894632f/packages/backend/src/db.ts#L261)
 
 Transforms an [PublicFlight](../type-aliases/PublicFlight.md) for the V2 API into a [PublicFlight](../type-aliases/PublicFlight.md)
 for the V1 API.

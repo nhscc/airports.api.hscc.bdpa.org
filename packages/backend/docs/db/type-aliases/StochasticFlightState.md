@@ -8,7 +8,7 @@
 
 > **StochasticFlightState** = `object`
 
-Defined in: [packages/backend/src/db.ts:104](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/09913e8dcd16836d62112704c3b5912d8298d63b/packages/backend/src/db.ts#L104)
+Defined in: [packages/backend/src/db.ts:106](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/c20d5d9fc2d2d1a784d1d934be931ba08894632f/packages/backend/src/db.ts#L106)
 
 ## Properties
 
@@ -16,7 +16,7 @@ Defined in: [packages/backend/src/db.ts:104](https://github.com/nhscc/airports.a
 
 > **arriveAtReceiver**: `number`
 
-Defined in: [packages/backend/src/db.ts:106](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/09913e8dcd16836d62112704c3b5912d8298d63b/packages/backend/src/db.ts#L106)
+Defined in: [packages/backend/src/db.ts:108](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/c20d5d9fc2d2d1a784d1d934be931ba08894632f/packages/backend/src/db.ts#L108)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/backend/src/db.ts:106](https://github.com/nhscc/airports.a
 
 > **departFromReceiver**: `number` \| `null`
 
-Defined in: [packages/backend/src/db.ts:107](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/09913e8dcd16836d62112704c3b5912d8298d63b/packages/backend/src/db.ts#L107)
+Defined in: [packages/backend/src/db.ts:109](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/c20d5d9fc2d2d1a784d1d934be931ba08894632f/packages/backend/src/db.ts#L109)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/backend/src/db.ts:107](https://github.com/nhscc/airports.a
 
 > **departFromSender**: `number`
 
-Defined in: [packages/backend/src/db.ts:105](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/09913e8dcd16836d62112704c3b5912d8298d63b/packages/backend/src/db.ts#L105)
+Defined in: [packages/backend/src/db.ts:107](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/c20d5d9fc2d2d1a784d1d934be931ba08894632f/packages/backend/src/db.ts#L107)
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [packages/backend/src/db.ts:105](https://github.com/nhscc/airports.a
 
 > **gate**: `string` \| `null`
 
-Defined in: [packages/backend/src/db.ts:118](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/09913e8dcd16836d62112704c3b5912d8298d63b/packages/backend/src/db.ts#L118)
+Defined in: [packages/backend/src/db.ts:120](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/c20d5d9fc2d2d1a784d1d934be931ba08894632f/packages/backend/src/db.ts#L120)
 
 ***
 
@@ -48,4 +48,4 @@ Defined in: [packages/backend/src/db.ts:118](https://github.com/nhscc/airports.a
 
 > **status**: `"past"` \| `"scheduled"` \| `"cancelled"` \| `"delayed"` \| `"on time"` \| `"landed"` \| `"arrived"` \| `"boarding"` \| `"departed"`
 
-Defined in: [packages/backend/src/db.ts:108](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/09913e8dcd16836d62112704c3b5912d8298d63b/packages/backend/src/db.ts#L108)
+Defined in: [packages/backend/src/db.ts:110](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/c20d5d9fc2d2d1a784d1d934be931ba08894632f/packages/backend/src/db.ts#L110)

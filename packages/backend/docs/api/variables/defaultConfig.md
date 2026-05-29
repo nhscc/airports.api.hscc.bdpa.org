@@ -8,7 +8,7 @@
 
 > `const` **defaultConfig**: `object`
 
-Defined in: [packages/backend/src/api.ts:8](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/09913e8dcd16836d62112704c3b5912d8298d63b/packages/backend/src/api.ts#L8)
+Defined in: [packages/backend/src/api.ts:8](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/c20d5d9fc2d2d1a784d1d934be931ba08894632f/packages/backend/src/api.ts#L8)
 
 The default app-wide Next.js API configuration object.
 
@@ -28,7 +28,7 @@ The default app-wide Next.js API configuration object.
 
 > **get** **sizeLimit**(): `number`
 
-Defined in: [packages/backend/src/api.ts:11](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/09913e8dcd16836d62112704c3b5912d8298d63b/packages/backend/src/api.ts#L11)
+Defined in: [packages/backend/src/api.ts:11](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/c20d5d9fc2d2d1a784d1d934be931ba08894632f/packages/backend/src/api.ts#L11)
 
 ###### Returns
 

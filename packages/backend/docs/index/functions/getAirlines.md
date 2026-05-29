@@ -8,7 +8,7 @@
 
 > **getAirlines**(): `Promise`\<[`PublicAirport`](../../db/type-aliases/PublicAirport.md)[]\>
 
-Defined in: [packages/backend/src/index.ts:88](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/09913e8dcd16836d62112704c3b5912d8298d63b/packages/backend/src/index.ts#L88)
+Defined in: [packages/backend/src/index.ts:92](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/c20d5d9fc2d2d1a784d1d934be931ba08894632f/packages/backend/src/index.ts#L92)
 
 ## Returns
 
