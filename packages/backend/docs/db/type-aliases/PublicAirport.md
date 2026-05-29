@@ -6,8 +6,8 @@
 
 # Type Alias: PublicAirport
 
-> **PublicAirport** = `WithoutId`\<`Omit`\<[`InternalAirport`](InternalAirport.md), `"chapterKey"`\>\>
+> **PublicAirport** = `WithoutId`\<[`InternalAirport`](InternalAirport.md)\>
 
-Defined in: [packages/backend/src/db.ts:198](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/b470f9c9d96f6b35b8590436385b9275ea3cbfa3/packages/backend/src/db.ts#L198)
+Defined in: [packages/backend/src/db.ts:196](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/f004616541a33433190943097b5a6b00f257295b/packages/backend/src/db.ts#L196)
 
 The shape of a public airport.

@@ -8,7 +8,7 @@
 
 > **getAirportsDb**(): `Promise`\<\{ `airportsDb`: `Collection`\<[`InternalAirport`](../type-aliases/InternalAirport.md)\>; \}\>
 
-Defined in: [packages/backend/src/db.ts:75](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/b470f9c9d96f6b35b8590436385b9275ea3cbfa3/packages/backend/src/db.ts#L75)
+Defined in: [packages/backend/src/db.ts:74](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/f004616541a33433190943097b5a6b00f257295b/packages/backend/src/db.ts#L74)
 
 ## Returns
 
