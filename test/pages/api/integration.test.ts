@@ -108,7 +108,13 @@ describe('> fable integration tests', () => {
     }
   });
 
-  getFixtures(api).forEach(
+  const fixtures = getFixtures(api);
+
+  if (fixtures.length === 0) {
+    test.todo('integration tests');
+  }
+
+  fixtures.forEach(
     ({
       displayIndex,
       subject,

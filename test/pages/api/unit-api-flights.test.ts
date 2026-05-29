@@ -1,4 +1,5 @@
 /* eslint-disable unicorn/no-array-callback-reference */
+import { dummyRootData } from '@-xun/api-strategy/mongo/dummy';
 import { setupMemoryServerOverride } from '@-xun/mongo-test';
 import { ObjectId } from 'mongodb';
 import { testApiHandler } from 'next-test-api-route-handler';
@@ -33,7 +34,9 @@ jest.mock<typeof import('@-xun/api-strategy/auth')>(
       getAuthedClientToken: () =>
         Promise.resolve({
           attributes: { owner: 'owner' },
-          auth_id: 'auth_id'
+          auth_id: jest
+            .requireActual('@-xun/api-strategy/mongo/dummy')
+            .dummyRootData.auth[1]!._id.toString()
         })
     };
   }
@@ -59,21 +62,24 @@ jest.mock<typeof import('universe:route-wrapper.ts')>(
 );
 
 const resultSize = getEnv().RESULTS_PER_PAGE;
+const bookerAuthId = dummyRootData.auth[1]!._id.toString();
+
+const nonExistentObjectIdFromTheFuture = ObjectId.createFromTime(
+  Date.now() * 2
+).toString();
+
 const v1Flights = dummyAppData.flights.map(internalFlightToPublicFlightV1);
-const v2Flights = dummyAppData.flights.map(toPublicFlight);
-const nonExistentObjectId = ObjectId.createFromTime(Date.now() * 2).toString();
+const v2Flights = dummyAppData.flights.map((f) => toPublicFlight(f, bookerAuthId));
 
 function internalFlightToPublicFlightV1(flight: WithId<InternalFlight>) {
-  return toPublicFlightV1(toPublicFlight(flight));
+  return toPublicFlightV1(toPublicFlight(flight, bookerAuthId));
 }
 
 describe('api/v1/flights', () => {
   it('returns expected number of public flights by default in FIFO order', async () => {
     expect.hasAssertions();
 
-    const results = dummyAppData.flights
-      .slice(0, getEnv().RESULTS_PER_PAGE)
-      .map(internalFlightToPublicFlightV1);
+    const results = v1Flights.slice(0, getEnv().RESULTS_PER_PAGE);
 
     await testApiHandler({
       pagesHandler: api.v1.flightsAll,
@@ -101,7 +107,7 @@ describe('api/v1/flights', () => {
       yield `/?after=${v1Flights[200]!.flight_id}`;
       yield `/?after=${v1Flights[248]!.flight_id}`;
       yield `/?after=${v1Flights[249]!.flight_id}`;
-      yield `/?after=${nonExistentObjectId}`;
+      yield `/?after=${nonExistentObjectIdFromTheFuture}`;
     })();
 
     await testApiHandler({
@@ -212,7 +218,7 @@ describe('api/v1/flights', () => {
     const genUrl = (function* () {
       yield `/?after=`;
       yield `/?after=${v1Flights[0]!.flight_id}`;
-      yield `/?after=${nonExistentObjectId}`;
+      yield `/?after=${nonExistentObjectIdFromTheFuture}`;
     })();
 
     await testApiHandler({
@@ -589,7 +595,7 @@ describe('api/v2/flights', () => {
       yield `/?after=${v2Flights[200]!.flight_id}`;
       yield `/?after=${v2Flights[248]!.flight_id}`;
       yield `/?after=${v2Flights[249]!.flight_id}`;
-      yield `/?after=${nonExistentObjectId}`;
+      yield `/?after=${nonExistentObjectIdFromTheFuture}`;
     })();
 
     await testApiHandler({
@@ -700,7 +706,7 @@ describe('api/v2/flights', () => {
     const genUrl = (function* () {
       yield `/?after=`;
       yield `/?after=${v2Flights[0]!.flight_id}`;
-      yield `/?after=${nonExistentObjectId}`;
+      yield `/?after=${nonExistentObjectIdFromTheFuture}`;
     })();
 
     await testApiHandler({

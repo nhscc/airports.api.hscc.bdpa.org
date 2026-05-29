@@ -1,6 +1,5 @@
 import assert from 'node:assert';
 
-import { DUMMY_BEARER_TOKEN } from '@-xun/api-strategy/auth';
 import { getCommonSchemaConfig } from '@-xun/api-strategy/mongo';
 import { getDb as getDb_ } from '@-xun/mongo-schema';
 
@@ -28,7 +27,7 @@ export function getSchemaConfig(): DbSchema {
             // https://stackoverflow.com/a/40914924/1367414
             createOptions: { collation: { locale: 'en', strength: 2 } },
             indices: [
-              { spec: 'bookerKey' },
+              { spec: 'bookerAuthId' },
               { spec: 'type' },
               { spec: 'airline' },
               { spec: 'comingFrom' },
@@ -132,7 +131,7 @@ export type InternalInfo = WithId<{
  * The shape of an internal flight.
  */
 export type InternalFlight = WithId<{
-  bookerKey: string | null;
+  bookerAuthId: string | null;
   type: 'arrival' | 'departure';
   airline: string;
   comingFrom: string;
@@ -173,7 +172,7 @@ export type InternalFlight = WithId<{
  * The shape of a public flight.
  */
 export type PublicFlight = WithoutId<
-  Omit<InternalFlight, 'bookerKey' | 'stochasticStates'>
+  Omit<InternalFlight, 'bookerAuthId' | 'stochasticStates'>
 > &
   StochasticFlightState & {
     flight_id: string;
@@ -189,13 +188,12 @@ export type InternalAirport = WithId<{
   city: string;
   state: string;
   country: string;
-  chapterKey: string | null;
 }>;
 
 /**
  * The shape of a public airport.
  */
-export type PublicAirport = WithoutId<Omit<InternalAirport, 'chapterKey'>>;
+export type PublicAirport = WithoutId<InternalAirport>;
 
 /**
  * The shape of an internal airline.
@@ -236,8 +234,11 @@ export type PublicNoFlyListEntry = WithoutId<InternalNoFlyListEntry>;
  * Transforms an {@link InternalFlight} into a {@link PublicFlight} for the V2
  * API.
  */
-export function toPublicFlight(flight: InternalFlight): PublicFlight {
-  const { _id, bookerKey, stochasticStates, ...publicV2FlightData } = flight;
+export function toPublicFlight(
+  flight: InternalFlight,
+  requestAuthId: string
+): PublicFlight {
+  const { _id, bookerAuthId, stochasticStates, ...publicV2FlightData } = flight;
   const stochasticStatesEntries = Object.entries(stochasticStates);
   const firstStochasticState = stochasticStatesEntries[0]?.[1];
 
@@ -245,7 +246,7 @@ export function toPublicFlight(flight: InternalFlight): PublicFlight {
 
   return {
     flight_id: _id.toHexString(),
-    bookable: flight.type === 'arrival' ? false : bookerKey === DUMMY_BEARER_TOKEN,
+    bookable: flight.type === 'arrival' ? false : bookerAuthId === requestAuthId,
     ...publicV2FlightData,
     // eslint-disable-next-line unicorn/no-array-reduce
     ...stochasticStatesEntries.reduce((previous, entry) => {
@@ -343,10 +344,10 @@ export const publicNoFlyListProjection = {
  * {@link PublicFlight}s, i.e. their current "stochastic" states.
  */
 export function makeFlightStateResolverAggregation({
-  bookerKey,
+  bookerAuthId,
   removeIdsFromResult
 }: {
-  bookerKey: string;
+  bookerAuthId: string;
   removeIdsFromResult: boolean;
 }) {
   return [
@@ -368,7 +369,10 @@ export function makeFlightStateResolverAggregation({
         bookable: {
           $cond: {
             if: {
-              $and: [{ $eq: ['$bookerKey', bookerKey] }, { $eq: ['$type', 'departure'] }]
+              $and: [
+                { $eq: ['$bookerAuthId', bookerAuthId] },
+                { $eq: ['$type', 'departure'] }
+              ]
             },
             // eslint-disable-next-line unicorn/no-thenable
             then: true,
@@ -388,7 +392,7 @@ export function makeFlightStateResolverAggregation({
       $project: {
         state: false,
         ...(removeIdsFromResult ? { _id: false } : {}),
-        bookerKey: false,
+        bookerAuthId: false,
         stochasticStates: false
       }
     }

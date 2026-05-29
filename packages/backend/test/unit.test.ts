@@ -1,5 +1,5 @@
 /* eslint-disable unicorn/no-array-callback-reference */
-import { DUMMY_BEARER_TOKEN } from '@-xun/api-strategy/auth';
+import { dummyRootData } from '@-xun/api-strategy/mongo/dummy';
 import { setupMemoryServerOverride } from '@-xun/mongo-test';
 import { ObjectId } from 'mongodb';
 
@@ -27,7 +27,7 @@ setupMemoryServerOverride({
   data: getDummyData()
 });
 
-const bookerKey = DUMMY_BEARER_TOKEN;
+const bookerAuthId = dummyRootData.auth[1]!._id.toString();
 
 const PublicFlightKeys = [
   'type',
@@ -110,12 +110,14 @@ describe('::getFlightsById', () => {
     await expect(Backend.getFlightsById(undefined)).toReject();
     // @ts-expect-error: testing bad arguments
     await expect(Backend.getFlightsById(5)).toReject();
-    await expect(Backend.getFlightsById({ flight_ids: '5', bookerKey })).toReject();
-    await expect(Backend.getFlightsById({ flight_ids: '{}', bookerKey })).toReject();
-    await expect(Backend.getFlightsById({ flight_ids: 'null', bookerKey })).toReject();
+    await expect(Backend.getFlightsById({ flight_ids: '5', bookerAuthId })).toReject();
+    await expect(Backend.getFlightsById({ flight_ids: '{}', bookerAuthId })).toReject();
+    await expect(
+      Backend.getFlightsById({ flight_ids: 'null', bookerAuthId })
+    ).toReject();
 
     await expect(
-      Backend.getFlightsById({ flight_ids: '[undefined]', bookerKey })
+      Backend.getFlightsById({ flight_ids: '[undefined]', bookerAuthId })
     ).toReject();
   });
 
@@ -128,7 +130,7 @@ describe('::getFlightsById', () => {
             new ObjectId().toString()
           )
         ),
-        bookerKey
+        bookerAuthId
       })
     ).toReject();
   });
@@ -136,20 +138,23 @@ describe('::getFlightsById', () => {
   it('returns nothing when no ids are passed', async () => {
     expect.hasAssertions();
     await expect(
-      Backend.getFlightsById({ flight_ids: '[]', bookerKey })
+      Backend.getFlightsById({ flight_ids: '[]', bookerAuthId })
     ).resolves.toStrictEqual([]);
   });
 
   it('returns nothing when incorrect or bad ids are passed', async () => {
     expect.hasAssertions();
     await expect(
-      Backend.getFlightsById({ flight_ids: JSON.stringify([new ObjectId()]), bookerKey })
+      Backend.getFlightsById({
+        flight_ids: JSON.stringify([new ObjectId()]),
+        bookerAuthId
+      })
     ).resolves.toStrictEqual([]);
 
     await expect(
       Backend.getFlightsById({
         flight_ids: JSON.stringify([new ObjectId(), new ObjectId()]),
-        bookerKey
+        bookerAuthId
       })
     ).resolves.toStrictEqual([]);
   });
@@ -161,12 +166,12 @@ describe('::getFlightsById', () => {
 
     const result = await Backend.getFlightsById({
       flight_ids: JSON.stringify([flight1._id, flight2._id]),
-      bookerKey
+      bookerAuthId
     });
 
     expect([result[0]?.bookable, result[1]?.bookable]).toStrictEqual([
-      flight1.type === 'departure' && flight1.bookerKey === bookerKey,
-      flight2.type === 'departure' && flight2.bookerKey === bookerKey
+      flight1.type === 'departure' && flight1.bookerAuthId === bookerAuthId,
+      flight2.type === 'departure' && flight2.bookerAuthId === bookerAuthId
     ]);
 
     expect(
@@ -183,7 +188,7 @@ describe('::getFlightsById', () => {
       (
         await Backend.getFlightsById({
           flight_ids: JSON.stringify([flight2._id]),
-          bookerKey
+          bookerAuthId
         })
       )[0]!.flight_id
     ).toBe(flight2._id.toHexString());
@@ -192,7 +197,7 @@ describe('::getFlightsById', () => {
   it('throws when invalid JSON is passed', async () => {
     expect.hasAssertions();
     await expect(
-      Backend.getFlightsById({ flight_ids: 'hello world!', bookerKey })
+      Backend.getFlightsById({ flight_ids: 'hello world!', bookerAuthId })
     ).rejects.toThrow(ErrorMessage.InvalidJSON());
   });
 });
@@ -215,7 +220,7 @@ describe('::searchFlights', () => {
     await expect(
       // @ts-expect-error: testing bad arguments
       Backend.searchFlights({
-        bookerKey,
+        bookerAuthId,
         after_id: 'null',
         match: '{}',
         regexMatch: '{}'
@@ -223,11 +228,11 @@ describe('::searchFlights', () => {
     ).toReject();
     await expect(
       // @ts-expect-error: testing bad arguments
-      Backend.searchFlights({ bookerKey, after_id: 'null', sort: 'asc', match: '{}' })
+      Backend.searchFlights({ bookerAuthId, after_id: 'null', sort: 'asc', match: '{}' })
     ).toReject();
     await expect(
       Backend.searchFlights({
-        bookerKey,
+        bookerAuthId,
         after_id: 'bad',
         sort: 'asc',
         match: '{}',
@@ -236,7 +241,7 @@ describe('::searchFlights', () => {
     ).toReject();
     await expect(
       Backend.searchFlights({
-        bookerKey,
+        bookerAuthId,
         after_id: undefined,
         sort: 'bad',
         match: '{}',
@@ -246,7 +251,7 @@ describe('::searchFlights', () => {
 
     await expect(
       Backend.searchFlights({
-        bookerKey,
+        bookerAuthId,
         after_id: undefined,
         sort: 'asc',
         match: "{ bad: 'bad' }",
@@ -256,7 +261,7 @@ describe('::searchFlights', () => {
 
     await expect(
       Backend.searchFlights({
-        bookerKey,
+        bookerAuthId,
         after_id: undefined,
         sort: 'asc',
         match: '{}',
@@ -276,7 +281,7 @@ describe('::searchFlights', () => {
 
     await expect(
       Backend.searchFlights({
-        bookerKey,
+        bookerAuthId,
         after_id: undefined,
         sort: 'asc',
         match: "{ _id: 'bad' }",
@@ -286,7 +291,7 @@ describe('::searchFlights', () => {
 
     await expect(
       Backend.searchFlights({
-        bookerKey,
+        bookerAuthId,
         after_id: undefined,
         sort: 'asc',
         match: '{}',
@@ -296,7 +301,7 @@ describe('::searchFlights', () => {
 
     await expect(
       Backend.searchFlights({
-        bookerKey,
+        bookerAuthId,
         after_id: undefined,
         sort: 'asc',
         match: "{ stochasticStates: 'bad' }",
@@ -306,7 +311,7 @@ describe('::searchFlights', () => {
 
     await expect(
       Backend.searchFlights({
-        bookerKey,
+        bookerAuthId,
         after_id: undefined,
         sort: 'asc',
         match: '{}',
@@ -316,7 +321,7 @@ describe('::searchFlights', () => {
 
     await expect(
       Backend.searchFlights({
-        bookerKey,
+        bookerAuthId,
         after_id: undefined,
         sort: 'asc',
         match: '{}',
@@ -326,7 +331,7 @@ describe('::searchFlights', () => {
 
     await expect(
       Backend.searchFlights({
-        bookerKey,
+        bookerAuthId,
         after_id: undefined,
         sort: 'asc',
         match: '{ $gt: 1_000_000 }',
@@ -336,7 +341,7 @@ describe('::searchFlights', () => {
 
     await expect(
       Backend.searchFlights({
-        bookerKey,
+        bookerAuthId,
         after_id: undefined,
         sort: 'asc',
         match: '{ type: {} }',
@@ -346,7 +351,7 @@ describe('::searchFlights', () => {
 
     await expect(
       Backend.searchFlights({
-        bookerKey,
+        bookerAuthId,
         after_id: undefined,
         sort: 'asc',
         match: '{ type: { $in: [] } }',
@@ -356,7 +361,7 @@ describe('::searchFlights', () => {
 
     await expect(
       Backend.searchFlights({
-        bookerKey,
+        bookerAuthId,
         after_id: undefined,
         sort: 'asc',
         match: '{ type: { $lte: undefined } }',
@@ -366,7 +371,7 @@ describe('::searchFlights', () => {
 
     await expect(
       Backend.searchFlights({
-        bookerKey,
+        bookerAuthId,
         after_id: undefined,
         sort: 'asc',
         match: "{ $_id: 'that' }",
@@ -380,7 +385,7 @@ describe('::searchFlights', () => {
     const count = getEnv().RESULTS_PER_PAGE;
 
     const result1 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: undefined,
       match: '{}',
       regexMatch: '{}',
@@ -388,7 +393,7 @@ describe('::searchFlights', () => {
     });
 
     const result2 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: undefined,
       match: '{}',
       regexMatch: '{}',
@@ -396,7 +401,7 @@ describe('::searchFlights', () => {
     });
 
     const result3 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: undefined,
       match: undefined,
       regexMatch: undefined,
@@ -404,7 +409,7 @@ describe('::searchFlights', () => {
     });
 
     const result4 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: undefined,
       match: undefined,
       regexMatch: undefined,
@@ -412,11 +417,15 @@ describe('::searchFlights', () => {
     });
 
     const expectedFlights = dummyAppData.flights;
-    const expectedFlights1 = expectedFlights.slice(0, count).map(toPublicFlight);
+
+    const expectedFlights1 = expectedFlights
+      .slice(0, count)
+      .map((f) => toPublicFlight(f, bookerAuthId));
+
     const expectedFlights2 = expectedFlights
       .slice(-count)
       .toReversed()
-      .map(toPublicFlight);
+      .map((f) => toPublicFlight(f, bookerAuthId));
 
     expect(result1).toStrictEqual(expectedFlights1);
     expect(result2).toStrictEqual(expectedFlights2);
@@ -439,7 +448,7 @@ describe('::searchFlights', () => {
     const totalRecords = expectedFlights.length;
 
     const result1 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: undefined,
       match: JSON.stringify({ type: 'arrival' }),
       regexMatch: '{}',
@@ -453,11 +462,11 @@ describe('::searchFlights', () => {
         .filter((flight) => flight.type === 'arrival')
         .toReversed()
         .slice(0, count)
-        .map(toPublicFlight)
+        .map((f) => toPublicFlight(f, bookerAuthId))
     );
 
     const result2 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: String(new ObjectId(result1.at(-2)!.flight_id)),
       match: JSON.stringify({ type: 'arrival' }),
       regexMatch: '{}',
@@ -472,11 +481,11 @@ describe('::searchFlights', () => {
         .filter((flight) => flight.type === 'arrival')
         .toReversed()
         .slice(-1)
-        .map(toPublicFlight)[0]!.flight_id
+        .map((f) => toPublicFlight(f, bookerAuthId))[0]!.flight_id
     );
 
     const result3 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: String(expectedFlights.slice(-3)[0]!._id),
       match: JSON.stringify({ type: 'arrival' }),
       regexMatch: '{}',
@@ -489,11 +498,11 @@ describe('::searchFlights', () => {
       expectedFlights
         .filter((flight) => flight.type === 'arrival')
         .slice(-1)
-        .map(toPublicFlight)[0]!.flight_id
+        .map((f) => toPublicFlight(f, bookerAuthId))[0]!.flight_id
     );
 
     const result3desc = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: String(expectedFlights[2]!._id),
       match: JSON.stringify({ type: 'arrival' }),
       regexMatch: '{}',
@@ -506,11 +515,11 @@ describe('::searchFlights', () => {
         .filter((flight) => flight.type === 'arrival')
         .toReversed()
         .slice(-1)
-        .map(toPublicFlight)[0]!.flight_id
+        .map((f) => toPublicFlight(f, bookerAuthId))[0]!.flight_id
     );
 
     const result4 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: String(expectedFlights[2]!._id),
       match: '{}',
       regexMatch: '{}',
@@ -520,7 +529,7 @@ describe('::searchFlights', () => {
     expect(result4).toHaveLength(2);
 
     const result5 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: String(expectedFlights.slice(-3)[0]!._id),
       match: '{}',
       regexMatch: '{}',
@@ -530,7 +539,7 @@ describe('::searchFlights', () => {
     expect(result5).toHaveLength(2);
 
     const result6 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: String(expectedFlights[2]!._id),
       match: '{}',
       regexMatch: '{}',
@@ -542,7 +551,7 @@ describe('::searchFlights', () => {
     );
 
     const result6X = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: String(expectedFlights.slice(-2)[0]!._id),
       match: '{}',
       regexMatch: '{}',
@@ -552,7 +561,7 @@ describe('::searchFlights', () => {
     expect(result6X).toHaveLength(count);
 
     const result7 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: String(expectedFlights.at(-1)!._id),
       match: '{}',
       regexMatch: '{}',
@@ -562,7 +571,7 @@ describe('::searchFlights', () => {
     expect(result7).toHaveLength(0);
 
     const result8 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: undefined,
       match: JSON.stringify({ type: 'DNE' }),
       regexMatch: '{}',
@@ -572,7 +581,7 @@ describe('::searchFlights', () => {
     expect(result8).toHaveLength(0);
 
     const result9 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: undefined,
       match: JSON.stringify({ type: 'DNE' }),
       regexMatch: JSON.stringify({ type: '^arr' }),
@@ -583,7 +592,7 @@ describe('::searchFlights', () => {
     expect(result9).toHaveLength(count);
 
     const result9X = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: undefined,
       match: JSON.stringify({ type: 'arrival' }),
       regexMatch: JSON.stringify({ type: 'DNE' }),
@@ -593,7 +602,7 @@ describe('::searchFlights', () => {
     expect(result9X).toHaveLength(0);
 
     const result10 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: undefined,
       match: '{}',
       regexMatch: JSON.stringify({ type: '^arr' }),
@@ -603,7 +612,7 @@ describe('::searchFlights', () => {
     expect(result10).toStrictEqual(result1);
 
     const result11 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: undefined,
       match: '{}',
       regexMatch: JSON.stringify({ type: '^ARR' }),
@@ -613,7 +622,7 @@ describe('::searchFlights', () => {
     expect(result11).toStrictEqual(result1);
 
     const result12 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: undefined,
       match: '{}',
       regexMatch: JSON.stringify({ type: 'ArTuRe$' }),
@@ -624,7 +633,7 @@ describe('::searchFlights', () => {
     expect(result12.every((flight) => flight.type === 'departure')).toBeTrue();
 
     const result13 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: undefined,
       match: JSON.stringify({ ffms: { $gt: 1_000_000 } }),
       regexMatch: '{}',
@@ -634,7 +643,7 @@ describe('::searchFlights', () => {
     expect(result13).toHaveLength(1);
 
     const result14 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: undefined,
       match: JSON.stringify({ ffms: { $lt: 1_000_000 } }),
       regexMatch: '{}',
@@ -644,7 +653,7 @@ describe('::searchFlights', () => {
     expect(result14).toHaveLength(count);
 
     const result15 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: undefined,
       match: '{}',
       regexMatch: JSON.stringify({ airline: 's.*t' }),
@@ -654,7 +663,7 @@ describe('::searchFlights', () => {
     expect(result15).toHaveLength(1);
 
     const result16 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: undefined,
       match: JSON.stringify({ arriveAtReceiver: { $lt: 10_000 } }),
       regexMatch: '{}',
@@ -664,7 +673,7 @@ describe('::searchFlights', () => {
     expect(result16).toHaveLength(1);
 
     const result17 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: undefined,
       match: JSON.stringify({ ffms: { $gte: 1_000_000 }, departFromSender: 500 }),
       regexMatch: JSON.stringify({ airline: 's.*t' }),
@@ -674,7 +683,7 @@ describe('::searchFlights', () => {
     expect(result17).toHaveLength(1);
 
     const result18 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: String(new ObjectId(result17[0]!.flight_id)),
       match: JSON.stringify({ ffms: { $gte: 1_000_000 }, departFromSender: 500 }),
       regexMatch: JSON.stringify({ airline: 's.*t' }),
@@ -684,7 +693,7 @@ describe('::searchFlights', () => {
     expect(result18).toHaveLength(0);
 
     const result19 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: undefined,
       match: JSON.stringify({ status: 'past' }),
       regexMatch: '{}',
@@ -700,7 +709,7 @@ describe('::searchFlights', () => {
     const count = getEnv().RESULTS_PER_PAGE;
 
     const result1 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: undefined,
       match: JSON.stringify({ arriveAtReceiver: { $gte: Date.now() } }),
       regexMatch: '{}',
@@ -708,7 +717,7 @@ describe('::searchFlights', () => {
     });
 
     const result2 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: undefined,
       match: JSON.stringify({ arriveAtReceiver: { $gte: Date.now() } }),
       regexMatch: '{}',
@@ -716,7 +725,7 @@ describe('::searchFlights', () => {
     });
 
     const result3 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: undefined,
       match: '{}',
       regexMatch: JSON.stringify({ status: 'landed|departed' }),
@@ -724,14 +733,16 @@ describe('::searchFlights', () => {
     });
 
     const result4 = await Backend.searchFlights({
-      bookerKey,
+      bookerAuthId,
       after_id: undefined,
       match: '{}',
       regexMatch: JSON.stringify({ status: 'landed|departed' }),
       sort: 'desc'
     });
 
-    const expectedFlights = dummyAppData.flights.map(toPublicFlight);
+    const expectedFlights = dummyAppData.flights.map((f) =>
+      toPublicFlight(f, bookerAuthId)
+    );
     const expectedFlights1 = expectedFlights
       .filter((f) => f.arriveAtReceiver >= Date.now())
       .slice(0, count);
@@ -774,7 +785,7 @@ describe('::searchFlights', () => {
 
     await expect(
       Backend.searchFlights({
-        bookerKey,
+        bookerAuthId,
         after_id: undefined,
         match: undefined,
         regexMatch: undefined,
@@ -785,11 +796,13 @@ describe('::searchFlights', () => {
 
   it('searches by flight_id via match and regexMatch work as expected', async () => {
     expect.hasAssertions();
-    const expectedPublicFlights = dummyAppData.flights.slice(2, 4).map(toPublicFlight);
+    const expectedPublicFlights = dummyAppData.flights
+      .slice(2, 4)
+      .map((f) => toPublicFlight(f, bookerAuthId));
 
     await expect(
       Backend.searchFlights({
-        bookerKey,
+        bookerAuthId,
         after_id: undefined,
         match: JSON.stringify({ flight_id: expectedPublicFlights[0]!.flight_id }),
         regexMatch: '{}',
@@ -799,7 +812,7 @@ describe('::searchFlights', () => {
 
     await expect(
       Backend.searchFlights({
-        bookerKey,
+        bookerAuthId,
         after_id: undefined,
         match: '{}',
         regexMatch: JSON.stringify({

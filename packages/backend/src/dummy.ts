@@ -1,5 +1,4 @@
-import { DUMMY_BEARER_TOKEN } from '@-xun/api-strategy/auth';
-import { getCommonDummyData } from '@-xun/api-strategy/mongo/dummy';
+import { dummyRootData, getCommonDummyData } from '@-xun/api-strategy/mongo/dummy';
 import { mockDateNowMs } from '@-xun/jest';
 import { safeDeepClone } from '@-xun/js';
 import { ObjectId } from 'mongodb';
@@ -51,8 +50,7 @@ const airports: InternalAirport[] = [
     shortName: 'F1A',
     city: 'Los Angeles',
     state: 'CA',
-    country: 'USA',
-    chapterKey: DUMMY_BEARER_TOKEN
+    country: 'USA'
   },
   {
     _id: new ObjectId(),
@@ -60,8 +58,7 @@ const airports: InternalAirport[] = [
     shortName: 'SCA',
     city: 'Chicago',
     state: 'IL',
-    country: 'USA',
-    chapterKey: 'xyz4c4d3-294a-4086-9751-f3fce82da'
+    country: 'USA'
   },
   {
     _id: new ObjectId(),
@@ -69,8 +66,7 @@ const airports: InternalAirport[] = [
     shortName: 'TC3',
     city: 'New York',
     state: 'NY',
-    country: 'USA',
-    chapterKey: '35b6ny53-83a7-gf0r-b060-b4ywayrht'
+    country: 'USA'
   },
   {
     _id: new ObjectId(),
@@ -78,8 +74,7 @@ const airports: InternalAirport[] = [
     shortName: 'CHF',
     city: 'Atlanta',
     state: 'GA',
-    country: 'USA',
-    chapterKey: 'h90wgbrd-294a-536h-9751-rydmjetgg'
+    country: 'USA'
   }
 ];
 
@@ -159,7 +154,7 @@ const info: InternalInfo[] = [
 
 const unhydratedFlights: WithoutId<InternalFlight>[] = [
   {
-    bookerKey: DUMMY_BEARER_TOKEN,
+    bookerAuthId: dummyRootData.auth[1]!._id.toString(),
     type: 'arrival',
     airline: 'Delta',
     comingFrom: 'SCA',
@@ -227,7 +222,7 @@ const unhydratedFlights: WithoutId<InternalFlight>[] = [
     }
   },
   {
-    bookerKey: null,
+    bookerAuthId: null,
     type: 'departure',
     airline: 'United',
     comingFrom: 'CHF',

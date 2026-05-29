@@ -111,12 +111,12 @@ export async function getSeats() {
 
 export async function getFlightsById({
   flight_ids,
-  bookerKey
+  bookerAuthId
 }: {
   flight_ids: string | undefined;
-  bookerKey: string | undefined;
+  bookerAuthId: string | undefined;
 }) {
-  if (!bookerKey) {
+  if (!bookerAuthId) {
     throw new AuthError();
   }
 
@@ -141,25 +141,25 @@ export async function getFlightsById({
   return flightsDb
     .aggregate<PublicFlight>([
       { $match: { _id: { $in: flightIds } } },
-      ...makeFlightStateResolverAggregation({ bookerKey, removeIdsFromResult: true })
+      ...makeFlightStateResolverAggregation({ bookerAuthId, removeIdsFromResult: true })
     ])
     .toArray();
 }
 
 export async function searchFlights({
-  bookerKey,
+  bookerAuthId,
   after_id,
   match: match_,
   regexMatch: regexMatch_,
   sort: sort_
 }: {
-  bookerKey: string | undefined;
+  bookerAuthId: string | undefined;
   after_id: string | undefined;
   match: string | undefined;
   regexMatch: string | undefined;
   sort: string | undefined;
 }) {
-  if (!bookerKey) {
+  if (!bookerAuthId) {
     throw new AuthError();
   }
 
@@ -285,7 +285,10 @@ export async function searchFlights({
       ...(regexMatchObjectIds.length
         ? [{ $match: { _id: { $in: regexMatchObjectIds } } }]
         : []),
-      ...makeFlightStateResolverAggregation({ bookerKey, removeIdsFromResult: false }),
+      ...makeFlightStateResolverAggregation({
+        bookerAuthId,
+        removeIdsFromResult: false
+      }),
       ...(Object.keys(secondaryMatchers).length
         ? [{ $match: { ...secondaryMatchers } }]
         : []),
