@@ -1,55 +1,84 @@
+/* eslint-disable unicorn/no-array-callback-reference */
+import { setupMemoryServerOverride } from '@-xun/mongo-test';
 import { ObjectId } from 'mongodb';
 import { testApiHandler } from 'next-test-api-route-handler';
 
-import { convertPFlightToPFlightForV1Only, DUMMY_KEY as KEY } from 'universe/backend';
-import { getEnv } from 'universe/backend/env';
-import v1AllEndpoint, { config as v1AllConfig } from 'universe/pages/api/v1/flights/all';
-import * as V1_search from 'universe/pages/api/v1/flights/search';
-import * as V1_with_ids from 'universe/pages/api/v1/flights/with-ids';
-import * as V2_flights from 'universe/pages/api/v2/flights';
+import { api } from 'testverse:fixtures/index.ts';
+import { useMockDateNow } from 'testverse:util.ts';
 
-import { convertIFlightToPFlight, setupJest } from 'testverse/db';
+import {
+  getFlightsDb,
+  getSchemaConfig,
+  toPublicFlight,
+  toPublicFlightV1
+} from '@nhscc/backend-airports/db';
 
+import { dummyAppData, getDummyData } from '@nhscc/backend-airports/dummy';
+import { getEnv } from '@nhscc/backend-airports/env';
 
 import type { WithId } from 'mongodb';
-import type { PageConfig } from 'next';
-import type { InternalFlight, PublicFlight, WithConfig } from 'types/global';
+import type { InternalFlight, PublicFlight } from '@nhscc/backend-airports/db';
 
-const RESULT_SIZE = getEnv().RESULTS_PER_PAGE;
+useMockDateNow();
+setupMemoryServerOverride({
+  schema: getSchemaConfig(),
+  data: getDummyData()
+});
 
-const { getHydratedData, getDb } = setupJest();
+jest.mock<typeof import('@-xun/api-strategy/auth')>(
+  '@-xun/api-strategy/auth',
+  (): typeof import('@-xun/api-strategy/auth') => {
+    return {
+      ...jest.requireActual('@-xun/api-strategy/auth'),
+      getAuthedClientToken: () =>
+        Promise.resolve({
+          attributes: { owner: 'owner' },
+          auth_id: 'auth_id'
+        })
+    };
+  }
+);
 
-const v1All: typeof v1AllEndpoint & { config?: PageConfig } = v1AllEndpoint;
-v1All.config = v1AllConfig;
+jest.mock<typeof import('universe:route-wrapper.ts')>(
+  'universe:route-wrapper.ts',
+  () => {
+    const { middlewareFactory } = require('@-xun/api') as typeof import('@-xun/api');
+    const { makeMiddleware: makeErrorHandlingMiddleware } =
+      require('@-xun/api/middleware/handle-error') as typeof import('@-xun/api/middleware/handle-error');
 
-const v1Search: WithConfig<typeof V1_search.default> = V1_search.default;
-v1Search.config = V1_search.config;
+    return {
+      withMiddleware: jest.fn().mockImplementation(
+        middlewareFactory({
+          use: [],
+          useOnError: [makeErrorHandlingMiddleware()],
+          options: { legacyMode: true }
+        })
+      )
+    } as unknown as typeof import('universe:route-wrapper.ts');
+  }
+);
 
-const v1WithIds: WithConfig<typeof V1_with_ids.default> = V1_with_ids.default;
-v1WithIds.config = V1_with_ids.config;
+const resultSize = getEnv().RESULTS_PER_PAGE;
+const v1Flights = dummyAppData.flights.map(internalFlightToPublicFlightV1);
+const v2Flights = dummyAppData.flights.map(toPublicFlight);
+const nonExistentObjectId = ObjectId.createFromTime(Date.now() * 2).toString();
 
-const v2Flights: WithConfig<typeof V2_flights.default> = V2_flights.default;
-v2Flights.config = V2_flights.config;
-
-const convertIFlightToPFlightForV1Only = (flight: WithId<InternalFlight>) => {
-  return convertPFlightToPFlightForV1Only(convertIFlightToPFlight(flight));
-};
-
-process.env.REQUESTS_PER_CONTRIVED_ERROR = '0';
-process.env.DISABLED_API_VERSIONS = '';
+function internalFlightToPublicFlightV1(flight: WithId<InternalFlight>) {
+  return toPublicFlightV1(toPublicFlight(flight));
+}
 
 describe('api/v1/flights', () => {
   it('returns expected number of public flights by default in FIFO order', async () => {
     expect.hasAssertions();
 
-    const results = getHydratedData()
-      .flights.slice(0, getEnv().RESULTS_PER_PAGE)
-      .map(convertIFlightToPFlightForV1Only);
+    const results = dummyAppData.flights
+      .slice(0, getEnv().RESULTS_PER_PAGE)
+      .map(internalFlightToPublicFlightV1);
 
     await testApiHandler({
-      handler: v1All,
+      pagesHandler: api.v1.flightsAll,
       test: async ({ fetch }) => {
-        const response = await fetch({ headers: { KEY } });
+        const response = await fetch();
         const json = await response.json();
 
         expect(response.status).toBe(200);
@@ -62,44 +91,42 @@ describe('api/v1/flights', () => {
   it('returns expected number of public flights in FIFO order respecting offset (after)', async () => {
     expect.hasAssertions();
 
-    const flights = getHydratedData().flights.map(convertIFlightToPFlightForV1Only);
-
     const genUrl = (function* () {
       yield `/?after=`;
-      yield `/?after=${flights[0].flight_id}`;
-      yield `/?after=${flights[1].flight_id}`;
-      yield `/?after=${flights[10].flight_id}`;
-      yield `/?after=${flights[50].flight_id}`;
-      yield `/?after=${flights[100].flight_id}`;
-      yield `/?after=${flights[200].flight_id}`;
-      yield `/?after=${flights[248].flight_id}`;
-      yield `/?after=${flights[249].flight_id}`;
-      yield `/?after=${new ObjectId()}`;
+      yield `/?after=${v1Flights[0]!.flight_id}`;
+      yield `/?after=${v1Flights[1]!.flight_id}`;
+      yield `/?after=${v1Flights[10]!.flight_id}`;
+      yield `/?after=${v1Flights[50]!.flight_id}`;
+      yield `/?after=${v1Flights[100]!.flight_id}`;
+      yield `/?after=${v1Flights[200]!.flight_id}`;
+      yield `/?after=${v1Flights[248]!.flight_id}`;
+      yield `/?after=${v1Flights[249]!.flight_id}`;
+      yield `/?after=${nonExistentObjectId}`;
     })();
 
     await testApiHandler({
       requestPatcher: (req) => {
         req.url = genUrl.next().value || undefined;
       },
-      handler: v1All,
+      pagesHandler: api.v1.flightsAll,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          Array.from({length: 10}).map((_) => {
-            return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : null));
+          Array.from({ length: 10 }).map(() => {
+            return fetch().then((r) => r.json());
           })
         );
 
         expect(responses.some((o) => !o?.success)).toBeFalse();
 
         expect(responses.map((r) => r.flights)).toIncludeSameMembers([
-          flights.slice(0, RESULT_SIZE),
-          flights.slice(1, RESULT_SIZE + 1),
-          flights.slice(2, RESULT_SIZE + 2),
-          flights.slice(11, RESULT_SIZE + 11),
-          flights.slice(51, RESULT_SIZE + 51),
-          flights.slice(101, RESULT_SIZE + 101),
-          flights.slice(201, RESULT_SIZE + 150),
-          flights.slice(-1),
+          v1Flights.slice(0, resultSize),
+          v1Flights.slice(1, resultSize + 1),
+          v1Flights.slice(2, resultSize + 2),
+          v1Flights.slice(11, resultSize + 11),
+          v1Flights.slice(51, resultSize + 51),
+          v1Flights.slice(101, resultSize + 101),
+          v1Flights.slice(201, resultSize + 150),
+          v1Flights.slice(-1),
           [],
           []
         ]);
@@ -124,15 +151,15 @@ describe('api/v1/flights', () => {
       requestPatcher: (req) => {
         req.url = genUrl.next().value || undefined;
       },
-      handler: v1All,
+      pagesHandler: api.v1.flightsAll,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          Array.from({length: 7}).map((_) => {
-            return fetch({ headers: { KEY } }).then((r) => r.status);
+          Array.from({ length: 7 }).map(() => {
+            return fetch().then((r) => r.status);
           })
         );
 
-        expect(responses).toIncludeSameMembers([404, 404, 404, 404, 404, 404, 200]);
+        expect(responses).toIncludeSameMembers([400, 400, 400, 400, 400, 400, 200]);
       }
     });
   });
@@ -140,12 +167,12 @@ describe('api/v1/flights', () => {
   it('does not throw when there are no flights in the system', async () => {
     expect.hasAssertions();
 
-    await (await getDb()).collection('flights').deleteMany({});
+    await (await getFlightsDb()).flightsDb.deleteMany();
 
     await testApiHandler({
-      handler: v1All,
+      pagesHandler: api.v1.flightsAll,
       test: async ({ fetch }) => {
-        const response = await fetch({ headers: { KEY } });
+        const response = await fetch();
 
         expect(response.status).toBe(200);
         expect((await response.json()).success).toBe(true);
@@ -159,17 +186,17 @@ describe('api/v1/flights', () => {
     let v1AllFlight: PublicFlight[];
 
     await testApiHandler({
-      handler: v1All,
+      pagesHandler: api.v1.flightsAll,
       test: async ({ fetch }) => {
-        const response = await fetch({ headers: { KEY } });
+        const response = await fetch();
         v1AllFlight = (await response.json()).flights;
       }
     });
 
     await testApiHandler({
-      handler: v1Search,
+      pagesHandler: api.v1.flightsSearch,
       test: async ({ fetch }) => {
-        const response = await fetch({ headers: { KEY } });
+        const response = await fetch();
         const json = await response.json();
 
         expect(response.status).toBe(200);
@@ -182,12 +209,10 @@ describe('api/v1/flights', () => {
   it('returns expected public flights with respect to offset (after)', async () => {
     expect.hasAssertions();
 
-    const flights = getHydratedData().flights.map(convertIFlightToPFlightForV1Only);
-
     const genUrl = (function* () {
       yield `/?after=`;
-      yield `/?after=${flights[0].flight_id}`;
-      yield `/?after=${new ObjectId()}`;
+      yield `/?after=${v1Flights[0]!.flight_id}`;
+      yield `/?after=${nonExistentObjectId}`;
     })();
 
     await testApiHandler({
@@ -195,19 +220,19 @@ describe('api/v1/flights', () => {
         req.url = genUrl.next().value || undefined;
       },
 
-      handler: v1Search,
+      pagesHandler: api.v1.flightsSearch,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          Array.from({length: 3}).map((_) => {
-            return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : null));
+          Array.from({ length: 3 }).map(() => {
+            return fetch().then((r) => r.json());
           })
         );
 
         expect(responses.some((o) => !o?.success)).toBeFalse();
 
         expect(responses.map((r) => r.flights)).toIncludeSameMembers([
-          flights.slice(0, RESULT_SIZE),
-          flights.slice(1, RESULT_SIZE + 1),
+          v1Flights.slice(0, resultSize),
+          v1Flights.slice(1, resultSize + 1),
           []
         ]);
       }
@@ -216,8 +241,6 @@ describe('api/v1/flights', () => {
 
   it('returns expected public flights in the requested sort order', async () => {
     expect.hasAssertions();
-
-    const flights = getHydratedData().flights.map(convertIFlightToPFlightForV1Only);
 
     const genUrl = (function* () {
       yield `/?sort=`;
@@ -231,11 +254,11 @@ describe('api/v1/flights', () => {
         req.url = genUrl.next().value || undefined;
       },
 
-      handler: v1Search,
+      pagesHandler: api.v1.flightsSearch,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          Array.from({length: 4}).map((_) => {
-            return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : r.status));
+          Array.from({ length: 4 }).map(() => {
+            return fetch().then((r) => (r.ok ? r.json() : r.status));
           })
         );
 
@@ -243,9 +266,9 @@ describe('api/v1/flights', () => {
 
         expect(properResponses.some((o) => !o?.success)).toBeFalse();
         expect(properResponses.map((r) => r.flights)).toIncludeSameMembers([
-          flights.slice(0, RESULT_SIZE),
-          flights.slice(150, RESULT_SIZE + 150).reverse(),
-          flights.slice(0, RESULT_SIZE)
+          v1Flights.slice(0, resultSize),
+          v1Flights.slice(150, resultSize + 150).toReversed(),
+          v1Flights.slice(0, resultSize)
         ]);
 
         expect(responses[3]).toBe(400);
@@ -256,7 +279,6 @@ describe('api/v1/flights', () => {
   it('returns expected public flights with respect to match', async () => {
     expect.hasAssertions();
 
-    const flights = getHydratedData().flights.map(convertIFlightToPFlightForV1Only);
     const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
     const genUrl = (function* () {
@@ -275,51 +297,48 @@ describe('api/v1/flights', () => {
         req.url = genUrl.next().value || undefined;
       },
 
-      handler: v1Search,
+      pagesHandler: api.v1.flightsSearch,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          Array.from({length: 8}).map((_) => {
-            return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : r.status));
+          Array.from({ length: 8 }).map(() => {
+            return fetch().then((r) => r.json());
           })
         );
 
         expect(responses.some((o) => !o?.success)).toBeFalse();
         expect(responses.map((r) => r.flights)).toIncludeSameMembers([
-          flights.filter((f) => f.airline === 'Spirit').slice(0, RESULT_SIZE),
-          flights.filter((f) => f.type === 'departure').slice(0, RESULT_SIZE),
-          flights.filter((f) => f.landingAt === 'F1A').slice(0, RESULT_SIZE),
-          flights.filter((f) => f.seatPrice === 500).slice(0, RESULT_SIZE),
-          flights.filter((f) => f.seatPrice > 500).slice(0, RESULT_SIZE),
-          flights.filter((f) => f.seatPrice >= 500).slice(0, RESULT_SIZE),
-          flights.filter((f) => f.seatPrice < 500).slice(0, RESULT_SIZE),
-          flights.filter((f) => f.seatPrice <= 500).slice(0, RESULT_SIZE)
+          v1Flights.filter((f) => f.airline === 'Spirit').slice(0, resultSize),
+          v1Flights.filter((f) => f.type === 'departure').slice(0, resultSize),
+          v1Flights.filter((f) => f.landingAt === 'F1A').slice(0, resultSize),
+          v1Flights.filter((f) => f.seatPrice === 500).slice(0, resultSize),
+          v1Flights.filter((f) => f.seatPrice > 500).slice(0, resultSize),
+          v1Flights.filter((f) => f.seatPrice >= 500).slice(0, resultSize),
+          v1Flights.filter((f) => f.seatPrice < 500).slice(0, resultSize),
+          v1Flights.filter((f) => f.seatPrice <= 500).slice(0, resultSize)
         ]);
       }
     });
 
     await testApiHandler({
-      handler: v1Search,
+      pagesHandler: api.v1.flightsSearch,
       requestPatcher: (req) => {
         req.url = `/?match=${encode({ ffms: { $eq: 500 } })}`;
       },
-      test: async ({ fetch }) =>
-        expect((await fetch({ headers: { KEY } })).status).toBe(400)
+      test: async ({ fetch }) => expect((await fetch()).status).toBe(400)
     });
 
     await testApiHandler({
-      handler: v1Search,
+      pagesHandler: api.v1.flightsSearch,
       requestPatcher: (req) => {
         req.url = `/?match=${encode({ bad: 500 })}`;
       },
-      test: async ({ fetch }) =>
-        expect((await fetch({ headers: { KEY } })).status).toBe(400)
+      test: async ({ fetch }) => expect((await fetch()).status).toBe(400)
     });
   });
 
   it('returns expected public flights with respect to regexMatch', async () => {
     expect.hasAssertions();
 
-    const flights = getHydratedData().flights.map(convertIFlightToPFlightForV1Only);
     const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
     const genUrl = (function* () {
@@ -334,20 +353,20 @@ describe('api/v1/flights', () => {
         req.url = genUrl.next().value || undefined;
       },
 
-      handler: v1Search,
+      pagesHandler: api.v1.flightsSearch,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          Array.from({length: 4}).map((_) => {
-            return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : r.status));
+          Array.from({ length: 4 }).map(() => {
+            return fetch().then((r) => r.json());
           })
         );
 
         expect(responses.some((o) => !o?.success)).toBeFalse();
         expect(responses.map((r) => r.flights)).toIncludeSameMembers([
-          flights.filter((f) => /spirit/i.test(f.airline)).slice(0, RESULT_SIZE),
-          flights.filter((f) => /^dep/i.test(f.type)).slice(0, RESULT_SIZE),
-          flights.filter((f) => /u.*/i.test(f.flightNumber)).slice(0, RESULT_SIZE),
-          flights.filter((f) => /U.*/i.test(f.flightNumber)).slice(0, RESULT_SIZE)
+          v1Flights.filter((f) => /spirit/i.test(f.airline)).slice(0, resultSize),
+          v1Flights.filter((f) => /^dep/i.test(f.type)).slice(0, resultSize),
+          v1Flights.filter((f) => /u.*/i.test(f.flightNumber)).slice(0, resultSize),
+          v1Flights.filter((f) => /U.*/i.test(f.flightNumber)).slice(0, resultSize)
         ]);
       }
     });
@@ -369,11 +388,11 @@ describe('api/v1/flights', () => {
         req.url = genUrl.next().value || undefined;
       },
 
-      handler: v1Search,
+      pagesHandler: api.v1.flightsSearch,
       test: async ({ fetch }) => {
         await Promise.all(
-          Array.from({length: 3}).map((_) => {
-            return fetch({ headers: { KEY } })
+          Array.from({ length: 3 }).map(() => {
+            return fetch()
               .then((r) => r.status)
               .then((s) => expect(s).toBe(400));
           })
@@ -405,11 +424,11 @@ describe('api/v1/flights', () => {
         req.url = genUrl.next().value || undefined;
       },
 
-      handler: v1Search,
+      pagesHandler: api.v1.flightsSearch,
       test: async ({ fetch }) => {
         await Promise.all(
-          Array.from({length: 10}).map((_) => {
-            return fetch({ headers: { KEY } })
+          Array.from({ length: 10 }).map(() => {
+            return fetch()
               .then((r) => r.status)
               .then((s) => expect(s).toBe(400));
           })
@@ -421,12 +440,11 @@ describe('api/v1/flights', () => {
   it('returns expected public flights with respect to all parameters simultaneously', async () => {
     expect.hasAssertions();
 
-    const flights = getHydratedData().flights.map(convertIFlightToPFlightForV1Only);
     const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
     const genUrl = (function* () {
-      yield `/?sort=desc&after=${flights[249].flight_id}&match=${encode({ ffms: { $gt: 1_000_000 } })}&regexMatch=${encode({ airline: 'spirit' })}`;
-      yield `/?sort=desc&after=${flights[0].flight_id}&match=${encode({ ffms: { $gt: 1_000_000 } })}&regexMatch=${encode({ airline: 'spirit' })}`;
+      yield `/?sort=desc&after=${v1Flights[249]!.flight_id}&match=${encode({ ffms: { $gt: 1_000_000 } })}&regexMatch=${encode({ airline: 'spirit' })}`;
+      yield `/?sort=desc&after=${v1Flights[0]!.flight_id}&match=${encode({ ffms: { $gt: 1_000_000 } })}&regexMatch=${encode({ airline: 'spirit' })}`;
     })();
 
     await testApiHandler({
@@ -434,17 +452,17 @@ describe('api/v1/flights', () => {
         req.url = genUrl.next().value || undefined;
       },
 
-      handler: v1Search,
+      pagesHandler: api.v1.flightsSearch,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          Array.from({length: 2}).map((_) => {
-            return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : r.status));
+          Array.from({ length: 2 }).map(() => {
+            return fetch().then((r) => r.json());
           })
         );
 
         expect(responses.some((o) => !o?.success)).toBeFalse();
         expect(responses.map((r) => r.flights)).toIncludeSameMembers([
-          [flights[248]],
+          [v1Flights[248]],
           []
         ]);
       }
@@ -455,15 +473,13 @@ describe('api/v1/flights', () => {
     it('returns expected flights by default in FIFO order', async () => {
       expect.hasAssertions();
 
-      const flightIds = getHydratedData().flights.map((flight) =>
-        flight._id.toHexString()
-      );
+      const flightIds = dummyAppData.flights.map((flight) => flight._id.toHexString());
       const encode = (ids: string[]) => encodeURIComponent(JSON.stringify(ids));
 
       const genUrl = (function* () {
-        yield `/?ids=${encode([flightIds[0]])}`;
-        yield `/?ids=${encode([flightIds[50]])}`;
-        yield `/?ids=${encode([flightIds[249]])}`;
+        yield `/?ids=${encode([flightIds[0]!])}`;
+        yield `/?ids=${encode([flightIds[50]!])}`;
+        yield `/?ids=${encode([flightIds[249]!])}`;
         yield `/?ids=${encode(flightIds.slice(0, 50))}`;
         yield `/?ids=${encode(flightIds.slice(90, 150))}`;
         yield `/?ids=${encode([...flightIds.slice(90, 150), new ObjectId().toHexString()])}`;
@@ -476,11 +492,11 @@ describe('api/v1/flights', () => {
         requestPatcher: (req) => {
           req.url = genUrl.next().value || undefined;
         },
-        handler: v1WithIds,
+        pagesHandler: api.v1.flightsWithIds,
         test: async ({ fetch }) => {
           const responses = await Promise.all(
-            Array.from({length: 9}).map((_) => {
-              return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : null));
+            Array.from({ length: 9 }).map(() => {
+              return fetch().then((r) => r.json());
             })
           );
 
@@ -494,7 +510,7 @@ describe('api/v1/flights', () => {
             [flightIds[249]],
             flightIds.slice(0, 50),
             flightIds.slice(90, 150),
-            [...flightIds.slice(90, 150)],
+            flightIds.slice(90, 150),
             [],
             [],
             []
@@ -518,11 +534,11 @@ describe('api/v1/flights', () => {
         requestPatcher: (req) => {
           req.url = genUrl.next().value || undefined;
         },
-        handler: v1WithIds,
+        pagesHandler: api.v1.flightsWithIds,
         test: async ({ fetch }) => {
           const responses = await Promise.all(
-            Array.from({length: 5}).map((_) => {
-              return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : null));
+            Array.from({ length: 5 }).map(() => {
+              return fetch().then((r) => r.json());
             })
           );
 
@@ -545,14 +561,12 @@ describe('api/v2/flights', () => {
   it('returns expected number of public flights by default in FIFO order', async () => {
     expect.hasAssertions();
 
-    const results = getHydratedData()
-      .flights.slice(0, getEnv().RESULTS_PER_PAGE)
-      .map(convertIFlightToPFlight);
+    const results = v2Flights.slice(0, getEnv().RESULTS_PER_PAGE);
 
     await testApiHandler({
-      handler: v2Flights,
+      pagesHandler: api.v2.flights,
       test: async ({ fetch }) => {
-        const response = await fetch({ headers: { KEY } });
+        const response = await fetch();
         const json = await response.json();
 
         expect(response.status).toBe(200);
@@ -565,44 +579,42 @@ describe('api/v2/flights', () => {
   it('returns expected number of public flights in FIFO order respecting offset (after)', async () => {
     expect.hasAssertions();
 
-    const flights = getHydratedData().flights.map(convertIFlightToPFlight);
-
     const genUrl = (function* () {
       yield `/?after=`;
-      yield `/?after=${flights[0].flight_id}`;
-      yield `/?after=${flights[1].flight_id}`;
-      yield `/?after=${flights[10].flight_id}`;
-      yield `/?after=${flights[50].flight_id}`;
-      yield `/?after=${flights[100].flight_id}`;
-      yield `/?after=${flights[200].flight_id}`;
-      yield `/?after=${flights[248].flight_id}`;
-      yield `/?after=${flights[249].flight_id}`;
-      yield `/?after=${new ObjectId()}`;
+      yield `/?after=${v2Flights[0]!.flight_id}`;
+      yield `/?after=${v2Flights[1]!.flight_id}`;
+      yield `/?after=${v2Flights[10]!.flight_id}`;
+      yield `/?after=${v2Flights[50]!.flight_id}`;
+      yield `/?after=${v2Flights[100]!.flight_id}`;
+      yield `/?after=${v2Flights[200]!.flight_id}`;
+      yield `/?after=${v2Flights[248]!.flight_id}`;
+      yield `/?after=${v2Flights[249]!.flight_id}`;
+      yield `/?after=${nonExistentObjectId}`;
     })();
 
     await testApiHandler({
       requestPatcher: (req) => {
         req.url = genUrl.next().value || undefined;
       },
-      handler: v2Flights,
+      pagesHandler: api.v2.flights,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          Array.from({length: 10}).map((_) => {
-            return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : null));
+          Array.from({ length: 10 }).map(() => {
+            return fetch().then((r) => r.json());
           })
         );
 
         expect(responses.some((o) => !o?.success)).toBeFalse();
 
         expect(responses.map((r) => r.flights)).toIncludeSameMembers([
-          flights.slice(0, RESULT_SIZE),
-          flights.slice(1, RESULT_SIZE + 1),
-          flights.slice(2, RESULT_SIZE + 2),
-          flights.slice(11, RESULT_SIZE + 11),
-          flights.slice(51, RESULT_SIZE + 51),
-          flights.slice(101, RESULT_SIZE + 101),
-          flights.slice(201, RESULT_SIZE + 150),
-          flights.slice(-1),
+          v2Flights.slice(0, resultSize),
+          v2Flights.slice(1, resultSize + 1),
+          v2Flights.slice(2, resultSize + 2),
+          v2Flights.slice(11, resultSize + 11),
+          v2Flights.slice(51, resultSize + 51),
+          v2Flights.slice(101, resultSize + 101),
+          v2Flights.slice(201, resultSize + 150),
+          v2Flights.slice(-1),
           [],
           []
         ]);
@@ -627,15 +639,15 @@ describe('api/v2/flights', () => {
       requestPatcher: (req) => {
         req.url = genUrl.next().value || undefined;
       },
-      handler: v2Flights,
+      pagesHandler: api.v2.flights,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          Array.from({length: 7}).map((_) => {
-            return fetch({ headers: { KEY } }).then((r) => r.status);
+          Array.from({ length: 7 }).map(() => {
+            return fetch().then((r) => r.status);
           })
         );
 
-        expect(responses).toIncludeSameMembers([404, 404, 404, 404, 404, 404, 200]);
+        expect(responses).toIncludeSameMembers([400, 400, 400, 400, 400, 400, 200]);
       }
     });
   });
@@ -643,12 +655,12 @@ describe('api/v2/flights', () => {
   it('does not throw when there are no flights in the system', async () => {
     expect.hasAssertions();
 
-    await (await getDb()).collection('flights').deleteMany({});
+    await (await getFlightsDb()).flightsDb.deleteMany();
 
     await testApiHandler({
-      handler: v2Flights,
+      pagesHandler: api.v2.flights,
       test: async ({ fetch }) => {
-        const response = await fetch({ headers: { KEY } });
+        const response = await fetch();
 
         expect(response.status).toBe(200);
         expect((await response.json()).success).toBe(true);
@@ -659,25 +671,25 @@ describe('api/v2/flights', () => {
   it('returns same flights as /all if no query params given', async () => {
     expect.hasAssertions();
 
-    let v2FlightsFlight: PublicFlight[];
+    let v2Flights: PublicFlight[];
 
     await testApiHandler({
-      handler: v2Flights,
+      pagesHandler: api.v2.flights,
       test: async ({ fetch }) => {
-        const response = await fetch({ headers: { KEY } });
-        v2FlightsFlight = (await response.json()).flights;
+        const response = await fetch();
+        v2Flights = (await response.json()).flights;
       }
     });
 
     await testApiHandler({
-      handler: v2Flights,
+      pagesHandler: api.v2.flights,
       test: async ({ fetch }) => {
-        const response = await fetch({ headers: { KEY } });
+        const response = await fetch();
         const json = await response.json();
 
         expect(response.status).toBe(200);
         expect(json.success).toBe(true);
-        expect(json.flights).toStrictEqual(v2FlightsFlight);
+        expect(json.flights).toStrictEqual(v2Flights);
       }
     });
   });
@@ -685,12 +697,10 @@ describe('api/v2/flights', () => {
   it('returns expected public flights with respect to offset (after)', async () => {
     expect.hasAssertions();
 
-    const flights = getHydratedData().flights.map(convertIFlightToPFlight);
-
     const genUrl = (function* () {
       yield `/?after=`;
-      yield `/?after=${flights[0].flight_id}`;
-      yield `/?after=${new ObjectId()}`;
+      yield `/?after=${v2Flights[0]!.flight_id}`;
+      yield `/?after=${nonExistentObjectId}`;
     })();
 
     await testApiHandler({
@@ -698,19 +708,19 @@ describe('api/v2/flights', () => {
         req.url = genUrl.next().value || undefined;
       },
 
-      handler: v2Flights,
+      pagesHandler: api.v2.flights,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          Array.from({length: 3}).map((_) => {
-            return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : null));
+          Array.from({ length: 3 }).map(() => {
+            return fetch().then((r) => r.json());
           })
         );
 
         expect(responses.some((o) => !o?.success)).toBeFalse();
 
         expect(responses.map((r) => r.flights)).toIncludeSameMembers([
-          flights.slice(0, RESULT_SIZE),
-          flights.slice(1, RESULT_SIZE + 1),
+          v2Flights.slice(0, resultSize),
+          v2Flights.slice(1, resultSize + 1),
           []
         ]);
       }
@@ -719,8 +729,6 @@ describe('api/v2/flights', () => {
 
   it('returns expected public flights in the requested sort order', async () => {
     expect.hasAssertions();
-
-    const flights = getHydratedData().flights.map(convertIFlightToPFlight);
 
     const genUrl = (function* () {
       yield `/?sort=`;
@@ -734,11 +742,11 @@ describe('api/v2/flights', () => {
         req.url = genUrl.next().value || undefined;
       },
 
-      handler: v2Flights,
+      pagesHandler: api.v2.flights,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          Array.from({length: 4}).map((_) => {
-            return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : r.status));
+          Array.from({ length: 4 }).map(() => {
+            return fetch().then((r) => (r.ok ? r.json() : r.status));
           })
         );
 
@@ -746,9 +754,9 @@ describe('api/v2/flights', () => {
 
         expect(properResponses.some((o) => !o?.success)).toBeFalse();
         expect(properResponses.map((r) => r.flights)).toIncludeSameMembers([
-          flights.slice(0, RESULT_SIZE),
-          flights.slice(150, RESULT_SIZE + 150).reverse(),
-          flights.slice(0, RESULT_SIZE)
+          v2Flights.slice(0, resultSize),
+          v2Flights.slice(150, resultSize + 150).toReversed(),
+          v2Flights.slice(0, resultSize)
         ]);
 
         expect(responses[3]).toBe(400);
@@ -759,7 +767,6 @@ describe('api/v2/flights', () => {
   it('returns expected public flights with respect to match', async () => {
     expect.hasAssertions();
 
-    const flights = getHydratedData().flights.map(convertIFlightToPFlight);
     const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
     const genUrl = (function* () {
@@ -773,46 +780,43 @@ describe('api/v2/flights', () => {
         req.url = genUrl.next().value || undefined;
       },
 
-      handler: v2Flights,
+      pagesHandler: api.v2.flights,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          Array.from({length: 3}).map((_) => {
-            return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : r.status));
+          Array.from({ length: 3 }).map(() => {
+            return fetch().then((r) => r.json());
           })
         );
 
         expect(responses.some((o) => !o?.success)).toBeFalse();
         expect(responses.map((r) => r.flights)).toIncludeSameMembers([
-          flights.filter((f) => f.airline === 'Spirit').slice(0, RESULT_SIZE),
-          flights.filter((f) => f.type === 'departure').slice(0, RESULT_SIZE),
-          flights.filter((f) => f.landingAt === 'F1A').slice(0, RESULT_SIZE)
+          v2Flights.filter((f) => f.airline === 'Spirit').slice(0, resultSize),
+          v2Flights.filter((f) => f.type === 'departure').slice(0, resultSize),
+          v2Flights.filter((f) => f.landingAt === 'F1A').slice(0, resultSize)
         ]);
       }
     });
 
     await testApiHandler({
-      handler: v2Flights,
+      pagesHandler: api.v2.flights,
       requestPatcher: (req) => {
         req.url = `/?match=${encode({ ffms: { $eq: 500 } })}`;
       },
-      test: async ({ fetch }) =>
-        expect((await fetch({ headers: { KEY } })).status).toBe(400)
+      test: async ({ fetch }) => expect((await fetch()).status).toBe(400)
     });
 
     await testApiHandler({
-      handler: v2Flights,
+      pagesHandler: api.v2.flights,
       requestPatcher: (req) => {
         req.url = `/?match=${encode({ bad: 500 })}`;
       },
-      test: async ({ fetch }) =>
-        expect((await fetch({ headers: { KEY } })).status).toBe(400)
+      test: async ({ fetch }) => expect((await fetch()).status).toBe(400)
     });
   });
 
   it('returns expected public flights with respect to regexMatch', async () => {
     expect.hasAssertions();
 
-    const flights = getHydratedData().flights.map(convertIFlightToPFlight);
     const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
     const genUrl = (function* () {
@@ -827,20 +831,20 @@ describe('api/v2/flights', () => {
         req.url = genUrl.next().value || undefined;
       },
 
-      handler: v2Flights,
+      pagesHandler: api.v2.flights,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          Array.from({length: 4}).map((_) => {
-            return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : r.status));
+          Array.from({ length: 4 }).map(() => {
+            return fetch().then((r) => r.json());
           })
         );
 
         expect(responses.some((o) => !o?.success)).toBeFalse();
         expect(responses.map((r) => r.flights)).toIncludeSameMembers([
-          flights.filter((f) => /spirit/i.test(f.airline)).slice(0, RESULT_SIZE),
-          flights.filter((f) => /^dep/i.test(f.type)).slice(0, RESULT_SIZE),
-          flights.filter((f) => /u.*/i.test(f.flightNumber)).slice(0, RESULT_SIZE),
-          flights.filter((f) => /U.*/i.test(f.flightNumber)).slice(0, RESULT_SIZE)
+          v2Flights.filter((f) => /spirit/i.test(f.airline)).slice(0, resultSize),
+          v2Flights.filter((f) => /^dep/i.test(f.type)).slice(0, resultSize),
+          v2Flights.filter((f) => /u.*/i.test(f.flightNumber)).slice(0, resultSize),
+          v2Flights.filter((f) => /U.*/i.test(f.flightNumber)).slice(0, resultSize)
         ]);
       }
     });
@@ -862,11 +866,11 @@ describe('api/v2/flights', () => {
         req.url = genUrl.next().value || undefined;
       },
 
-      handler: v2Flights,
+      pagesHandler: api.v2.flights,
       test: async ({ fetch }) => {
         await Promise.all(
-          Array.from({length: 3}).map((_) => {
-            return fetch({ headers: { KEY } })
+          Array.from({ length: 3 }).map(() => {
+            return fetch()
               .then((r) => r.status)
               .then((s) => expect(s).toBe(400));
           })
@@ -898,11 +902,11 @@ describe('api/v2/flights', () => {
         req.url = genUrl.next().value || undefined;
       },
 
-      handler: v2Flights,
+      pagesHandler: api.v2.flights,
       test: async ({ fetch }) => {
         await Promise.all(
-          Array.from({length: 10}).map((_) => {
-            return fetch({ headers: { KEY } })
+          Array.from({ length: 10 }).map(() => {
+            return fetch()
               .then((r) => r.status)
               .then((s) => expect(s).toBe(400));
           })
@@ -914,12 +918,11 @@ describe('api/v2/flights', () => {
   it('returns expected public flights with respect to all parameters simultaneously', async () => {
     expect.hasAssertions();
 
-    const flights = getHydratedData().flights.map(convertIFlightToPFlight);
     const encode = (o: Record<string, unknown>) => encodeURIComponent(JSON.stringify(o));
 
     const genUrl = (function* () {
-      yield `/?sort=desc&after=${flights[249].flight_id}&match=${encode({ ffms: { $gt: 1_000_000 } })}&regexMatch=${encode({ airline: 'spirit' })}`;
-      yield `/?sort=desc&after=${flights[0].flight_id}&match=${encode({ ffms: { $gt: 1_000_000 } })}&regexMatch=${encode({ airline: 'spirit' })}`;
+      yield `/?sort=desc&after=${v2Flights[249]!.flight_id}&match=${encode({ ffms: { $gt: 1_000_000 } })}&regexMatch=${encode({ airline: 'spirit' })}`;
+      yield `/?sort=desc&after=${v2Flights[0]!.flight_id}&match=${encode({ ffms: { $gt: 1_000_000 } })}&regexMatch=${encode({ airline: 'spirit' })}`;
     })();
 
     await testApiHandler({
@@ -927,17 +930,17 @@ describe('api/v2/flights', () => {
         req.url = genUrl.next().value || undefined;
       },
 
-      handler: v2Flights,
+      pagesHandler: api.v2.flights,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          Array.from({length: 2}).map((_) => {
-            return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : r.status));
+          Array.from({ length: 2 }).map(() => {
+            return fetch().then((r) => r.json());
           })
         );
 
         expect(responses.some((o) => !o?.success)).toBeFalse();
         expect(responses.map((r) => r.flights)).toIncludeSameMembers([
-          [flights[248]],
+          [v2Flights[248]],
           []
         ]);
       }
@@ -947,16 +950,14 @@ describe('api/v2/flights', () => {
   it('returns expected flights when searching by flight_id', async () => {
     expect.hasAssertions();
 
-    const flightIds = getHydratedData().flights.map((flight) =>
-      flight._id.toHexString()
-    );
+    const flightIds = dummyAppData.flights.map((flight) => flight._id.toHexString());
     const encode = (ids: string[]) =>
       encodeURIComponent(JSON.stringify({ flight_id: ids.join('|') }));
 
     const genUrl = (function* () {
-      yield `/?regexMatch=${encode([flightIds[0]])}`;
-      yield `/?regexMatch=${encode([flightIds[50]])}`;
-      yield `/?regexMatch=${encode([flightIds[249]])}`;
+      yield `/?regexMatch=${encode([flightIds[0]!])}`;
+      yield `/?regexMatch=${encode([flightIds[50]!])}`;
+      yield `/?regexMatch=${encode([flightIds[249]!])}`;
       yield `/?regexMatch=${encode(flightIds.slice(0, 50))}`;
       yield `/?regexMatch=${encode(flightIds.slice(90, 150))}`;
       yield `/?regexMatch=${encode([...flightIds.slice(90, 150), new ObjectId().toHexString()])}`;
@@ -968,11 +969,11 @@ describe('api/v2/flights', () => {
       requestPatcher: (req) => {
         req.url = genUrl.next().value || undefined;
       },
-      handler: v2Flights,
+      pagesHandler: api.v2.flights,
       test: async ({ fetch }) => {
         const responses = await Promise.all(
-          Array.from({length: 8}).map((_) => {
-            return fetch({ headers: { KEY } }).then((r) => (r.ok ? r.json() : null));
+          Array.from({ length: 8 }).map(() => {
+            return fetch().then((r) => r.json());
           })
         );
 

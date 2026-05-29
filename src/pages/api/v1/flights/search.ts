@@ -1,72 +1,41 @@
-import { handleEndpoint } from 'universe/backend/middleware';
-import {
-  searchFlights,
-  convertPFlightToPFlightForV1Only
-} from 'universe/backend';
-import { sendHttpOk, sendHttpBadRequest } from 'multiverse/next-respond';
-import { NotFoundError } from 'universe/backend/error';
-import { ObjectId } from 'mongodb';
+import { getAuthedClientToken } from '@-xun/api-strategy/auth';
+import { sendHttpOk } from '@-xun/respond';
+import { searchFlights } from '@nhscc/backend-airports~npm';
+import { toPublicFlightV1 } from '@nhscc/backend-airports~npm/db';
 
-import type { NextApiResponse, NextApiRequest } from 'next';
+import { withMiddleware } from 'universe:route-wrapper.ts';
 
-export { config } from 'universe/backend/middleware';
+export { defaultConfig as config } from '@nhscc/backend-airports~npm/api';
 
-export default async function (req: NextApiRequest, res: NextApiResponse) {
-  await handleEndpoint(
-    async ({ req, res }) => {
-      const key = req.headers.key?.toString() || '';
-      let after: ObjectId | null;
-      let match: Record<string, unknown> | null = null;
-      let regexMatch: Record<string, unknown> | null = null;
+export const metadata = {
+  descriptor: '/v1/flights/search',
+  apiVersion: '1'
+};
 
-      try {
-        after = req.query.after
-          ? new ObjectId(req.query.after.toString())
-          : null;
-      } catch (e) {
-        throw new NotFoundError(req.query.after.toString());
-      }
+export default withMiddleware(
+  async (req, res) => {
+    const clientToken = await getAuthedClientToken(req);
 
-      try {
-        match = JSON.parse((req.query.match || '{}').toString());
-        regexMatch = JSON.parse((req.query.regexMatch || '{}').toString());
-      } catch (e) {
-        sendHttpBadRequest(res, { error: `bad match or regexMatch: ${e}` });
-      }
-
-      if (!match || !regexMatch) return;
-
-      const localSort = (req.query.sort || 'asc').toString();
-
-      if (!['asc', 'desc'].includes(localSort))
-        sendHttpBadRequest(res, { error: 'unrecognized sort option' });
-      else {
-        // ? seatPrice in match/regexMatch? Convert it to a proper query!
-        if (match.seatPrice) {
-          match['seats.economy.priceDollars'] = match.seatPrice;
-          delete match.seatPrice;
-        }
-
-        if (regexMatch.seatPrice) {
-          regexMatch['seats.economy.priceDollars'] = regexMatch.seatPrice;
-          delete regexMatch.seatPrice;
-        }
-
-        sendHttpOk(res, {
-          flights: (
-            await searchFlights({
-              key,
-              after,
-              // @ts-expect-error: validation is handled
-              match,
-              // @ts-expect-error: validation is handled
-              regexMatch,
-              sort: localSort as 'asc' | 'desc'
-            })
-          ).map(convertPFlightToPFlightForV1Only)
-        });
-      }
-    },
-    { req, res, methods: ['GET'], apiVersion: 1 }
-  );
-}
+    // * GET
+    sendHttpOk(res, {
+      flights: (
+        await searchFlights({
+          bookerKey: clientToken?.attributes.owner,
+          after_id: req.query.after?.toString(),
+          match: req.query.match?.toString(),
+          regexMatch: req.query.regexMatch?.toString(),
+          sort: req.query.sort?.toString()
+        })
+      )
+        // eslint-disable-next-line unicorn/no-array-callback-reference
+        .map(toPublicFlightV1)
+    });
+  },
+  {
+    descriptor: metadata.descriptor,
+    options: {
+      allowedMethods: ['GET'],
+      apiVersion: metadata.apiVersion
+    }
+  }
+);

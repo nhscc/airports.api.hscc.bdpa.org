@@ -1,16 +1,25 @@
-import { getAirports } from 'universe/backend';
-import { sendHttpOk } from 'multiverse/next-respond';
-import { handleEndpoint } from 'universe/backend/middleware';
+import { sendHttpOk } from '@-xun/respond';
+import { getAirports } from '@nhscc/backend-airports~npm';
 
-import type { NextApiResponse, NextApiRequest } from 'next';
+import { withMiddleware } from 'universe:route-wrapper.ts';
 
-export { config } from 'universe/backend/middleware';
+export { defaultConfig as config } from '@nhscc/backend-airports~npm/api';
 
-export default async function (req: NextApiRequest, res: NextApiResponse) {
-  await handleEndpoint(
-    async ({ res }) => {
-      sendHttpOk(res, { airports: await getAirports() });
-    },
-    { req, res, methods: ['GET'], apiVersion: 2 }
-  );
-}
+export const metadata = {
+  descriptor: '/v2/info/airports',
+  apiVersion: '2'
+};
+
+export default withMiddleware(
+  async (_req, res) => {
+    // * GET
+    sendHttpOk(res, { airports: await getAirports() });
+  },
+  {
+    descriptor: metadata.descriptor,
+    options: {
+      allowedMethods: ['GET'],
+      apiVersion: metadata.apiVersion
+    }
+  }
+);

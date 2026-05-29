@@ -1,42 +1,41 @@
-import { handleEndpoint } from 'universe/backend/middleware';
-import {
-  searchFlights,
-  convertPFlightToPFlightForV1Only
-} from 'universe/backend';
-import { sendHttpOk } from 'multiverse/next-respond';
-import { NotFoundError } from 'universe/backend/error';
-import { ObjectId } from 'mongodb';
+import { getAuthedClientToken } from '@-xun/api-strategy/auth';
+import { sendHttpOk } from '@-xun/respond';
+import { searchFlights } from '@nhscc/backend-airports~npm';
+import { toPublicFlightV1 } from '@nhscc/backend-airports~npm/db';
 
-import type { NextApiResponse, NextApiRequest } from 'next';
+import { withMiddleware } from 'universe:route-wrapper.ts';
 
-export { config } from 'universe/backend/middleware';
+export { defaultConfig as config } from '@nhscc/backend-airports~npm/api';
 
-export default async function (req: NextApiRequest, res: NextApiResponse) {
-  await handleEndpoint(
-    async ({ req, res }) => {
-      const key = req.headers.key?.toString() || '';
-      let after: ObjectId | null;
+export const metadata = {
+  descriptor: '/v1/flights/all',
+  apiVersion: '1'
+};
 
-      try {
-        after = req.query.after
-          ? new ObjectId(req.query.after.toString())
-          : null;
-      } catch (e) {
-        throw new NotFoundError(req.query.after.toString());
-      }
+export default withMiddleware(
+  async (req, res) => {
+    const clientToken = await getAuthedClientToken(req);
 
-      sendHttpOk(res, {
-        flights: (
-          await searchFlights({
-            key,
-            after,
-            match: {},
-            regexMatch: {},
-            sort: 'asc'
-          })
-        ).map(convertPFlightToPFlightForV1Only)
-      });
-    },
-    { req, res, methods: ['GET'], apiVersion: 1 }
-  );
-}
+    // * GET
+    sendHttpOk(res, {
+      flights: (
+        await searchFlights({
+          bookerKey: clientToken?.attributes.owner,
+          after_id: req.query.after?.toString(),
+          match: undefined,
+          regexMatch: undefined,
+          sort: 'asc'
+        })
+      )
+        // eslint-disable-next-line unicorn/no-array-callback-reference
+        .map(toPublicFlightV1)
+    });
+  },
+  {
+    descriptor: metadata.descriptor,
+    options: {
+      allowedMethods: ['GET'],
+      apiVersion: metadata.apiVersion
+    }
+  }
+);

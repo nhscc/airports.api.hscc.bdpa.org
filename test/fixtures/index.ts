@@ -99,9 +99,9 @@ export const api = {
     flights: V2EndpointFlights as NextApiHandlerMixin,
     infoAirlines: V2EndpointInfoAirlines as NextApiHandlerMixin,
     infoAirports: V2EndpointInfoAirports as NextApiHandlerMixin,
-    allExtras: V2EndpointInfoAllExtras as NextApiHandlerMixin,
+    infoAllExtras: V2EndpointInfoAllExtras as NextApiHandlerMixin,
     infoNoFlyList: V2EndpointInfoNoFlyList as NextApiHandlerMixin,
-    seatClasses: V2EndpointInfoSeatClasses as NextApiHandlerMixin
+    infoSeatClasses: V2EndpointInfoSeatClasses as NextApiHandlerMixin
   }
 };
 
@@ -121,9 +121,9 @@ api.v1.infoNoFlyList.config = V1ConfigInfoNoFlyList;
 api.v2.flights.config = V2ConfigFlights;
 api.v2.infoAirlines.config = V2ConfigInfoAirlines;
 api.v2.infoAirports.config = V2ConfigInfoAirports;
-api.v2.allExtras.config = V2ConfigInfoAllExtras;
+api.v2.infoAllExtras.config = V2ConfigInfoAllExtras;
 api.v2.infoNoFlyList.config = V2ConfigInfoNoFlyList;
-api.v2.seatClasses.config = V2ConfigInfoSeatClasses;
+api.v2.infoSeatClasses.config = V2ConfigInfoSeatClasses;
 
 // **                           **
 // ** Add metadata descriptors  **
@@ -141,9 +141,9 @@ api.v1.infoNoFlyList.uri = V1MetadataInfoNoFlyList.descriptor;
 api.v2.flights.uri = V2MetadataFlights.descriptor;
 api.v2.infoAirlines.uri = V2MetadataInfoAirlines.descriptor;
 api.v2.infoAirports.uri = V2MetadataInfoAirports.descriptor;
-api.v2.allExtras.uri = V2MetadataInfoAllExtras.descriptor;
+api.v2.infoAllExtras.uri = V2MetadataInfoAllExtras.descriptor;
 api.v2.infoNoFlyList.uri = V2MetadataInfoNoFlyList.descriptor;
-api.v2.seatClasses.uri = V2MetadataInfoSeatClasses.descriptor;
+api.v2.infoSeatClasses.uri = V2MetadataInfoSeatClasses.descriptor;
 
 /**
  * A convenience function that mocks the entire backend and returns the mock

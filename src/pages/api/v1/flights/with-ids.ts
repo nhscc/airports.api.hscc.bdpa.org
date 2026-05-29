@@ -1,39 +1,42 @@
-import { handleEndpoint } from 'universe/backend/middleware';
-import { getFlightsById, convertPFlightToPFlightForV1Only } from 'universe/backend';
-import { sendHttpOk } from 'multiverse/next-respond';
-import { ObjectId } from 'mongodb';
+import { getAuthedClientToken } from '@-xun/api-strategy/auth';
+import { sendHttpOk } from '@-xun/respond';
+import { getFlightsById } from '@nhscc/backend-airports~npm';
+import { toPublicFlightV1 } from '@nhscc/backend-airports~npm/db';
 
-import type { NextApiResponse, NextApiRequest } from 'next';
+import { withMiddleware } from 'universe:route-wrapper.ts';
 
-export { config } from 'universe/backend/middleware';
+export { defaultConfig as config } from '@nhscc/backend-airports~npm/api';
 
-export default async function (req: NextApiRequest, res: NextApiResponse) {
-  await handleEndpoint(
-    async ({ req, res }) => {
-      const key = req.headers.key?.toString() || '';
-      let ids: ObjectId[];
+export const metadata = {
+  descriptor: '/v1/flights/with-ids',
+  apiVersion: '1'
+};
 
-      try {
-        const json: string[] = JSON.parse(req.query.ids.toString());
-        ids = json
-          .map((id) => {
-            try {
-              return new ObjectId(id);
-            } catch (e) {
-              return null;
-            }
+export default withMiddleware(
+  async (req, res) => {
+    const clientToken = await getAuthedClientToken(req);
+
+    try {
+      // * GET
+      sendHttpOk(res, {
+        flights: (
+          await getFlightsById({
+            bookerKey: clientToken?.attributes.owner,
+            flight_ids: req.query.ids?.toString()
           })
-          .filter((id): id is ObjectId => id !== null);
-
-        sendHttpOk(res, {
-          flights: (await getFlightsById({ key, ids })).map(
-            convertPFlightToPFlightForV1Only
-          )
-        });
-      } catch (e) {
-        sendHttpOk(res, { flights: [] });
-      }
-    },
-    { req, res, methods: ['GET'], apiVersion: 1 }
-  );
-}
+        )
+          // eslint-disable-next-line unicorn/no-array-callback-reference
+          .map(toPublicFlightV1)
+      });
+    } catch {
+      sendHttpOk(res, { flights: [] });
+    }
+  },
+  {
+    descriptor: metadata.descriptor,
+    options: {
+      allowedMethods: ['GET'],
+      apiVersion: metadata.apiVersion
+    }
+  }
+);

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-type-conversion */
 import { middlewareFactory } from '@-xun/api';
 import { makeMiddleware as makeAuthMiddleware } from '@-xun/api/middleware/auth-request';
 import { makeMiddleware as makeContentTypeMiddleware } from '@-xun/api/middleware/check-content-type';
