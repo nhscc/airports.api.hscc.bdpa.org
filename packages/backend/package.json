@@ -104,7 +104,7 @@
     "@-xun/mongo-schema": "^1.5.0",
     "@-xun/mongo-test": "^3.0.4",
     "core-js": "^3.49.0",
-    "mongodb": "^6.18.0",
+    "mongodb": "^7.2.0",
     "type-fest": "4.40.0"
   },
   "peerDependencies": {
