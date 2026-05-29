@@ -1,6 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import { getEnv as getDefaultEnv } from '@-xun/env';
 
-import type { Environment } from '@-xun/env';
+type Environment = {
+  [x: string]:
+    | (string | number | bigint | boolean | symbol | null | undefined)
+    | (string | number | bigint | boolean | symbol | null | undefined)[];
+};
 
 let envOverrides: Environment = {};
 
@@ -12,8 +17,8 @@ let envOverrides: Environment = {};
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export function getEnv<T extends Environment = Environment>() {
   const env = {
-    ...getDefaultEnv(),
-    ...envOverrides
+    ...(getDefaultEnv() as ReturnType<typeof getDefaultEnv<Record<string, never>>>),
+    ...(envOverrides as Environment)
   };
 
   return env as typeof env & T;
