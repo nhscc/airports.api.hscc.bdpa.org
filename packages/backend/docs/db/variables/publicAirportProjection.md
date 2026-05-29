@@ -8,7 +8,7 @@
 
 > `const` **publicAirportProjection**: `object`
 
-Defined in: [packages/backend/src/db.ts:311](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/c20d5d9fc2d2d1a784d1d934be931ba08894632f/packages/backend/src/db.ts#L311)
+Defined in: [packages/backend/src/db.ts:311](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/b470f9c9d96f6b35b8590436385b9275ea3cbfa3/packages/backend/src/db.ts#L311)
 
 A MongoDB cursor projection that transforms an [InternalAirport](../type-aliases/InternalAirport.md) into a
 [PublicAirport](../type-aliases/PublicAirport.md).

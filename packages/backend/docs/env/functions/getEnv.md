@@ -8,7 +8,7 @@
 
 > **getEnv**\<`T`\>(): `object` & `T`
 
-Defined in: [packages/backend/src/env.ts:13](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/c20d5d9fc2d2d1a784d1d934be931ba08894632f/packages/backend/src/env.ts#L13)
+Defined in: [packages/backend/src/env.ts:18](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/b470f9c9d96f6b35b8590436385b9275ea3cbfa3/packages/backend/src/env.ts#L18)
 
 Returns an object representing the application's runtime environment.
 
