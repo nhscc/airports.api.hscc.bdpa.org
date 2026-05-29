@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-base-to-string */
 import { itemToObjectId } from '@-xun/mongo-item';
+import { isRecord } from '@-xun/types';
 import { ObjectId } from 'mongodb';
 
 import {
@@ -177,7 +178,7 @@ export async function searchFlights({
 
   const sort = rawSort as SearchFlightsSort;
 
-  if (!isObject(rawMatch) || !isObject(rawRegexMatch)) {
+  if (!isRecord(rawMatch) || !isRecord(rawRegexMatch)) {
     throw new ClientValidationError(ErrorMessage.MissingRegexAndOrMatch());
   }
 
@@ -305,7 +306,7 @@ export async function searchFlights({
       let valNotEmpty = false;
 
       const test = () =>
-        isObject(val) &&
+        isRecord(val) &&
         Object.keys(val).every((subKey_) => {
           const subKey = subKey_ as (typeof matchableSubStrings)[number];
           valNotEmpty = true;
@@ -332,8 +333,4 @@ export async function searchFlights({
       );
     });
   }
-}
-
-function isObject(object: unknown): object is Record<string, unknown> {
-  return !Array.isArray(object) && object !== null && typeof object === 'object';
 }
