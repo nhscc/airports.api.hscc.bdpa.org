@@ -24,7 +24,7 @@
     "build:docs": "rejoin This package does not have buildable documentation",
     "build:topological": "symbiote project topology --run build --env NODE_NO_WARNINGS=1 --skip airports.api.hscc.bdpa.org",
     "clean": "symbiote clean --env NODE_NO_WARNINGS=1",
-    "dev": "next -p `npx -q acquire-port`",
+    "dev": "next dev --webpack -p `npx -q acquire-port`",
     "format": "symbiote format --env NODE_NO_WARNINGS=1 --hush",
     "info": "symbiote project info --env NODE_NO_WARNINGS=1",
     "lint": "npm run lint:package --",
