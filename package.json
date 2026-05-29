@@ -60,7 +60,7 @@
     "@nhscc/backend-airports": "^1.2.1",
     "@nhscc/backend-airports~npm": "npm:@nhscc/backend-airports@^1.0.0",
     "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.0",
+    "@testing-library/react": "^16.3.2",
     "@types/bytes": "^3.1.5",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.1.0",
