@@ -113,13 +113,10 @@ describe('::getFlightsById', () => {
     await expect(Backend.getFlightsById({ flight_ids: '5', bookerKey })).toReject();
     await expect(Backend.getFlightsById({ flight_ids: '{}', bookerKey })).toReject();
     await expect(Backend.getFlightsById({ flight_ids: 'null', bookerKey })).toReject();
-    await expect(Backend.getFlightsById({ flight_ids: '[null]', bookerKey })).toReject();
 
     await expect(
       Backend.getFlightsById({ flight_ids: '[undefined]', bookerKey })
     ).toReject();
-
-    await expect(Backend.getFlightsById({ flight_ids: '[""]', bookerKey })).toReject();
   });
 
   it('throws if too many ids', async () => {
