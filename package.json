@@ -18,7 +18,7 @@
     "!packages/ignore.*"
   ],
   "scripts": {
-    "build": "NODE_ENV=production npx next build",
+    "build": "NODE_ENV=production npx next build --webpack",
     "build:changelog": "symbiote build changelog --env NODE_NO_WARNINGS=1",
     "build:dist": "rejoin This package is does not have buildable distributables",
     "build:docs": "rejoin This package does not have buildable documentation",
