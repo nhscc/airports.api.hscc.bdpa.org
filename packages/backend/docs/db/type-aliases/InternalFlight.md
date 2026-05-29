@@ -6,8 +6,8 @@
 
 # Type Alias: InternalFlight
 
-> **InternalFlight** = `WithId`\<\{ `airline`: `string`; `baggage`: \{ `carry`: \{ `max`: `number`; `prices`: `number`[]; \}; `checked`: \{ `max`: `number`; `prices`: `number`[]; \}; \}; `bookerAuthId`: `string` \| `null`; `comingFrom`: `string`; `departingTo`: `string` \| `null`; `extras`: \{\[`name`: `string`\]: `object`; \}; `ffms`: `number`; `flightNumber`: [`FlightNumber`](FlightNumber.md); `landingAt`: `string`; `seats`: \{\[`seatClass`: `string`\]: `object`; \}; `stochasticStates`: \{\[`activeAfter`: `string`\]: [`StochasticFlightState`](StochasticFlightState.md); \}; `type`: `"arrival"` \| `"departure"`; \}\>
+> **InternalFlight** = `WithId`\<\{ `airline`: `string`; `baggage`: \{ `carry`: \{ `max`: `number`; `prices`: `number`[]; \}; `checked`: \{ `max`: `number`; `prices`: `number`[]; \}; \}; `booker_id`: `string` \| `null`; `comingFrom`: `string`; `departingTo`: `string` \| `null`; `extras`: \{\[`name`: `string`\]: `object`; \}; `ffms`: `number`; `flightNumber`: [`FlightNumber`](FlightNumber.md); `landingAt`: `string`; `seats`: \{\[`seatClass`: `string`\]: `object`; \}; `stochasticStates`: \{\[`activeAfter`: `string`\]: [`StochasticFlightState`](StochasticFlightState.md); \}; `type`: `"arrival"` \| `"departure"`; \}\>
 
-Defined in: [packages/backend/src/db.ts:133](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/f004616541a33433190943097b5a6b00f257295b/packages/backend/src/db.ts#L133)
+Defined in: [packages/backend/src/db.ts:141](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/9f0680e2ff55e82b02cce781e2f3d87b84a665f2/packages/backend/src/db.ts#L141)
 
 The shape of an internal flight.

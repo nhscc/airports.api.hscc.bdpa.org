@@ -8,6 +8,6 @@
 
 > **PublicAirline** = `WithoutId`\<[`InternalAirline`](InternalAirline.md)\>
 
-Defined in: [packages/backend/src/db.ts:209](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/f004616541a33433190943097b5a6b00f257295b/packages/backend/src/db.ts#L209)
+Defined in: [packages/backend/src/db.ts:218](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/9f0680e2ff55e82b02cce781e2f3d87b84a665f2/packages/backend/src/db.ts#L218)
 
 The shape of a public airline.

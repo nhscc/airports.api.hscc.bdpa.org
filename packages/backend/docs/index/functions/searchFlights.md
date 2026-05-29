@@ -8,7 +8,7 @@
 
 > **searchFlights**(`__namedParameters`): `Promise`\<[`PublicFlight`](../../db/type-aliases/PublicFlight.md)[]\>
 
-Defined in: [packages/backend/src/index.ts:149](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/f004616541a33433190943097b5a6b00f257295b/packages/backend/src/index.ts#L149)
+Defined in: [packages/backend/src/index.ts:149](https://github.com/nhscc/airports.api.hscc.bdpa.org/blob/9f0680e2ff55e82b02cce781e2f3d87b84a665f2/packages/backend/src/index.ts#L149)
 
 ## Parameters
 
@@ -18,7 +18,7 @@ Defined in: [packages/backend/src/index.ts:149](https://github.com/nhscc/airport
 
 `string` \| `undefined`
 
-#### bookerAuthId
+#### booker_id
 
 `string` \| `undefined`
 
