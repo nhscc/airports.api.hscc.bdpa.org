@@ -22,8 +22,8 @@ All flights start off in a state where their status is <span style="color:
 rgb(31, 119, 180)">_scheduled_ (**A**)</span>, meaning they are scheduled to
 arrive at their `landingAt` airport (at `arriveAtReceiver` time) coming in from
 their `comingFrom` airport (at `departFromSender` time). Once `departFromSender`
-time elapses, there's an 80% chance the flight status becomes <span
-style="color: rgb(255, 127, 14)">_on time_ (**B**)</span> and a 20% chance the
+time elapses, there's an 95% chance the flight status becomes <span
+style="color: rgb(255, 127, 14)">_on time_ (**B**)</span> and a 5% chance the
 flight status becomes <span style="color: rgb(44, 160, 44)">_cancelled_
 (**C**)</span>. Once a flight is cancelled, it no longer changes states in the
 system.
@@ -60,7 +60,7 @@ flight's status becomes <span style="color: rgb(23, 190, 207)">_boarding_
 (**J**)</span>.
 
 Once `departFromReceiver` elapses, the flight's status becomes <span
-style="color: rgb(31, 119, 180)">_boarding_ (**K**)</span>. 2 to 5 hours after
+style="color: rgb(31, 119, 180)">_departed_ (**K**)</span>. 2 to 5 hours after
 that, the flight's status becomes <span style="color: rgb(255, 127, 14)">_past_
 (**L**)</span> and no longer changes states in the system.
 
