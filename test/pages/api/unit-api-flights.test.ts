@@ -65,7 +65,7 @@ const resultSize = getEnv().RESULTS_PER_PAGE;
 const booker_id = dummyRootData.auth[1]!._id.toString();
 
 const nonExistentObjectIdFromTheFuture = ObjectId.createFromTime(
-  Date.now() * 2
+  Date.now() + 10 ** 4
 ).toString();
 
 const v1Flights = dummyAppData.flights.map(internalFlightToPublicFlightV1);
